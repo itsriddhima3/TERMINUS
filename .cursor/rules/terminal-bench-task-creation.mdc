@@ -1,17 +1,18 @@
 ---
-description: Terminal-Bench 3.0 - task creation guidelines, workflow, validation, and submission
+description: Terminal-Bench 3.0 Edition 2 - task creation guidelines, workflow, validation, and submission
 alwaysApply: true
 ---
 
-# Terminal-Bench 3.0 — Complete Guide
+# Terminal-Bench 3.0 Edition 2 — Complete Guide
 
 ## Before Writing Any Code — Gather Required Information
 
-When a user wants to create a new task, ALWAYS ask for the following BEFORE writing any code:
+When a user wants to create a new task, ALWAYS ask for ALL missing required fields BEFORE writing any code — even if the user already provided some information (like the problem statement or category). Check what's been given and ask for anything still missing.
 
+**Required fields (MUST ask if not provided):**
 1. **Task Idea**: What should the task accomplish? What problem should the agent solve?
 2. **Programming Language**: What language(s) will the solution primarily use? (Python, Bash, Rust, etc.)
-3. **Difficulty Level**: easy, medium, or hard
+3. **Difficulty Level**: easy, medium, or hard — ALWAYS ask, never assume
 4. **Category**: Ask user to choose from:
    - system-administration
    - build-and-dependency-management
@@ -25,9 +26,15 @@ When a user wants to create a new task, ALWAYS ask for the following BEFORE writ
 5. **Author Email**: ALWAYS ask for the author email. NEVER fill in a placeholder or guess.
 6. **Task Name**: A kebab-case name for the task directory (e.g., distributed-trace-analysis)
 
+**Optional fields (ask if relevant):**
+7. **Task Subtypes**: Ask if the task aligns with any Edition 2 subtypes (see Task Subtypes section below)
+8. **Milestones**: Ask if the task should be milestone-based for complex multi-step challenges
+
 ### Fixed Values (Do Not Ask)
 - **Author Name**: Always set to `Xelron`
 - **Version**: Always `1.0`
+
+### CRITICAL: Even if the user provides a problem statement and category, you MUST still ask for: author_email, difficulty level, and task name before writing any code. Do NOT guess or use defaults for these fields.
 
 ## Workflow
 
@@ -67,6 +74,7 @@ Open PR from fork → fill PR template → CI runs automatically.
 
 ## Task Structure
 
+### Standard Task (single test file)
 ```
 tasks/<task-name>/
 ├── instruction.md          # Task instruction for the agent
@@ -79,8 +87,35 @@ tasks/<task-name>/
 │   └── solve.py            # Optional: Python scripts called by solve.sh
 └── tests/
     ├── test.sh             # Test runner script
-    └── test_state.py       # Pytest verification tests
+    └── test_outputs.py     # Pytest verification tests (MUST be named test_outputs.py)
 ```
+
+### Milestone Task (multiple test files)
+```
+tasks/<task-name>/
+├── instruction.md
+├── task.toml               # Must include number_of_milestones, milestone_descriptions
+├── environment/
+│   ├── Dockerfile
+│   └── data/
+├── solution/
+│   └── solve.sh
+└── tests/
+    ├── test.sh
+    ├── test_milestone_1.py  # Verifier for milestone 1
+    ├── test_milestone_2.py  # Verifier for milestone 2
+    └── test_milestone_N.py  # One file per milestone
+```
+
+**IMPORTANT**: Do NOT include a `rubrics.txt` file in the task or zip. Rubrics are generated and edited via the submission UI.
+
+## Directory Hygiene
+- Keep the parent task directory clean — move all non-essential files to relevant subdirectories
+- Only standard files (instruction.md, task.toml) belong at the task root level
+
+## Containerization
+- Prefer **single-container** setups unless the task explicitly requires orchestrated multi-container environments
+- Do not over-index on multi-container setups
 
 ## Canary String (Required in ALL task files)
 
@@ -91,15 +126,19 @@ tasks/<task-name>/
 
 ## File Rules
 
-### instruction.md
+### instruction.md — Edition 2 Prompt Styling
 - **Must be written by a human** (AI detection via GPTZero, fails if >70%)
+- **Problem Description**: Strictly **1-2 paragraphs** — state the "why" and current environment state
+- **Requirements**: Maximum **2 paragraphs or 20 bullet points** — specific, measurable, but not spoon-fed
+- **Tone**: Must sound like a **senior engineer speaking to a peer** — concise, technical, 150-200 words of actionable info
+- **Forbidden**: No LLM-isms ("You are an expert...", "Certainly!", verbose/repetitive/overly polite language)
 - Use absolute paths (`/app/output.txt`, never `./output.txt`)
 - List ALL expected output files the tests will check
-- Best tasks described succinctly in **2-3 paragraphs** — avoid overspecification
 - Don't enumerate step-by-step procedures — state the goal, let the agent explore
 - Don't give excessive hints on how to solve it
 - If agent produces structured data (e.g., JSON), the exact schema must be documented
 - Include canary as HTML comment: `<!-- harbor-canary GUID ... -->`
+- Use standard technical Markdown — avoid over-use of bolding and flowery transitions
 
 ### task.toml
 - `author_name` = "Xelron" (always)
@@ -109,28 +148,126 @@ tasks/<task-name>/
 - Pin external dependency versions (pip, npm) for reproducibility
 - Don't pin apt package versions
 
+#### Edition 2 New Fields
+- `codebase_context_scale` = "minimal", "Small", or "Large" (recommended)
+- `task_subtypes` = array of subtypes if applicable (optional, see Task Subtypes)
+- `expert_time_estimate_min` = estimated minutes for an expert (recommended)
+- `junior_time_estimate_min` = estimated minutes for a junior developer (recommended)
+
+#### Milestone Fields (only for milestone tasks)
+- `number_of_milestones` = integer count of milestones
+- `milestone_descriptions` = string describing the desired outcome of each stage
+
+#### Timeout Guidance
+- `[verifier] timeout_sec`: Minimum 120s. Recommend **300s+** for tasks where test.sh installs packages from the network (apt-get, uv, curl). Use 600s for heavy environments (JDK, large dependencies).
+- `[agent] timeout_sec`: 900s is standard for hard tasks
+- `[environment] build_timeout_sec`: 600-900s depending on Docker image size
+
 ### Dockerfile
 - NEVER copy solution/ or tests/ into the container
 - NEVER pin apt versions (e.g., `curl=7.68.0`)
 - Always: `apt-get update && apt-get install -y ... && rm -rf /var/lib/apt/lists/*`
 - Data files: put in `environment/data/`, use `COPY data /root/data`
 - Files >100MB: use download scripts, don't commit
+- Prefer single-container unless multi-container is explicitly required
 
 ### solve.sh
 - **Must be written by a human** (with minimal LLM help)
 - Must pass ALL tests when run inside the container
 - Can call Python scripts in the solution/ folder
 
-### test_state.py
+### test_outputs.py (RENAMED from test_state.py in Edition 2)
+- **File MUST be named `test_outputs.py`** (not test_state.py)
+- For milestone tasks: use `test_milestone_1.py`, `test_milestone_2.py`, etc.
 - One test per requirement in instruction.md
 - Informative docstrings on every test function
 - Make it hard for agents to cheat (don't put answers in filenames, don't let agents edit data files)
 - Include canary string
+- Update the reference in `test.sh` to point to `test_outputs.py`
+
+## Task Subtypes (Edition 2)
+
+Tasks can optionally align with one or more subtypes. Add matching subtypes to `task_subtypes` in task.toml.
+
+### 1. Long Context
+- Tasks requiring models to read large documents (≥50k tokens)
+- File cannot simply be parsed programmatically or through keyword search
+- Must rely on the model's semantic understanding
+- Formats: PDF, DOCX, Markdown/TXT, HTML, JSON/YAML, CSV, Chat Logs, Email
+
+### 2. Tool Specific
+- Tasks targeting tools/SDKs where models underperform
+- Examples: Blender, FFmpeg, ImageMagick, Graphviz, MLFlow, WandB, Prefect, Superset, GIMP, QGIS
+
+### 3. API Integration
+- Tasks involving building, interacting with, or debugging APIs
+- APIs must be mocked within Docker — no external dependencies
+- Agent interacts via terminal only (no MCP)
+- API source code must be included in the environment
+- Frameworks: Flask, Rails, Django, Express, Fastify, Gin, Spring Boot, Play, etc.
+- Avoid overusing FastAPI (already oversaturated in other datasets)
+
+### 4. DB Interaction
+- Tasks requiring interaction with a running database engine
+- DB Types: SQL, NoSQL, Vector DBs, In-Memory DBs
+- Flat-file CSVs should be the minority — agents must actually interact with DB engines
+
+### 5. UI Building
+- Tasks that create, edit, or update a user interface
+- Tested via **Playwright** (not the usual pytest validators)
+
+## Milestones (Edition 2)
+
+Milestones divide complex tasks into sequential subtasks. Optional — use for multi-step engineering challenges.
+
+### The Milestone Rule
+Each milestone must be a prerequisite for the next. The agent must signal completion before the framework validates and allows progression.
+
+### Components
+1. **instruction.md**: Clearly outline requirements per milestone with headings/numbered lists
+2. **tests/**: Separate verifier per milestone (`test_milestone_1.py`, `test_milestone_2.py`)
+3. **task.toml**: Include `number_of_milestones` and `milestone_descriptions`
+
+### Verification Requirements
+- **Deterministic Checks**: Each milestone verifier must trigger a clear pass/fail state
+- **State Persistence**: The environment must remain stable between milestone validations
+- **Per-Milestone Rubrics**: Each milestone has its own rubric criteria — these are edited in the submission UI (not included as files in the zip)
+
+### Best Practices
+- **No "leaky" milestones**: Milestone 2 cannot pass if Milestone 1 fails
+- **Clear boundaries**: Agent should know exactly when they've finished a milestone
+- **Balance**: 2-5 milestones per task. If >5, combine closely related milestones
+
+## Rubrics (Edition 2)
+
+Rubrics evaluate the agent's execution trace — awarding points for good engineering and penalizing bad behavior.
+
+### Workflow (UPDATED)
+- Rubrics are **generated via the submission UI checkbox** — not included as a file in the zip
+- Once generated, **edit for correctness and completeness** in the UI
+- Submit when ready
+- **Do NOT include rubrics.txt in the zip file**
+
+### Rubric Authoring Guidelines (for editing in the UI)
+- Every line starts with "Agent" and ends with ", [Score]"
+- Only use ±1, ±2, ±3, ±5 (NEVER use ±4)
+- Every check must be **binary** (yes/no evaluation from the trace)
+- Include at least **5 checks** per task
+- Rubrics must **map to the optimal sequence of steps** to solve the task
+- **No double-counting**: one behavior → one check (unless clearly distinct aspects)
+- **No perfect scores**: Rubrics should rarely yield a perfect score unless the trace is exceptionally clean
+- Include significant negative penalties for unsafe/redundant behavior
+- Focus on **trace-evidenced actions** only — if you can't see it in the trace, you can't grade it
+- No standard pytest checks (unless the task IS a testing task)
+- No meta-checks (reading task.yaml/instructions.md — these are passed automatically)
+- Importance: Critical (±5), Major (±3), Minor (±1 to ±2)
+- Target max process score ~10-20 points
+- Positive phrasing always — use negative points for undesirable behaviors, not negative wording
 
 ## Task Quality Rubric (6 Criteria)
 
 1. **Verifiable** — Deterministic programmatic tests, no subjectivity, reliable on repeated runs
-2. **Well-specified** — Succinct (2-3 paragraphs ideal); two people reading should produce equivalent verifiers
+2. **Well-specified** — Succinct (1-2 paragraphs ideal); two people reading should produce equivalent verifiers
 3. **Solvable** — Expert human can solve in a few hours knowing the approach; solution < 100k lines
 4. **Difficult** — Requires professional experience or years of domain expertise; undergrads shouldn't solve in days; not hard via tricks or obscure facts
 5. **Interesting** — Real-world economic value; someone would be paid to do this; not a gimmick
@@ -150,12 +287,13 @@ Auto on PR:     Static Checks + Rubric Review
 - [ ] All behavior in instruction is checked in tests
 - [ ] Test cases have informative docstrings
 - [ ] Hard for agent to cheat
-- [ ] instruction.md written by a human
+- [ ] instruction.md written by a human (no LLM-isms, senior engineer tone)
 - [ ] solve.sh written by a human (minimal LLM help)
 - [ ] If structured data output, exact schema in instruction.md
 - [ ] External dependency versions pinned
 - [ ] Ran with a strong model and analyzed failures
 - [ ] Agent Run Analysis explains why model failures are legitimate
+- [ ] Test file named `test_outputs.py` (not test_state.py)
 - [ ] (Auto) Dockerfile doesn't pin apt versions
 - [ ] (Auto) Similarity < 80%
 - [ ] (Auto) Docker build succeeds
@@ -179,6 +317,42 @@ harbor tasks debug <task-id> -m <provider/model>
 uv run ci_checks/rubric_review.py tasks/<name>
 ```
 
+## Zip File Format & Submission
+
+### Zip Structure
+When creating the submission zip, files must be at the **root level** of the zip (no wrapping folder):
+```
+<task-name>.zip
+├── instruction.md
+├── task.toml
+├── environment/
+│   ├── Dockerfile
+│   ├── data/           # Optional: data files
+│   └── ...             # Other environment files
+├── solution/
+│   ├── solve.sh
+│   └── ...             # Optional: solve.py or other solution files
+└── tests/
+    ├── test.sh
+    └── test_outputs.py
+```
+
+**Do NOT include `rubrics.txt`** — rubrics are generated and edited via the submission UI.
+
+### Output Directory
+- All submission zips MUST be saved to: `Task_Ready_To_Submit/` (inside the repo root)
+- Zip file name: `<task-name>.zip` (matching the task directory name)
+- When the user fixes a task and asks for a new zip, **delete the previous zip first** and replace it with the newly generated one
+- Only one zip per task should exist in `Task_Ready_To_Submit/` at any time
+
+### Creating the Zip
+```bash
+# From inside the task directory:
+cd tasks/<task-name>
+rm -f ../../Task_Ready_To_Submit/<task-name>.zip
+zip -r ../../Task_Ready_To_Submit/<task-name>.zip . -x ".*"
+```
+
 ## Key Reminders
 - NEVER share API keys in chat, code, or messages
 - author_name is ALWAYS "Xelron"
@@ -186,3 +360,8 @@ uv run ci_checks/rubric_review.py tasks/<name>
 - Submit early — first-come-first-serve
 - Quality over quantity — 1 accepted task = contributor authorship
 - Deadline: mid-April for submissions
+- Test file MUST be named `test_outputs.py` (Edition 2 standard)
+- Do NOT include rubrics.txt in zip — use the submission UI
+- Prefer single-container Docker setups
+- instruction.md: 1-2 paragraphs + max 20 bullets, senior engineer tone
+- All submission zips go to `Task_Ready_To_Submit/` folder — delete old zip before creating new one
