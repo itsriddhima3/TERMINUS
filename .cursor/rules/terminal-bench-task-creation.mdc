@@ -305,13 +305,18 @@ Auto on PR:     Static Checks + Rubric Review
 ## Validation Commands
 
 ```bash
-# No API key needed
-harbor run -p "tasks/<name>" -a oracle           # Must pass (reward=1.0)
-harbor run -p "tasks/<name>" --agent nop          # Must fail (reward=0.0)
+# No API key needed (oracle + nop)
+harbor run -p "tasks/<name>" -a oracle           # Must score 1.0
+harbor run -p "tasks/<name>" --agent nop          # Must score 0.0
 harbor tasks start-env -p "tasks/<name>" -e docker -a -i  # Interactive debug
 
-# API key needed
-harbor tasks check "tasks/<name>" -m <provider/model>
+# 11/11 Validation Check (requires direct OpenAI API key — Portkey key will NOT work)
+# User must provide OPENAI_API_KEY and unset OPENAI_BASE_URL before running:
+export OPENAI_API_KEY="<your-openai-api-key>"
+unset OPENAI_BASE_URL
+harbor tasks check "tasks/<name>" -m "openai/gpt-4o"
+
+# Other validation (API key needed)
 harbor run -p "tasks/<name>" -a codex -m openai/gpt-4o
 harbor tasks debug <task-id> -m <provider/model>
 uv run ci_checks/rubric_review.py tasks/<name>
