@@ -1,0 +1,5 @@
+sysadmin:$6$ab$shortSaltHashHere123:18000:0:99999:7:::
+root:$6$rK8vG2xY$qFmFH.bQmmtXzyI0jT6XYrQn/9UqdsYzHzPjM5oLNnG3k4vB2wE1rT7sA8cD9eF0gH:18000:0:99999:7:::
+x:broken
+svc_backup:$6$rounds=500000$saltsalt12$TamperedHashValueHere:18000:0:99999:7:::
+daemon:*:18000:0:99999:7:::

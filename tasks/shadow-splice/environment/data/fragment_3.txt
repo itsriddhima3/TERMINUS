@@ -1,0 +1,5 @@
+monitor:$6$defaul8$HashValueForMonitor:18000:0:99999:7:::
+sync:*:18000:0:99999:7:::
+app_runner:*:18000:0:99999:7:::
+audit_daemon:$6$longSalt12$AuditDaemonHash:18000:0:99999:7:::
+unknown_user:$6$xyz$hash:18000:0:99999:7:::
