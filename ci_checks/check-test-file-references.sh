@@ -121,10 +121,30 @@ for test_file in $FILES_TO_CHECK; do
         continue
     fi
 
-    # Extract task directory from test file path
-    # e.g., tasks/my-task/tests/test_*.py -> tasks/my-task
-    task_dir=$(dirname "$(dirname "$test_file")")
+    # Find the task directory by walking up to locate task.toml
+    _search_dir=$(dirname "$test_file")
+    task_dir=""
+    while [ "$_search_dir" != "." ] && [ "$_search_dir" != "/" ]; do
+        if [ -f "$_search_dir/task.toml" ]; then
+            task_dir="$_search_dir"
+            break
+        fi
+        _search_dir=$(dirname "$_search_dir")
+    done
+
+    if [ -z "$task_dir" ]; then
+        echo -e "${YELLOW}No task.toml found for $test_file, skipping${NC}"
+        continue
+    fi
+
     task_name=$(basename "$task_dir")
+
+    # Skip test files inside the environment directory (these are task data, not verifier tests)
+    case "$test_file" in
+        "$task_dir/environment/"*)
+            continue
+            ;;
+    esac
 
     # Skip allowlisted tasks entirely
     if is_task_allowlisted "$task_name"; then
