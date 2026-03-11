@@ -31,7 +31,7 @@ When a user wants to create a new task, ALWAYS ask for ALL missing required fiel
 8. **Milestones**: Ask if the task should be milestone-based for complex multi-step challenges
 
 ### Fixed Values (Do Not Ask)
-- **Author Name**: Set to `Xelron` or `anonymous`
+- **Author Name**: Set to `Xelron`
 - **Version**: Always `2.0`
 
 ### CRITICAL: Even if the user provides a problem statement and category, you MUST still ask for: author_email, difficulty level, and task name before writing any code. Do NOT guess or use defaults for these fields.
@@ -94,7 +94,8 @@ tasks/<task-name>/
 ```
 tasks/<task-name>/
 ├── instruction.md
-├── task.toml               # Must include number_of_milestones, milestone_descriptions
+├── task.toml               # Must include number_of_milestones
+├── milestones.md           # 1-2 sentences per milestone (included in zip root)
 ├── environment/
 │   ├── Dockerfile
 │   └── data/
@@ -154,9 +155,9 @@ The terminal-bench-canary GUID is **no longer required** in Edition 2. Do NOT in
 - `expert_time_estimate_min` = estimated minutes for an expert (recommended)
 - `junior_time_estimate_min` = estimated minutes for a junior developer (recommended)
 
-#### Milestone Fields (only for milestone tasks — omit entirely if not a milestone task)
-- `number_of_milestones` = integer count of milestones
-- `milestone_descriptions` = string describing the desired outcome of each stage
+#### Milestone Fields
+- `number_of_milestones` = integer count of milestones. **Always include this field** — set to **0** if the task has no milestones.
+- `milestone_descriptions` is **no longer used in task.toml** — replaced by the `milestones.md` file (see below)
 
 #### Timeout Guidance
 - `[verifier] timeout_sec`: Minimum 120s. Recommend **300s+** for tasks where test.sh installs packages from the network (apt-get, uv, curl). Use 600s for heavy environments (JDK, large dependencies).
@@ -166,6 +167,7 @@ The terminal-bench-canary GUID is **no longer required** in Edition 2. Do NOT in
 ### Dockerfile
 - NEVER copy solution/ or tests/ into the container
 - NEVER pin apt versions (e.g., `curl=7.68.0`)
+- **NEVER install test dependencies in the Dockerfile** — test dependencies belong in `test.sh` only
 - Always: `apt-get update && apt-get install -y ... && rm -rf /var/lib/apt/lists/*`
 - Data files: put in `environment/data/`, use `COPY data /root/data`
 - Files >100MB: use download scripts, don't commit
@@ -226,7 +228,8 @@ Each milestone must be a prerequisite for the next. The agent must signal comple
 ### Components
 1. **instruction.md**: Clearly outline requirements per milestone with headings/numbered lists
 2. **tests/**: Separate verifier per milestone (`test_milestone_1.py`, `test_milestone_2.py`)
-3. **task.toml**: Include `number_of_milestones` and `milestone_descriptions`
+3. **task.toml**: Include `number_of_milestones` (set to the milestone count)
+4. **milestones.md**: Include in the **root of the zip file** — each milestone gets 1–2 short sentences describing it
 
 ### Verification Requirements
 - **Deterministic Checks**: Each milestone verifier must trigger a clear pass/fail state
@@ -242,11 +245,16 @@ Each milestone must be a prerequisite for the next. The agent must signal comple
 
 Rubrics evaluate the agent's execution trace — awarding points for good engineering and penalizing bad behavior.
 
+**Rubrics are REQUIRED for all tasks.** If you submitted a task before this requirement was introduced, a reviewer may send it back for a rubric revision — this is expected.
+
 ### Workflow (UPDATED)
-- Rubrics are **generated via the submission UI checkbox** — not included as a file in the zip
-- Once generated, **edit for correctness and completeness** in the UI
-- Submit when ready
-- **Do NOT include rubrics.txt in the zip file**
+1. Check the **rubric generation checkbox** near the bottom of the submission UI
+2. Submit for **CI checks** — the "Send to Reviewer" box must **NOT** be checked at this stage
+3. Once the submission is returned to you via the **revision queue**, the generated rubric will appear in the rubric textbox
+4. Edit the rubric to ensure **accuracy and completeness** according to the current version of the submission, then submit
+
+- **IMPORTANT**: If you significantly changed your submission due to revisions, remember to also **adjust your rubric accordingly**
+- **Do NOT include rubrics.txt in the zip file** — rubrics are generated and edited via the submission UI only
 
 ### Rubric Authoring Guidelines (for editing in the UI)
 - Every line starts with "Agent" and ends with ", [Score]"
@@ -330,6 +338,7 @@ When creating the submission zip, files must be at the **root level** of the zip
 <task-name>.zip
 ├── instruction.md
 ├── task.toml
+├── milestones.md       # Only if task uses milestones (1-2 sentences per milestone)
 ├── environment/
 │   ├── Dockerfile
 │   ├── data/           # Optional: data files
@@ -360,7 +369,7 @@ zip -r ../../Task_Ready_To_Submit/<task-name>.zip . -x ".*"
 
 ## Key Reminders
 - NEVER share API keys in chat, code, or messages
-- author_name should be "Xelron" or "anonymous"
+- author_name should be "Xelron"
 - ALWAYS ask for author_email — never guess or use placeholders
 - Submit early — first-come-first-serve
 - Quality over quantity — 1 accepted task = contributor authorship
