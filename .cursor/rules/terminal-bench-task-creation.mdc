@@ -126,14 +126,14 @@ The terminal-bench-canary GUID is **no longer required** in Edition 2. Do NOT in
 
 ### instruction.md — Edition 2 Prompt Styling
 
-The instruction.md is the primary interface between the task and the AI agent. It must be realistic to how users actually type into terminal agents like Claude Code or Cursor — not how an LLM would write a prompt.
+The instruction.md is the primary interface between the task and the AI agent. Instructions must be realistic to how users type into a terminal agent and how people actually communicate with Claude Code or Cursor — not how an LLM would write a prompt. We want real-world usage reflected.
 
 **Must be written by a human** (AI detection via GPTZero, fails if >70%). Prompts should NOT be LLM-generated. Avoid "GPT-style" writing (verbose, repetitive, overly polite).
 
-#### Core Philosophy
-Some engineers are structured and well-formatted in how they prompt models, while others are casual and just throw a couple sentences with vague details. The goal is to capture this wide variance from one task to another. The guidelines below are purposely vague to prevent the dataset from being repetitive — lean on injecting your own voice and change your style between tasks.
+**NOTE:** The guidelines below are purposely vague so the dataset does not become repetitive. Lean on injecting your own voice and remember to change your style from one task to another.
 
-Give the agent the **what** (requirements) but NOT the **how** (that would be giving answers/hints).
+#### Core Philosophy
+Some engineers are more structured and well-formatted in how they prompt models; others are more casual and throw a couple sentences with vague details. The idea is to capture this wide variance from one task to another. We want to give the agent the **what** (requirements) but not the **how** (that would be giving the agent answers or hints). The primary challenge is achieving realistic variance in style while still adhering to the six core principles below.
 
 #### Six Core Principles
 
@@ -145,17 +145,20 @@ Give the agent the **what** (requirements) but NOT the **how** (that would be gi
 
 4. **No Answers or Hints** — Tasks represent one-shot prompts from a user to a terminal agent. No significant hints, rubrics, or stepwise instructions in instruction.md. Requirements are fine; hints on how to solve it are not.
 
-5. **Unique** — Must be noticeably unique vs Terminal Bench 2, 3, and Snorkel's original Edition 1. Check similarity search results. Key question: are the initial state/instructions or expected output different in a non-trivial way?
+5. **Unique** — The task must be noticeably unique to any task in Terminal Bench 2, Terminal Bench 3, or Snorkel's original Project Terminus (Edition 1). Similarity search results help. Too similar means: initial state/instructions are not different in a non-trivial way AND expected output is not different in a non-trivial way.
 
 6. **Absolute Paths** — Use `/app/output.txt`, never `./output.txt`. Do NOT include canary strings (no longer required in Edition 2).
 
-#### Style Guidelines
+#### Instructions Styling Tips (VERY IMPORTANT)
+- **Avoid overusing bullet points, headers, titles, and heavy markdown.** The prompt should feel like something typed directly into a model interface, not something carefully organized with separate sections. Instructions should feel natural and show real variation in how engineers actually prompt models — not all overly structured or the same format.
 - **Vary the style** across tasks — do NOT follow the same format or structure every time. Each instruction.md should feel like it was written by a different engineer.
-- **Minimal markdown formatting** — imagine typing directly into a model's prompting interface. Most engineers don't write heavily formatted markdown when prompting.
-- Aim for a **broad distribution**: some terse, some conversational, some bullet-heavy, some prose-heavy, some mixing approaches. Not every task needs headers, bullet lists, or structured sections.
+- **Minimal markdown** — imagine typing directly into a model's prompting interface. Most engineers don't write heavily formatted markdown when prompting.
+- Aim for a **broad distribution**: some terse, some conversational, some bullet-heavy, some prose-heavy. Not every task needs headers, bullet lists, or structured sections.
 - **Tone**: 150-200 words of actionable info. Think human-to-agent, not formal documentation.
-- List ALL expected output files the tests will check
-- If agent produces structured data (e.g., JSON), the exact schema must be documented
+- List ALL expected output files the tests will check. If the agent produces structured data (e.g., JSON), the exact schema must be documented.
+
+#### Misleading Automated Feedback
+We are aware that automated feedback on your instructions can lead you in the wrong direction (e.g. suggesting a title or being overly descriptive). **Contributors can ignore feedback that is opposite of what we want.** We're working on updating this ASAP.
 
 #### Human-Centric vs. Synthetic Styling
 | Aspect | BAD (Synthetic/LLM) | GOOD (Human-Centric) |
@@ -163,6 +166,19 @@ Give the agent the **what** (requirements) but NOT the **how** (that would be gi
 | Tone | "You are an expert programmer. Your goal is to..." | "We need to migrate the existing SQLite schema to..." |
 | Length | 500+ words of redundant context | 150-200 words of actionable info |
 | Guidance | "First, use the ls command to see files, then..." | "The source data is in /data. Output the result to..." |
+
+#### Common Prompting Errors + Examples (what to avoid)
+We have added examples of what we do NOT want at the bottom of the Prompt Styling page on the website. **All contributors should look at and fully understand all those examples** — they show the kind of instructions we are not looking for and why that methodology should be avoided. Write instructions the way you normally would interact with a model. In summary, avoid:
+
+1. **Step-by-step walkthrough with solution values** — e.g. "Set SO_RCVBUF to 262144 bytes, set SO_SNDBUF to 262144, enable SO_REUSEADDR..." That tells the agent exactly how to solve it.
+
+2. **Hints section that describes the answers** — e.g. a "Detection Guidance" or "Look for:" section that spells out how to detect each type of bug or corruption. No hints that give away the solution.
+
+3. **Excessive markdown / bulleted structure** — Instructions that read like API docs with multiple headers and bullet lists. Prefer prose that feels typed into a chat.
+
+4. **Overly prescriptive guidelines** — Exact function signatures, exact library names, exact build commands. Give requirements, not a spec for the implementation.
+
+5. **Bold markers highlighting solution details** — Scattered **bold** text that draws attention to exact formulas, limits, or definitions. That acts as hints.
 
 ### task.toml
 - `author_name` = "Xelron" or "anonymous"
@@ -205,6 +221,35 @@ Give the agent the **what** (requirements) but NOT the **how** (that would be gi
 - **Must be written by a human** (with minimal LLM help)
 - Must pass ALL tests when run inside the container
 - Can call Python scripts in the solution/ folder
+
+### test.sh
+- **Network use in test.sh is allowed.** The verifier may install dependencies at runtime (e.g. `curl | sh` for uv, `apt-get`, `uv pip install`). Reviewers must NOT flag or reject tasks for internet/network usage in test.sh. Set `[verifier] timeout_sec` to 300s+ when test.sh installs from the network.
+- Install test-only dependencies in test.sh (not in the Dockerfile). Then run the test runner (e.g. pytest via uvx) and write the reward file to `/logs/verifier/reward.txt`.
+- Example pattern (install uv at runtime, then run pytest via uvx):
+
+```bash
+#!/bin/bash
+
+# Install test dependencies (network use in test.sh is allowed)
+apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+curl -LsSf https://astral.sh/uv/0.9.7/install.sh | sh
+source $HOME/.local/bin/env
+
+# Run tests
+uvx \
+  --with pytest==8.4.1 \
+  --with pytest-json-ctrf==0.3.5 \
+  pytest --ctrf /logs/verifier/ctrf.json /tests/test_outputs.py -rA
+
+# Produce reward file (REQUIRED)
+if [ $? -eq 0 ]; then
+  echo 1 > /logs/verifier/reward.txt
+else
+  echo 0 > /logs/verifier/reward.txt
+fi
+```
+
+- Allowed patterns: (a) install uv in test.sh (e.g. `curl | sh`) then run uvx, as in the example above; (b) have uv installed in the Dockerfile, then in test.sh use `cd /tests`, `uv venv`, `source .venv/bin/activate`, `uv pip install pytest`, and run `uvx` (uvx uses its own env; the venv block is optional). Do not add extra dependencies in test.sh if the image already provides uv.
 
 ### test_outputs.py (RENAMED from test_state.py in Edition 2)
 - **File MUST be named `test_outputs.py`** (not test_state.py)
