@@ -187,7 +187,6 @@ We have added examples of what we do NOT want at the bottom of the Prompt Stylin
 - Required fields: `category`, `tags`, `difficulty`, `languages`, `codebase_size`
 - `task_id` is NOT a required field — do not include it
 - Pin external dependency versions (pip, npm) for reproducibility
-- Don't pin apt package versions
 
 #### Edition 2 New Fields
 - `codebase_size` = "minimal", "small", or "large" (required — all lowercase. NOT `codebase_scale` or `codebase_context_scale`)
