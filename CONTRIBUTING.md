@@ -225,8 +225,8 @@ The `solution/` folder contains your reference solution `solve.sh` that demonstr
 
 The `tests/` folder contains `test.sh`, which runs the test suite to verify the task solution is correct.
 
-> - You can create Pytest test files (e.g., `test.py`) in the `tests/` folder
-> - Call these from `test.sh` using `pytest` with the `pytest-json-ctrf` plugin to generate test reports
+> - Edition 2 uses `tests/test_outputs.py` with normal pytest tests
+> - Run them from `test.sh` using **pytest under uv** (e.g. `uvx --with pytest==8.4.1 … pytest /tests/test_outputs.py -rA`, optionally with `pytest-json-ctrf` for CTRF reports)—not `python3 /tests/test_outputs.py` or a custom `__main__` test loop
 > - The verifier runs `test.sh` after the agent completes the task to verify the expected outputs
 >
 > **Writing good tests:**

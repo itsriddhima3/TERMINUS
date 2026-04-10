@@ -4,8 +4,10 @@
 # This ensures tasks don't have implicit assumptions about working directory
 #
 # Usage:
-#   ./check-task-absolute-path.sh                    # Check all tasks
-#   ./check-task-absolute-path.sh tasks/task1/       # Check specific tasks
+#   ./check-task-absolute-path.sh                    # Check all tasks and review tasks
+#   ./check-task-absolute-path.sh tasks/task1/       # Check specific task directory
+#   ./check-task-absolute-path.sh review_task/task1/ # Check specific review task directory
+#   ./check-task-absolute-path.sh tasks/task1/instruction.md
 #
 # This script checks for:
 # 1. File paths in task instructions that should be absolute (starting with /)
@@ -145,16 +147,18 @@ $subdir_paths"
 
 # Get list of task directories to check (either from arguments or check all tasks)
 if [ $# -eq 0 ]; then
-    # If no arguments, check all task directories
-    TASK_DIRS=$(find tasks -mindepth 1 -maxdepth 1 -type d | sort)
+    # If no arguments, check all task directories in tasks and review_task
+    TASK_DIRS=$(find tasks review_task -mindepth 1 -maxdepth 1 -type d 2>/dev/null | sort)
 else
     # If arguments provided, use those directories
     TASK_DIRS=""
     for arg in "$@"; do
         if [ -d "$arg" ]; then
             TASK_DIRS="$TASK_DIRS $arg"
+        elif [ -f "$arg" ] && [ "$(basename "$arg")" = "instruction.md" ]; then
+            TASK_DIRS="$TASK_DIRS $(dirname "$arg")"
         else
-            echo -e "${YELLOW}Directory $arg does not exist, skipping${NC}"
+            echo -e "${YELLOW}Path $arg is not a task directory or instruction.md, skipping${NC}"
         fi
     done
 fi

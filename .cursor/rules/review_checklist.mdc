@@ -1,0 +1,384 @@
+---
+alwaysApply: true
+---
+
+Terminus 2nd Edition
+Task Review Checklist
+
+Before approving submission readiness or giving "ready to submit" feedback, also compare the task against `.codex/rules/static-checks-checklist.md`.
+
+Canonical Source
+`terminus_unified_ground_truth_specification_updated.md` is the source of truth. This checklist is a reviewer-facing summary derived from that spec. If any wording here conflicts with the unified spec, follow the unified spec.
+
+Severity Guide
+HIGH
+Any HIGH failure = task must be rejected.
+MEDIUM
+Multiple MEDIUM failures = reject. Single MEDIUM = accept with note.
+LOW
+LOW failures alone do not block acceptance. Include in revision notes if rejecting for other reasons.
+
+
+NOTE — Milestones & Subcategories
+Milestones are required only for milestone tasks. `task_subtypes` is obsolete; use `subcategories` with accepted slugs instead. Non-milestone tasks should not be rejected simply because they have `number_of_milestones = 0` and no milestone files.
+
+
+✓
+SEV
+1. Instruction Prompt
+
+
+HIGH
+Instruction is concise. Standard non-milestone prompts usually fit within roughly 1 sentence to 3 paragraphs overall; milestone tasks may be slightly longer but must still stay concise. Reads like a human prompt to a coding agent with minimal markdown and no emojis.
+
+
+HIGH
+Goal is clear and well specified. Not primarily hard due to many unhandled edge cases.
+
+
+MEDIUM
+Instruction does not default to synthetic benchmark-template sections such as `Deliverables`, `Artifacts`, or `Acceptance Criteria` unless they are genuinely natural for the task.
+
+
+HIGH
+Task is interesting — useful to some group of developers or users.
+
+
+HIGH
+No hints or step-by-step solve instructions in `instruction.md`. Requirements are OK, guidance is not.
+
+
+HIGH
+Instruction does not mention specific tools unless the verifier can actually prove the tool usage.
+
+
+HIGH
+Unique vs TB2, TB3, Snorkel TB1 — initial state or expected output differs non-trivially.
+
+
+HIGH
+All referenced paths in the instruction use in-container absolute references.
+
+
+HIGH
+`instruction.md` does not include the task name or legacy canary strings.
+
+
+HIGH
+For milestone tasks, `instruction.md` includes the overall intro plus every milestone description and explicitly tells the agent to signal completion before advancing.
+Notes:
+ 
+ 
+
+
+✓
+SEV
+2. Environment
+
+
+HIGH
+Environment is reproducible and self-contained. Runtime/task assets do not rely on external web/data fetches; build-time package downloads or pinned sources are acceptable when necessary.
+
+
+HIGH
+`environment/Dockerfile` sets a real working directory (for example `WORKDIR /app`).
+
+
+HIGH
+Every Docker `FROM` stage is pinned by digest, including builder stages and any `uv` stage.
+
+
+HIGH
+Dockerfile dependencies use pinned versions, including apt packages installed in the image.
+
+
+HIGH
+No context used from outside the environment directory (for example no docker-compose context set to `../`).
+
+
+HIGH
+Dockerfile does not copy `solution/`, `tests/`, or oracle answers into the image, and does not create reserved paths such as `/tests`, `/solution`, or `/oracle`.
+
+
+HIGH
+Environment does not contain oracle solution or ground truth. Solution files only in `solution/`; verification files only in `tests/`.
+
+
+HIGH
+Agent-visible runtime inputs do not contain reference outputs, expected final states, gold hashes, or equivalent copyable answers.
+
+
+HIGH
+No dangerous privileged-container configuration such as `--privileged`, `SYS_ADMIN`, or a docker.sock mount.
+
+
+HIGH
+Docker compose does not alter reserved Harbor mounts (`/logs/artifacts/`, `/logs/verifier/`, `/tests/`, `/solution/`).
+
+
+HIGH
+Test/verifier dependencies and runtimes (for example `python3`, `uv`, `pytest`, `pytest-json-ctrf`) are installed in `tests/test.sh`, not in the Dockerfile, when only the verifier needs them. Dependencies needed for the solution belong in the Dockerfile. If a dependency is only used during testing, putting it in the Dockerfile can leak a hint to the agent.
+
+
+LOW
+Dockerfile avoids heredoc-heavy inline file creation when a clearer checked-in build asset would do.
+Notes:
+ 
+ 
+
+
+✓
+SEV
+3. Oracle Solution
+
+
+HIGH
+Oracle passes consistently — no randomization, latency-dependent, or hardware-sensitive flakiness.
+
+
+HIGH
+Oracle does not require internet access or package downloads at runtime.
+
+
+HIGH
+Oracle solves everything described in `instruction.md` — real implementation, not hardcoded test answers.
+
+
+HIGH
+Milestone tasks include chained oracle scripts (`solution/solve1.sh ... solveN.sh`), and the top-level `solution/solve.sh` runs them in order.
+Notes:
+ 
+ 
+
+
+✓
+SEV
+4. Verifiers
+
+
+HIGH
+`tests/test.sh` initializes `/logs/verifier/reward.txt` to `0` near the top in the standard template, or otherwise uses an equally reliable pattern that guarantees a failure reward artifact (`reward.txt` or `reward.json`) before setup can exit early.
+
+
+HIGH
+`tests/test.sh` uses `set -euo pipefail` near the top unless there is a clearly justified shell-specific exception. Missing `-e` is a verifier reliability problem.
+
+
+HIGH
+`tests/test.sh` always assigns a final reward artifact (`reward.txt` or `reward.json`) on both pass and failure. No early exit before reward assignment.
+Typical ending block for `reward.txt` templates:
+if [ $? -eq 0 ]; then
+  echo 1 > /logs/verifier/reward.txt
+else
+  echo 0 > /logs/verifier/reward.txt
+fi
+
+
+HIGH
+Same verification logic for oracle and agent runs — no conditional branching that treats them differently.
+
+
+HIGH
+Verification dependencies and verifier-only tools (for example `uv`, `pytest`, `pytest-json-ctrf`, `openssh-client`, `ssh`, `sftp`) are installed in `tests/test.sh` with pinned versions where applicable. Do not suggest moving verifier dependency installation into the Dockerfile — test dependencies must stay in `tests/test.sh`.
+
+
+MEDIUM
+Standard Edition 2 tasks using Python `tests/test_outputs.py` should follow the maintained pytest-via-uv/uvx template with pinned tooling (for example `uvx --with pytest==… pytest /tests/test_outputs.py -rA` or `uv run pytest …`). Flag `python3 /tests/test_outputs.py` or custom `__main__` / `_run_all_tests()` drivers as nonstandard unless the task type or template clearly justifies the deviation.
+
+
+MEDIUM
+Network installs in `tests/test.sh` are acceptable. Do not reject a task just because `test.sh` uses `apt-get`, `curl`, `uvx`, `uv pip install`, or similar runtime setup.
+
+
+HIGH
+Rewards stay binary pass/fail. `reward.txt` should use `0` or `1`; if `reward.json` is used, it should still represent binary pass/fail semantics for the task.
+
+
+HIGH
+All tests aligned to what is outlined in the instructions — nothing tested that is not explicitly or implicitly defined.
+
+
+HIGH
+Every explicit prohibition, disabled capability, forced command, or access restriction named in the instruction is exercised directly by at least one verifier test. For security/hardening tasks, broad smoke tests are not enough.
+
+
+HIGH
+Verifiers check for actual correctness, not just format or high-level requirements.
+
+
+HIGH
+If the instruction specifies schemas for manifests, logs, reports, or other structured artifacts, the verifier parses those artifacts directly and validates the promised schema.
+
+
+HIGH
+If the verifier depends on object/dict/map fields inside those structured artifacts, `instruction.md` states the exact key format and representation rather than only describing the values.
+
+
+HIGH
+Verifier limits are hardware-independent. Do not gate correctness on wall-clock, latency, throughput, or memory-usage thresholds when deterministic counters such as steps or iterations can be used instead.
+
+
+HIGH
+Verifier modules (`tests/test_outputs.py`, `tests/test_mN.py` when applicable) pass `ruff`/lint.
+
+
+MEDIUM
+`tests/test_outputs.py` exposes discoverable top-level `test_...` functions or another structure known to satisfy the CI/static checker.
+
+
+HIGH
+Milestone tasks include one scoped `tests/test_mN.py` per milestone, and each file scores only its own milestone while preserving state from earlier milestones.
+
+
+HIGH
+UI tasks run both unit and E2E verifiers from `tests/test.sh`, and the UI verifier stack points at the real app rather than placeholders.
+Notes:
+ 
+ 
+
+
+✓
+SEV
+5. Rubrics
+
+
+HIGH
+No rubric criteria reference running or checking results from tests in `/tests/`.
+
+
+HIGH
+No references to `task.toml` or `instruction.md` in rubric criteria — the agent has no context of these files.
+
+
+HIGH
+At least 3 criteria assign negative rewards (for example `-1`) for harmful or incorrect model behavior.
+
+
+HIGH
+All rubric scores are one of: `+1`, `+2`, `+3`, `+5`, `-1`, `-2`, `-3`, `-5`.
+
+
+HIGH
+Rubric score magnitudes use only `1`, `2`, `3`, or `5` — never `0`, `4`, or any other value.
+
+
+HIGH
+Each criterion is a single line, starts with `Agent`, includes a comma after the criterion text, then space + score.
+
+
+HIGH
+Each criterion is detailed and precise — no vague or conditionally-applicable items.
+
+
+MEDIUM
+Critical criteria use extreme scores (`5`, `-5`). Major/minor criteria use less extreme scores.
+
+
+MEDIUM
+Criteria are phrased positively. Negative behavior uses positive phrasing plus negative reward.
+
+
+HIGH
+No `rubric.txt` or `rubrics.txt` file is included at the task root or ZIP root; rubrics belong in the platform UI.
+Notes:
+ 
+ 
+
+
+✓
+SEV
+6. Task Structure
+
+
+HIGH
+All required files for the task type are present: at minimum `environment/`, `environment/Dockerfile`, `solution/`, `solution/solve.sh`, `tests/`, `tests/test.sh`, `instruction.md`, and `task.toml`.
+
+
+HIGH
+If packaged as a submission zip, extracted contents place task files directly at the archive root with no wrapping task-name folder.
+
+
+HIGH
+Milestone tasks include root-level `milestone_1.md ... milestone_N.md` files with the correct count, and do not use legacy `milestones.md`.
+
+
+HIGH
+UI tasks include the required verifier stack files (`tests/README.md`, verifier package/config files, real unit/E2E specs, and `index.html` when the UI template expects it).
+
+
+LOW
+Task root / ZIP root avoids unnecessary artifacts such as `jobs/`, root-level `README.md`, or root-level `data/` unless clearly justified.
+Notes:
+ 
+ 
+
+
+✓
+SEV
+7. Task Metadata
+
+
+HIGH
+`task.toml` uses the Edition 2 schema, including `version = "2.0"`, `languages`, `codebase_size`, and `number_of_milestones`.
+
+
+HIGH
+Difficulty, codebase size, and languages satisfy current acceptance gates: easy tasks are blocked, minimal codebase sizes are blocked, and Python tasks are accepted only when hard.
+
+
+HIGH
+`[environment]` includes `cpus`, `memory_mb`, and `storage_mb` (positive integers) as required by envgen/CodeBuild, in addition to `build_timeout_sec`.
+
+
+HIGH
+`tags` contains 3-6 descriptive values.
+
+
+MEDIUM
+`task.toml` does not use unsupported metadata keys such as `task_subtypes`; `subcategories` is the supported field.
+
+
+MEDIUM
+Tool-driven tasks that materially depend on specialized CLIs, SDKs, or libraries include `tool_specific` in `subcategories`.
+
+
+HIGH
+`number_of_milestones` is `0` for non-milestone tasks and matches the exact milestone count for milestone tasks; UI tasks still use `0`.
+
+
+HIGH
+Docker compose tasks are flagged correctly: `custom_docker_compose = true`, and `is_multi_container = true` if applicable.
+
+
+MEDIUM
+Tags, languages, categories, and subcategories match actual task content and do not use obvious redundant filler.
+Notes:
+ 
+ 
+
+
+✓
+SEV
+8. Evaluation Gates
+
+
+HIGH
+Oracle passes, NOP fails, and the task is not accepted if frontier pass rate reaches 100%.
+
+
+HIGH
+Claimed difficulty is backed by evaluation evidence rather than guesswork or legacy labels.
+Notes:
+ 
+ 
+
+
+Final Decision
+☐  APPROVE
+All criteria passed, or only LOW-severity issues found.
+☐  APPROVE WITH NOTE
+Single MEDIUM-severity failure. Document the issue in notes below.
+☐  REJECT
+Any HIGH-severity failure, or multiple MEDIUM-severity failures.
+☐  SEND FEEDBACK
+Task needs revision. Provide detailed feedback below for the contributor.
