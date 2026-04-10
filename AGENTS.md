@@ -24,7 +24,7 @@ This is a **Terminal-Bench 3.0** benchmark task collection repository. There is 
 The `ci_checks/` directory contains shell scripts that validate task structure. They are designed to run on PR diffs but also work standalone:
 
 ```
-bash ci_checks/check-canary.sh                  # all tasks
+bash ci_checks/check-no-canary.sh               # all tasks (optional: tasks/<name> or file paths)
 bash ci_checks/check-dockerfile-sanity.sh       # all Dockerfiles
 bash ci_checks/check-test-sh-sanity.sh          # all test.sh files
 bash ci_checks/validate-task-fields.sh           # all task.toml fields
@@ -32,6 +32,10 @@ bash ci_checks/check-test-file-references.sh     # test file references
 bash ci_checks/check-dockerfile-references.sh    # Dockerfile references
 bash ci_checks/check-task-absolute-path.sh       # absolute path usage
 ```
+
+**Envgen / submission pipeline:** put `author_name`, `author_email`, and other Edition 2 metadata under a **`[metadata]`** table in `task.toml` (not only at top level). Run `python3 run_static_checks.py --task-dir tasks/<name> --version edition_2` before claiming a task is submission-ready (see `.cursor/rules/static-checks-checklist.mdc`).
+
+**Python verifiers:** `tests/test.sh` should run `tests/test_outputs.py` with **pytest** under **uv** (see `.cursor/rules/terminal-bench-task-creation.mdc`), not `python3 /tests/test_outputs.py` or a custom test driver.
 
 ### Cloud VM Docker gotcha
 

@@ -1,0 +1,200 @@
+---
+alwaysApply: true
+---
+
+Review Guidelines
+Guidelines for peer reviewers evaluating submitted tasks.
+
+Canonical Source
+`terminus_unified_ground_truth_specification_updated.md` is the source of truth. This file is a reviewer-facing summary derived from that spec. If guidance here conflicts with the unified spec, follow the unified spec.
+
+Review Philosophy
+As a reviewer, you're ensuring quality for the benchmark. Your goal is to:
+
+Catch issues before they enter the dataset
+Help contributors improve their tasks
+Maintain consistency across submissions
+
+Review Checklist
+1. Read the Task Description
+ Instructions look human-written (not LLM-generated)
+ Standard non-milestone prompts usually fit within roughly 1 sentence to 3 paragraphs overall; milestone tasks may be slightly longer but must still stay concise
+ Consult the Prompt Styling Guide
+ Requirements are clear and unambiguous
+ All constraints are explicitly stated
+ Absolute in-container paths used throughout
+ instruction.md does not include the task name or legacy canary strings
+ Avoid synthetic benchmark-template sections such as `Deliverables`, `Artifacts`, or `Acceptance Criteria` unless the task truly needs them
+ Milestone tasks include the overall intro plus every milestone description and tell the agent to signal completion before advancing
+ Think like a malicious agent: Does the description give extra information that makes cheating easier?
+ Task instructions shouldn't mention specific tools unless there's a way to verify they were used
+
+2. Review Tests
+ Every requirement has a corresponding test
+ Every explicit prohibition, disabled capability, forced command, or access restriction named in the instruction is exercised directly by at least one test; for security/hardening tasks, "most requirements covered" is not enough
+ Tests have informative docstrings
+ Tests verify behavior, not implementation
+ No brittle string matching
+ No hardcoded thresholds (or thresholds are reasonable)
+ No wall-clock, latency, throughput, or memory-efficiency/resource-usage assertions as correctness gates; prefer deterministic proxies such as steps, iterations, retries, or request counts
+ No agent-visible ground truth in task inputs or hidden bundles (for example: reference outputs, expected final states, gold hashes, or other copyable answers)
+ If instruction.md promises schemas for manifests, journal files, delta logs, reports, or other structured artifacts, tests parse those artifacts directly and validate the promised schema
+ If tests depend on object/dict/map fields inside those structured artifacts, instruction.md states the exact key format too (for example stringified integer IDs vs numeric keys vs filenames), not just the value shape
+ `tests/test_outputs.py` and milestone verifier modules expose discoverable top-level tests or another structure the CI/static checker explicitly accepts
+ Verifier modules pass `ruff`/lint
+ `tests/test.sh` initializes `/logs/verifier/reward.txt` to `0` near the top in the standard template, or otherwise uses an equally reliable pattern that guarantees a failure reward artifact (`reward.txt` or `reward.json`) even if setup exits early
+ `tests/test.sh` uses `set -euo pipefail` near the top unless there is a clearly justified shell-specific exception
+ Test dependencies and runtimes/tools (e.g. python3, uv, pytest, pytest-json-ctrf, openssh-client, ssh, sftp) are installed in `tests/test.sh`, not the Dockerfile, when only the verifier needs them. Dependencies needed for the solution belong in the Dockerfile.
+ Network use in `tests/test.sh` is allowed. Do not flag apt-get, curl, uvx, uv pip install, or pip install in `tests/test.sh` just because they touch the network.
+ Verification dependencies should be pinned where practical (for example `pytest==8.4.1` or `pytest-json-ctrf==0.3.5`). Do not suggest moving verifier dependency installation into the Dockerfile.
+ Standard Edition 2 Python/Pytest verifiers should follow the maintained `uvx` / `uv run pytest` template with pinned tooling. Flag `python3 /tests/test_outputs.py` or hand-rolled discovery as nonstandard unless the task type or template clearly justifies it.
+ Oracle and agent runs use identical verification logic
+ Milestone tasks include one `tests/test_mN.py` per milestone, and each verifier scores only its own milestone while inheriting prior state
+ UI tasks run both unit and E2E verifiers and install UI verifier dependencies at runtime
+
+3. Check Solution
+ Solution demonstrates the process (not just outputs answer)
+ Commands are deterministic
+ Works in the provided environment
+ Oracle solves the full prompt without hardcoding answers or fetching web dependencies at runtime
+ NOP should fail, and accepted tasks should not have a frontier pass rate of 100%
+
+4. Verify Environment & Metadata
+ Environment is reproducible and self-contained; do not require runtime web/data fetches
+ `environment/Dockerfile` sets a real `WORKDIR`
+ Dockerfile does not copy `solution/`, `tests/`, or oracle answers into the image or create reserved paths such as `/tests`, `/solution`, or `/oracle`
+ Difficulty matches expected pass rate
+ Difficulty, codebase size, and language choices satisfy current acceptance gates: easy tasks are blocked, minimal codebase sizes are blocked, and Python tasks are accepted only when hard
+ Category is appropriate
+ Tags contain 3-6 descriptive values without obvious redundant filler
+ Time estimates are realistic
+ Timeout is sufficient but not excessive
+ `task.toml` uses the Edition 2 schema, including `version = "2.0"` and required fields such as `languages`, `codebase_size`, and `number_of_milestones`
+ Do not use unsupported metadata keys such as `task_subtypes`; `subcategories` is the supported field
+ Milestones are required only for milestone tasks, and `number_of_milestones` / compose metadata flags match the task type
+ If the task materially depends on specialized CLIs, SDKs, or libraries, `subcategories` should include `tool_specific`
+ Every Docker `FROM` stage is pinned by digest, including any builder or `uv` stage
+ Dockerfile apt packages needed by the task runtime are pinned
+ `rubric.txt` / `rubrics.txt` must not appear at the task root or ZIP root, and stray root artifacts such as `jobs/`, `README.md`, or `data/` should be avoided unless clearly justified
+
+5. Watch Agent Runs
+On the task viewer:
+
+Watch the terminal recording
+If agent fails, is it failing for a good reason?
+Check the analysis for identified issues
+Read the debug pane
+
+Common Issues to Flag
+Task Description Problems
+Ambiguous requirements	"Make it better", "fix the issues"
+Missing output specs	Tests check files not mentioned
+Relative paths	`./data/file.txt` instead of `/app/data/file.txt`
+Task name leak	instruction.md includes the task name
+Missing milestone prompt text	milestone task lacks the overall intro, milestone descriptions, or the "signal completion before advancing" rule
+Implicit assumptions	Assumes knowledge not in instructions
+
+Test Problems
+Brittle tests	Exact string matching
+Missing coverage	Requirements without tests
+Coverage gap on named restriction	Instruction says a capability/auth mode/forwarding flag/forced command is disabled or required, but no test checks that exact behavior directly
+Schema promised but untested	Instruction specifies a manifest/log/report schema, but tests only check downstream behavior and never parse the artifact directly
+Underspecified mapping key format	Instruction describes values in a structured artifact but never states the exact dict/object key format that tests require
+Missing early reward protection	`tests/test.sh` can exit before writing any failure reward artifact (`reward.txt` or `reward.json`)
+Incomplete shell safety flags	`tests/test.sh` uses `set` flags but omits `-e`, allowing verifier setup failures to be swallowed before pytest runs
+Performance-gated verifier	Pass/fail depends on runtime speed, latency, throughput, or peak memory instead of whether the solution produces the right output
+Test deps in Dockerfile	Verifier/test-only dependencies or runtimes/tools (python3, uv, pytest, openssh-client, ssh, sftp, etc.) in Dockerfile leak hints; they must be in `tests/test.sh`
+Unpinned verifier deps	Verification dependencies should use pinned versions when practical. Never suggest moving verifier deps to Dockerfile.
+Nonstandard Python verifier runner	`tests/test_outputs.py` is invoked with `python3` or a custom discovery path without a task-type-specific justification
+Verifier lint failure	`tests/test_outputs.py` or milestone verifier modules fail `ruff`/lint
+Unpinned apt deps	Dockerfile installs runtime packages like ffmpeg or python3 without explicit versions
+Order dependency	Tests that must run in sequence
+Implementation testing	Parsing source code
+
+Environment / Structure Problems
+Missing WORKDIR	`environment/Dockerfile` does not set a real working directory such as `WORKDIR /app`
+Image leaks answers	Dockerfile copies `tests/`, `solution/`, or oracle artifacts into the image
+Forbidden rubric artifact	`rubric.txt` or `rubrics.txt` is included at the task root or ZIP root
+Milestone structure gap	milestone task is missing `milestone_N.md`, `solveN.sh`, or `test_mN.py` files
+UI verifier gap	UI task lacks the required verifier stack or does not run both unit and E2E tests
+
+Metadata Problems
+Metadata overflow	task.toml uses fewer than 3 or more than 6 tags, or pads tags with redundant filler
+Unsupported metadata key	task.toml uses unsupported fields such as `task_subtypes` instead of the supported `subcategories` field
+Missing tool_specific	task materially depends on specialized tools such as capsh, strace, ffmpeg, or libcap but omits `tool_specific` from `subcategories`
+Blocked acceptance gate	task is easy, uses a blocked minimal codebase size, or is a Python task that is not hard
+Over-structured prompt	instruction.md reads like benchmark scaffolding with sections such as Deliverables/Artifacts rather than a natural user request
+Invalid rubric scores	rubric uses score magnitudes other than 1, 2, 3, or 5, or uses forbidden values such as 0 or 4
+
+Solution Problems
+Hardcoded answers	`echo "42" > result.txt`
+Non-deterministic	Uses random without seed
+Incomplete	Missing steps
+Over-complex	Unnecessarily convoluted
+
+Evaluation Problems
+NOP passes	baseline/no-op agent receives reward when it should fail
+Too trivial	frontier pass rate reaches 100%, so the task is not benchmark-worthy
+
+Specific Things to Watch
+Testing Behavior
+It is almost always better to test a behavior by actually running the code than trying to statically analyze it.
+
+Flag: Tests that grep through source code looking for patterns.
+
+Tool Specifications
+Task instructions shouldn't mention specific tools unless there's a way to verify they were used.
+
+Flag: "Use vim to edit the file" (can't verify vim was used).
+
+Randomness
+Tasks involving randomness MUST NOT assume the solution matches that same random order.
+
+Flag: Tests that depend on specific `np.random.seed` values.
+
+Test Complexity
+Long test files are almost always wrong since more tests means more opportunities for error.
+
+Flag: `test_outputs.py` with 20+ tests for a simple task.
+
+Data Formats
+Be especially paranoid about specifying data formats.
+
+Flag: "Output a CSV" without specifying whether it needs headers.
+
+Anti-Cheating
+Think about how agents could cheat:
+
+Decompile programs to find hidden answers
+Replace programs with dummy versions
+Delete or modify tests
+Access newer git commits
+Read leaked reference outputs from runtime-visible inputs or hidden case bundles
+
+Review Actions
+Approve
+Task is ready. No issues found.
+
+Request Changes
+Issues need fixing before acceptance. Be specific:
+
+What's wrong
+Where it is
+How to fix it
+
+Good feedback:
+
+The test `test_output_format` on line 45 uses exact string matching. Please change it to check for required fields instead, allowing for formatting variations.
+
+Bad feedback:
+
+Tests need work.
+
+Decline
+Fundamental issues that can't be easily fixed:
+
+Frontier pass rate reaches 100% or the task is clearly trivial
+Essentially duplicate of an existing task
+Core concept is flawed
+
+Explain clearly why, and whether revision could salvage it.
