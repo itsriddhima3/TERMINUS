@@ -1,0 +1,182 @@
+---
+description: Idea validation — anti-trivialization checks, rubric axes, accept/reject exemplars, and spec output format. Use when validating a task idea and producing a spec before file creation.
+alwaysApply: false
+---
+
+# Idea Validation
+
+Reference this file when validating a task idea and producing a spec. It is NOT auto-applied — use `@idea-validation.mdc` explicitly.
+
+## 5 Hardness Axes
+
+A task is hard when solving it requires the agent to do ALL of these. If the task fails on any axis, it is at best medium — not hard.
+
+1. **Discover** — The agent must find information not in the instruction by reading code, running experiments, or analyzing behavior. If the instruction alone contains enough to solve the task, it's easy.
+2. **Synthesize** — The answer spans multiple interacting systems. No single file or module contains the complete solution. The agent must build a mental model of how parts connect.
+3. **Diagnose** — The instruction describes symptoms ("runs drift", "outputs are wrong") not causes ("the CRC uses half the payload"). The agent must figure out WHAT is wrong, not just fix what it's told.
+4. **Navigate coupling** — Local fixes break distant invariants. The agent can't fix one thing in isolation; it must understand how changes propagate across the system.
+5. **Reason beyond training** — The task requires domain-specific reasoning that can't be pattern-matched from common implementations. Standard textbook problems (HMAC verification, JSON schema validation, Monte Carlo CI, sliding windows) are in-distribution and therefore easy.
+
+**The instruction completeness test:** Can the agent solve the task by reading ONLY instruction.md, without deeply engaging with the codebase? If yes, the instruction IS the specification, and implementing specs is LLMs' strongest capability. The codebase is decorative.
+
+## 6 Rubric Axes
+
+Every idea must survive all six:
+
+1. **Verifiable** — Deterministic programmatic tests, no subjectivity, reliable on repeated runs.
+2. **Well-specified** — Succinct (1–2 paragraphs ideal). Two people reading should produce equivalent verifiers.
+3. **Solvable** — Expert human can solve in a few hours knowing the approach. Solution < 100k lines.
+4. **Difficult** — Requires professional experience or years of domain expertise. Undergrads should not solve in days. Not hard via tricks, obscure facts, or hidden instances.
+5. **Interesting** — Real-world economic value. Someone would be paid to do this.
+6. **Outcome-verified** — Grade results not process. Do not dictate tools/approach. Do not overspecify output format.
+
+## 18 Anti-Trivialization Checks
+
+Run ALL of these before allowing an idea to proceed to spec.
+
+1. **Disclosure-collapse** — If the task becomes easy once every checked behavior is stated honestly in instruction.md, reject.
+2. **Hidden-instance** — If the task is hard mainly because the agent doesn't know which one file/record/artifact is broken, reject.
+3. **Single-artifact repair** — If the solution is just "patch one manifest" or "flip one checksum" without a broader fix, reject.
+4. **Generalization** — If the task only targets one named broken instance instead of working across multiple scenarios, reject.
+5. **Prompt-honesty** — If an honest prompt would reveal the exact broken instance and that collapses the search space, reject.
+6. **Cheating-vs-difficulty** — Anti-cheating measures do not create legitimate difficulty by themselves.
+7. **Mechanical-fix filter** — If the only issues are verifier deps, timeout tuning, or reward-footer formatting, that is not a task weakness.
+8. **Localized-fix** — If the fix lives in one tiny function or one obvious file cluster and the prompt names the behavior precisely, serious warning sign.
+9. **Oracle-locality** — If the oracle mostly replaces one or two files wholesale, the task may be too localized.
+10. **Small declarative-cluster** — If the solve is mostly one config block, one manifest, one policy/phase/state table, strong warning sign.
+11. **Grep-collapse** — If prompt nouns grep directly to the buggy block, the task may already be too direct.
+12. **Pre-factored-helper** — If helper names mirror the prompt bullets (`validate`, `extract`, `install`), assume easier than it looks.
+13. **Recipe-discount** — Standard recipes (safe extraction, traversal blocking, jail normalization, policy knob filling) do not count as hard.
+14. **Security-aura discount** — Security nouns, exploit cases, real daemons are not hardness by themselves. Judge the residual reasoning.
+15. **Orthogonal-checklist** — Count coupled insight clusters, not bullet count. If each requirement is independent with no tradeoffs, reject.
+16. **Harness-discount** — Docker complexity, seed generation, multi-service setups are realism, not hardness.
+17. **One-pass solvability** — Could a frontier model solve this in one pass after opening the obvious files? If yes, reject.
+18. **Hard-only gate** — Is this clearly hard, not merely respectable or medium? If medium, this check is FAIL.
+
+## What Does NOT Count as Hard
+
+Reject these patterns actively:
+
+- **"Implement this spec" tasks** — If the instruction gives complete algorithms, schemas, rules, and output formats, the agent just translates English to code. Complex output ≠ hard problem. A 200-field JSON report is trivial if every field's computation is specified.
+- **Build-from-scratch with no existing system** — Tasks with 0-5 environment files where the agent writes everything from a blank canvas. Without an existing codebase to understand, the agent operates in its ideal mode.
+- **Instruction-as-diagnosis** — Instructions that name exact causes ("the CRC uses half the payload") instead of symptoms ("resumed runs produce different results"). The diagnosis IS the hard work.
+- **In-distribution domains** — HMAC verification, JSON schema validation, Monte Carlo simulation, policy checkers, sliding window algorithms, Merkle trees — these have thousands of implementations in training data.
+- **Undergrad-scale course projects** — CRUD services, toy auth, simple compilers, textbook protocol exercises
+- **Giant-scope builds** — "Rewrite the kernel in Rust", "build a Gmail clone"
+- **Obscure-fact lookups** — Knowing one magic RFC sentence, man-page flag, or library quirk
+- **Tedious volume** — Reviewing 100k lines, hand-editing repetitive files, mass data cleanup
+
+## 4 Concrete Collapse Patterns to Reject
+
+1. **Disclosed policy-knob transcription** — Prompt names exact config files and exact knobs to set.
+2. **Finite state-table repair** — Solution is a tiny literal table mirroring the prompt.
+3. **Toy jail/hardening checklist** — Editable surface is a few scripts + one config, orthogonal checklist.
+4. **Pre-factored safe-extractor recipe** — Helper names match prompt bullets, fill in the textbook recipe.
+
+## Accept / Reject Exemplars
+
+**Accept-style:**
+- "Implement a GPT-2 forward pass in C in <4000 bytes." — Hard, outcome-verifiable, not hidden-instance.
+- "Write a Verilog circuit that implements a CPU for a custom assembler under a gate budget." — Hard after disclosure.
+- "Harden a local service so a general fix survives multiple adversarial scenarios." — Acceptable when verifier checks multiple behaviors and fix is not localized.
+
+**Reject-style:**
+- "Rewrite the Linux kernel in Rust with full syscall compatibility." — Absurd scope.
+- "Build a FastAPI CRUD invoicing service with auth." — Course project.
+- "Find which one of 400 daily manifests is corrupted." — Hidden-instance difficulty.
+- "Fix a real scheduler lab by setting the listed policy knobs." — Policy-knob transcription.
+- "Harden an SSH jail where the repo has one config and a few shell scripts." — Toy hardening checklist.
+- "Write a Python script that reads JSON config, validates CSV schemas, and writes a report." — Implement-this-spec.
+- "Build a Monte Carlo simulator with confidence intervals. Here are the formulas." — In-distribution spec implementation.
+- "Write an HMAC verification tool that checks a ledger." — Standard crypto recipe, no existing system.
+
+## Validation Loop
+
+The validation loop is managed by `validate_loop.py`, not by the LLM. The script tracks attempts, decides when to stop (early stopping on plateau), and manages spec files.
+
+**Your job per attempt:** run the 5 hardness axes, 18 anti-trivialization checks, 6 rubric axes, instruction completeness test, and collapse audit. Output a clean spec and a RESULT line with FAIL/WARN counts. The script handles everything else.
+
+**Spec file rules:**
+- `specs/<task-name>.md` — contains ONLY the current variant's spec. No comparison tables, no attempt history, no clutter from other attempts.
+- `specs/<task-name>-candidate-N.md` — plateau candidates (script tells you when to save here).
+- `specs/<task-name>-validation-log.md` — attempt history (managed by the script).
+
+See `workflow-prompts.md` Step 2a for the automated loop prompt.
+
+## Spec Output Format
+
+When the winning variant is GO, produce a spec using this exact structure:
+
+```
+### Decision
+[GO / STOP] — Attempt [N]. [1-3 bullets explaining what changed, e.g., "GO — Attempt 2. Scattered code across 3 roots, split persistence layer, neutralized API naming."]
+
+### Metadata
+- Task name: [kebab-case slug]
+- Title: [3-4 word human title]
+- Category: [one of 9 accepted values]
+- Languages: [array]
+- Difficulty: hard
+- Codebase size: [small (20-200 files under environment/ excl. Docker files) / large (200+). Must be 20+ to avoid 'minimal' which is blocked.]
+- Subcategories: [array or []]
+- Tags: [3-6 values]
+- Milestones: [0 or count]
+
+### Anti-trivialization verdict
+[full 18-check table with reasoning per check]
+
+### Rubric axes
+[for each of the 6 axes: 1 sentence reasoning + Pass/Warn/Fail]
+
+### Hardness axes
+[for each of the 5 axes (Discover, Synthesize, Diagnose, Navigate coupling, Reason beyond training): 1-2 sentences explaining HOW this task satisfies it. If any axis is not satisfied, the task cannot be hard.]
+
+### Instruction completeness test
+[Answer: "Can the agent solve this by reading ONLY instruction.md without deeply engaging with the codebase?" Explain why not.]
+
+### Implementation plan
+[1-2 paragraphs: what the environment contains, what is broken/needs building, what the agent must do, what makes it genuinely hard]
+
+### File tree
+[exact file list with one-line description per file. Must have 20+ files under environment/ excluding Dockerfile/docker-compose to qualify as 'small' (not 'minimal' which is blocked). Include headers, source modules, data files, configs as needed.]
+
+### Instruction summary
+[requirements, constraints, output files, schemas — NOT the full instruction text]
+
+### Test plan
+[what each test checks — at least 6 tests]
+[for each: what it verifies, whether multiple valid approaches exist, whether chain-dependent]
+
+### Oracle approach
+[how solve.sh will solve it — enough detail to implement, not a hint dump]
+
+### Collapse audit
+Stage: implementation-plan
+
+Smallest plausible successful patch:
+[one paragraph]
+
+Likely editable frontier:
+- [files]
+
+Requirement-to-file map:
+- [requirement] -> [likely location]
+
+Oracle estimated complexity: [lines of non-boilerplate logic]
+
+Red flags:
+- [any, or "none"]
+
+Residual hardness:
+[one paragraph — what remains genuinely hard after the file tree is visible]
+
+Collapse verdict: [PASS / WARN / FAIL]
+
+### Per-test feasibility pre-check
+[for each planned test]
+- Test: [name]
+- Checks: [one sentence]
+- Valid approaches: [1 = only oracle way / 2+ = multiple valid ways]
+- Chain-dependent: [yes/no — on what]
+- Feasibility risk: [LOW / MEDIUM / HIGH]
+```
