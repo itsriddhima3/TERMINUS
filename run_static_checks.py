@@ -95,11 +95,6 @@ TOOL_SPECIFIC_HINTS = {
     "wandb",
 }
 
-STANDARD_REWARD_PREFIX = [
-    "mkdir -p /logs/verifier",
-    "echo 0 > /logs/verifier/reward.txt",
-]
-
 STANDARD_REWARD_BLOCK = [
     "if [ $? -eq 0 ]; then",
     "  echo 1 > /logs/verifier/reward.txt",
@@ -124,7 +119,7 @@ NETWORK_INSTALL_PATTERN = re.compile(
     r"\b(?:apt(?:-get)?\s+install|curl\b|wget\b|uvx\b|uv\s+pip\b|pip(?:3)?\s+install\b|npm\s+(?:install|ci)\b|pnpm\s+install\b|yarn\s+install\b)",
     re.IGNORECASE,
 )
-UV_PYTEST_PATTERN = re.compile(r"\buvx\b|\buv\s+run\b|\buv\s+pip\b", re.IGNORECASE)
+UV_PYTEST_PATTERN = re.compile(r"\buvx\b", re.IGNORECASE)
 PYTEST_DIRECT_PATTERN = re.compile(r"\bpytest\b")
 FORBIDDEN_DIRECT_PYTHON_TEST_PATTERN = re.compile(
     r"\bpython(?:3)?\s+(?:-m\s+)?/?tests/test_outputs\.py\b|\bpython(?:3)?\s+/tests/test_outputs\.py\b"
@@ -445,18 +440,6 @@ def substantive_shell_lines(content: str) -> list[str]:
     return substantive
 
 
-def has_strict_mode(content: str) -> bool:
-    candidate_lines = content.splitlines()[:10]
-    if any(STRICT_MODE_PATTERN.search(line) for line in candidate_lines):
-        return True
-    joined = "\n".join(candidate_lines)
-    return bool(
-        re.search(r"^\s*set\s+-e\b", joined, re.MULTILINE)
-        and re.search(r"^\s*set\s+-u\b", joined, re.MULTILINE)
-        and re.search(r"^\s*set\s+-o\s+pipefail\b", joined, re.MULTILINE)
-    )
-
-
 def collect_python_verifier_files(task_dir: Path, characteristics: dict[str, object]) -> list[Path]:
     tests_dir = task_dir / "tests"
     milestone_count = characteristics["milestone_count"]
@@ -578,6 +561,43 @@ def check_task_toml(task_dir: Path, task_data: dict, reporter: Reporter) -> None
             "codebase_size must be 'small' or 'large' for current Edition 2 acceptance gates, "
             f"found {codebase_size!r}"
         )
+
+    # Validate codebase_size against actual file count (excluding Dockerfile/docker-compose)
+    env_dir = task_dir / "environment"
+    if env_dir.is_dir():
+        docker_names = {"dockerfile", "docker-compose.yaml", "docker-compose.yml"}
+        env_files = [
+            f for f in env_dir.rglob("*")
+            if f.is_file() and f.name.lower() not in docker_names
+        ]
+        env_file_count = len(env_files)
+        if env_file_count < 20:
+            reporter.warn(
+                f"environment/ has {env_file_count} files (excluding Docker files). "
+                f"Tasks with fewer than 20 files are classified as 'minimal' which is "
+                f"blocked on the platform. Add more source files or data to reach 20+."
+            )
+        elif env_file_count < 25:
+            reporter.warn(
+                f"environment/ has {env_file_count} files (excluding Docker files). "
+                f"This is borderline — aim for 25-30+ to avoid floor-hugging."
+            )
+        if codebase_size == "small" and env_file_count < 20:
+            reporter.warn(
+                f"codebase_size is 'small' but environment/ has only {env_file_count} "
+                f"non-Docker files (need 20+ for 'small'). This will be classified as "
+                f"'minimal' on the platform."
+            )
+        elif codebase_size == "small" and env_file_count > 200:
+            reporter.warn(
+                f"codebase_size is 'small' but environment/ has {env_file_count} "
+                f"non-Docker files. Consider 'large' (200+)."
+            )
+        elif codebase_size == "large" and env_file_count <= 200:
+            reporter.warn(
+                f"codebase_size is 'large' but environment/ has only {env_file_count} "
+                f"non-Docker files. Use 'small' (20-200)."
+            )
 
     milestones = get_task_field(task_data, "number_of_milestones")
     if not isinstance(milestones, int) or milestones < 0:
@@ -807,8 +827,8 @@ def check_test_sh(task_dir: Path, task_data: dict, reporter: Reporter) -> None:
     lines = content.splitlines()
     substantive_lines = substantive_shell_lines(content)
 
-    if not has_strict_mode(content):
-        reporter.fail("tests/test.sh must use set -euo pipefail near the top of the script")
+    # NOTE: The official platform template does NOT use set -euo pipefail in test.sh.
+    # set -e breaks $? capture in the reward footer. Do not require it.
 
     uses_reward_txt = "/logs/verifier/reward.txt" in content
     uses_reward_json = "/logs/verifier/reward.json" in content
@@ -816,27 +836,27 @@ def check_test_sh(task_dir: Path, task_data: dict, reporter: Reporter) -> None:
         reporter.fail("tests/test.sh must emit /logs/verifier/reward.txt or /logs/verifier/reward.json")
 
     if uses_reward_txt:
-        if substantive_lines[:2] != STANDARD_REWARD_PREFIX:
-            observed_prefix = "\n".join(substantive_lines[:2]) if substantive_lines else "<missing>"
-            reporter.fail(
-                "tests/test.sh must initialize reward.txt near the top of the script with:\n"
-                "mkdir -p /logs/verifier\n"
-                "echo 0 > /logs/verifier/reward.txt\n"
-                f"Observed first substantive commands:\n{observed_prefix}"
-            )
+        # NOTE: The official platform template does NOT initialize reward.txt early.
+        # The reward footer always runs because there is no set -e to cause early exit.
 
-        trimmed_lines = list(lines)
-        while trimmed_lines and not trimmed_lines[-1].strip():
-            trimmed_lines.pop()
-        tail = trimmed_lines[-len(STANDARD_REWARD_BLOCK) :]
-        if tail != STANDARD_REWARD_BLOCK:
-            pretty_tail = "\n".join(tail) if tail else "<empty file>"
-            reporter.fail(
-                "tests/test.sh must end with the standard reward.txt block when using reward.txt.\n"
-                f"Observed tail:\n{pretty_tail}"
-            )
-        else:
-            reporter.ok("tests/test.sh reward.txt block matches Edition 2 expectation")
+        # UI tasks use a different template (set -e + exit code variables + final assertion)
+        # so the strict tail check only applies to non-UI Python/pytest tasks.
+        characteristics_early = get_task_characteristics(task_dir, task_data)
+        is_ui_early = bool(characteristics_early["is_ui"])
+
+        if not is_ui_early:
+            trimmed_lines = list(lines)
+            while trimmed_lines and not trimmed_lines[-1].strip():
+                trimmed_lines.pop()
+            tail = trimmed_lines[-len(STANDARD_REWARD_BLOCK) :]
+            if tail != STANDARD_REWARD_BLOCK:
+                pretty_tail = "\n".join(tail) if tail else "<empty file>"
+                reporter.fail(
+                    "tests/test.sh must end with the standard reward.txt block when using reward.txt.\n"
+                    f"Observed tail:\n{pretty_tail}"
+                )
+            else:
+                reporter.ok("tests/test.sh reward.txt block matches Edition 2 expectation")
     else:
         if "mkdir -p /logs/verifier" not in "\n".join(substantive_lines[:5]):
             reporter.fail("tests/test.sh should create /logs/verifier before writing reward.json")
@@ -862,7 +882,7 @@ def check_test_sh(task_dir: Path, task_data: dict, reporter: Reporter) -> None:
         if not PYTEST_DIRECT_PATTERN.search(content) or "/tests/test_outputs.py" not in content:
             reporter.fail("tests/test.sh must run /tests/test_outputs.py via pytest")
         if not UV_PYTEST_PATTERN.search(content):
-            reporter.fail("tests/test.sh must invoke pytest for tests/test_outputs.py through uv/uvx")
+            reporter.fail("tests/test.sh must invoke pytest for tests/test_outputs.py through uvx")
 
     if isinstance(milestone_count, int) and milestone_count > 0:
         milestone_paths = [f"/tests/test_m{index}.py" for index in range(1, milestone_count + 1)]
@@ -875,7 +895,7 @@ def check_test_sh(task_dir: Path, task_data: dict, reporter: Reporter) -> None:
                 + ", ".join(missing_paths)
             )
         if not is_ui and milestone_paths and not UV_PYTEST_PATTERN.search(content):
-            reporter.fail("Milestone Python verifier tasks must invoke pytest through uv/uvx")
+            reporter.fail("Milestone Python verifier tasks must invoke pytest through uvx")
 
     if is_ui:
         if not re.search(r"\bnpm\s+run\s+test\b", content):

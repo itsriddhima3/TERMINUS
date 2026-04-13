@@ -23,13 +23,13 @@
 
 Terminal-Bench is a popular benchmark for measuring the capabilities of agents and language models to perform valuable work in containerized environments. It is used by virtually all frontier labs.
 
-**🚧 This repo is the ongoing effort to construct the next version of Terminal Bench 🚧**. We are currently accepting [task submissions](CONTRIBUTING.md). Our goal is to construct an even more challenging set of realistic and valuable tasks that pushes beyond the limits of current frontier models.
+**🚧 This repo is the ongoing effort to construct the next version of Terminal Bench 🚧**. We are currently accepting task submissions. Our goal is to construct an even more challenging set of realistic and valuable tasks that pushes beyond the limits of current frontier models.
 
 ## Contributing Tasks
 
-We're actively looking for contributors to add new, challenging tasks. See the [Open Call for Task Contributions](https://docs.google.com/document/d/1pe_gEbhVDgORtYsQv4Dyml8uaR7PZBEyVZnBUrs1z0M/edit?tab=t.0) for goals, timeline, and expectations, and [CONTRIBUTING.md](CONTRIBUTING.md) for the technical guide on creating and submitting tasks.
+We're actively looking for contributors to add new, challenging tasks. See the [Open Call for Task Contributions](https://docs.google.com/document/d/1pe_gEbhVDgORtYsQv4Dyml8uaR7PZBEyVZnBUrs1z0M/edit?tab=t.0) for goals, timeline, and expectations. See [workflow-prompts.md](workflow-prompts.md) for the step-by-step task creation pipeline and [commands.md](commands.md) for CLI reference.
 
-We strongly suggest [getting feedback](CONTRIBUTING.md#propose-your-task) on your task idea before investing time in a full submission. Please read the [contributing instructions](CONTRIBUTING.md) and [task proposal rubric](TASK_PROPOSAL_RUBRIC.md) before getting started. PRs that add a task follow a [review pipeline](TASK_REVIEW_PIPELINE.md) in which automated checks run on every push, a maintainer discusses feedback and triggers further checks, and the task is iterated to a high quality bar.
+Read the [task proposal rubric](web/TASK_PROPOSAL_RUBRIC.md) before getting started.
 
 ## Resources
 
