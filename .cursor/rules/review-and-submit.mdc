@@ -1,0 +1,254 @@
+---
+description: Terminal-Bench 3.0 Edition 2 — review checklist, static checks, and submission readiness. Run before approving or packaging any task.
+alwaysApply: true
+---
+
+# Review & Submit
+
+## Severity Guide
+- **HIGH** — any HIGH failure = reject
+- **MEDIUM** — multiple MEDIUM = reject; single MEDIUM = accept with note
+- **LOW** — does not block acceptance alone
+
+---
+
+## 1. Instruction (HIGH unless noted)
+
+- Concise: 1 sentence to 3 paragraphs. Reads like a human prompt with minimal markdown.
+- Goal is clear and well-specified. Not primarily hard via hidden edge cases.
+- No hints, step-by-step solve instructions, or solution-revealing bold markers.
+- No synthetic sections like `Deliverables`, `Artifacts`, `Acceptance Criteria` unless genuinely needed. (MEDIUM)
+- Interesting — useful to some group of developers.
+- Does not mention specific tools unless verifier can prove tool usage.
+- Unique vs TB2, TB3, Snorkel TB1 — initial state or expected output differs non-trivially.
+- All paths are absolute in-container references.
+- Does not include the task name or canary strings.
+- Milestone tasks: includes overall intro + every milestone description + "signal completion" instruction.
+
+## 2. Environment (HIGH unless noted)
+
+- Reproducible and self-contained. No runtime web/data fetches for task assets.
+- `environment/Dockerfile` sets a real `WORKDIR` (e.g., `/app`).
+- Every `FROM` stage pinned by digest, including builder stages.
+- Apt packages pinned to specific versions.
+- Does not copy `solution/`, `tests/`, or oracle answers into the image.
+- Does not create reserved paths (`/tests`, `/solution`, `/oracle`).
+- No ground truth, reference outputs, or gold hashes in agent-visible runtime inputs.
+- No `--privileged`, `SYS_ADMIN`, or docker.sock mounts.
+- Docker compose does not alter reserved Harbor mounts.
+- Test-only dependencies in `tests/test.sh`, NOT the Dockerfile.
+- Build context does not escape `environment/`.
+
+## 3. Oracle Solution (HIGH)
+
+- Oracle passes consistently — no randomization or hardware-sensitive flakiness.
+- Does not require internet access at runtime.
+- Solves everything in `instruction.md` — real implementation, not hardcoded answers.
+- Milestone tasks: chained `solve1.sh ... solveN.sh`, top-level `solve.sh` runs them in order.
+
+## 4. Verifiers (HIGH unless noted)
+
+- **Standard (Python/pytest) tasks:** `tests/test.sh` matches the official platform template from `task-creation.mdc`. The CI checker textually validates the last 6 lines. Do not add `set -euo pipefail`, `set +e`, `status=0`, `$status`, or `exit` after `fi`. (HIGH)
+- **UI tasks:** `tests/test.sh` uses the separate UI template from `task-creation.mdc` (with `set -e`, `UNIT_EXIT`/`E2E_EXIT` variables, and a final assertion after the reward block). The CI checker skips the strict tail check for UI tasks. (HIGH)
+- Same verification logic for oracle and agent runs.
+- Verification deps installed in `tests/test.sh` with pinned versions.
+- Rewards are binary: `0` or `1`.
+- All tests aligned to instruction.md — nothing tested that is not described.
+- Every explicit prohibition/restriction in instruction.md is directly tested.
+- Verifier checks actual correctness, not just format.
+- If instruction specifies schemas, verifier parses and validates those schemas.
+- If verifier depends on dict/map key formats, instruction documents exact key format.
+- No wall-clock, latency, throughput, or memory assertions. Use deterministic proxies.
+- Verifier modules pass `ruff`.
+- `test_outputs.py` exposes discoverable `test_...` functions. (MEDIUM)
+- Milestone tasks: one `test_mN.py` per milestone, each scores only its own milestone.
+- UI tasks: both unit and E2E verifiers run from `test.sh`.
+
+## 5. Task Metadata (HIGH unless noted)
+
+- `task.toml` uses `version = "2.0"` with all required fields under `[metadata]`.
+- Difficulty, codebase size, and languages satisfy acceptance gates.
+- `codebase_size` matches actual file count under `environment/` (excluding Dockerfile/docker-compose): 20-200 = `small`, 200+ = `large`. Under 20 files = `minimal` which is blocked on the platform — warn the user. (HIGH)
+- `[environment]` includes `cpus`, `memory_mb`, `storage_mb` (positive integers).
+- `tags` contains 3–6 descriptive values without redundant filler.
+- No `task_subtypes` — use `subcategories`. (MEDIUM)
+- Tool-driven tasks include `tool_specific` in `subcategories`. (MEDIUM)
+- `number_of_milestones` matches actual milestone count (0 for non-milestone).
+- Docker compose tasks flagged: `custom_docker_compose = true`, `is_multi_container = true` if applicable.
+
+## 6. Task Structure (HIGH unless noted)
+
+- All required files present: `instruction.md`, `task.toml`, `environment/Dockerfile`, `solution/solve.sh`, `tests/test.sh`, `tests/test_outputs.py`.
+- Submission zip has files at archive root (no wrapping folder).
+- Milestone tasks: `milestone_1.md ... milestone_N.md` present, no legacy `milestones.md`.
+- No `rubrics.txt` at task root or zip root.
+- No stray artifacts (`jobs/`, root `README.md`, root `data/`). (LOW)
+
+## 7. Difficulty Calibration (HIGH unless noted)
+
+- Collapse audit (from `difficulty-calibration.mdc` Part A) verdict is PASS. WARN requires justification. FAIL = reject.
+- Oracle is not trivially small. Under ~30 lines of non-boilerplate requires justification.
+- Every test is independently achievable, not chain-dependent on the full solution.
+- Every test accepts any valid solution approach, not just the oracle's exact output.
+- Partial-oracle simulation was run. (MEDIUM)
+- Tests pass under randomized execution order (`pytest -p randomly`). (MEDIUM)
+- Tests pass consistently across 5+ oracle runs (no flaky/timing-dependent failures). (MEDIUM)
+- If agent trials were run, per-test pass matrix shows no test at 0/N. (MEDIUM)
+- Claimed difficulty backed by evaluation evidence, not guesswork.
+- Oracle passes, NOP fails, frontier pass rate is not 100%.
+
+---
+
+## Common Issues to Flag
+
+### Instruction problems
+- Ambiguous requirements ("Make it better")
+- Tests check files not mentioned in instruction
+- Relative paths instead of absolute
+- Task name leaked in instruction.md
+- Milestone task missing intro, descriptions, or "signal completion" rule
+
+### Test problems
+- Brittle exact-string matching
+- Requirements without corresponding tests
+- Named restriction in instruction has no direct test
+- Schema promised but never parsed in tests
+- Dict/map key format not documented but tested
+- `test.sh` can exit before writing reward file (the official template avoids this by not using `set -e`)
+- Pass/fail depends on runtime speed or peak memory
+- Test deps in Dockerfile (leaks hints)
+- Unpinned verifier deps
+- test.sh deviates from verbatim template — any structural change to the fixed parts (control flow, variable names, reward footer, exit) is a HIGH rejection even if functionally equivalent
+- Test execution order dependency
+- Tests parse source code instead of checking behavior
+- Single-path-only test (only oracle's approach passes)
+- Chain-dependent test (requires full solution for any individual test to pass)
+- Overly-specific assertion (exact value when multiple valid answers exist)
+- Flaky test (timing-dependent, race conditions, subprocess without retries, file-system polling without adequate waits)
+
+### Environment / structure problems
+- Missing WORKDIR in Dockerfile
+- Dockerfile copies tests/solution/oracle into image
+- `rubrics.txt` included in zip
+- Milestone files missing or using legacy names
+- Unpinned apt packages in Dockerfile
+
+### Metadata problems
+- `task_subtypes` used instead of `subcategories`
+- Missing `tool_specific` when task depends on specialized tools
+- Blocked acceptance gate (easy, minimal, Python + not hard)
+- Tags outside 3–6 range or padded with filler
+
+---
+
+## Static Checks To Run
+
+Before packaging or claiming "ready", use the task-scoped static checker:
+
+```bash
+python3 run_static_checks.py --task-dir tasks/<task-name> --version edition_2
+```
+
+Do NOT run bare `ci_checks/*.sh` scripts without a task path — they scan all `tasks/` and `review_task/` by default, and legacy tasks will cause spurious failures.
+
+If `ruff` is available: `ruff check tasks/<task-name>`.
+
+## Packaging Verification
+
+```bash
+cd tasks/<task-name>
+zip -rq ../../Task_Ready_To_Submit/<task-name>.zip . -x '*/__pycache__/*' '*.pyc' '.*'
+unzip -l ../../Task_Ready_To_Submit/<task-name>.zip
+```
+
+Verify: `instruction.md`, `task.toml`, `environment/`, `solution/`, `tests/` at archive root.
+
+---
+
+## Decision Criteria
+
+Use exactly one of these decisions. Do NOT use "APPROVE WITH NOTE" to defer concept-level problems.
+
+### APPROVE
+All of these must be true:
+- Oracle 1.0 (3+ runs), NOP 0.0
+- Collapse audit PASS
+- No discoverability signals found
+- Partial-oracle simulation fails at least one test (verifier discriminates between partial and full fixes)
+- Agent trials (if run): pass rate <80%
+- All static checks pass (WARNs acceptable)
+- No concept-level findings remain
+
+### APPROVE WITH NOTE
+Same as APPROVE, except:
+- Collapse audit is WARN (not FAIL) with documented residual hardness
+- Agent trials not run (difficulty is estimated, not empirical)
+- Minor mechanical issues remain that don't affect difficulty
+
+**APPROVE WITH NOTE is NOT allowed when any of these are true:**
+- Partial-oracle passes all tests (verifier doesn't discriminate — MUST fix tests first)
+- Any agent trial scored 1.0 without running more trials to confirm (up to 5 total)
+- Discoverability signals were found but not fixed
+- Collapse verdict is FAIL
+
+### REJECT
+Any of these is true:
+- Collapse verdict FAIL after attempted fixes
+- Oracle cannot reach 1.0
+- NOP scores above 0.0 and can't be fixed
+- 3-5 agent trials with >80% pass rate and hardening attempts failed
+- Task fails a hardness axis (Discover, Synthesize, Diagnose, Navigate coupling, Reason beyond training)
+
+### SEND FEEDBACK
+The task has potential but needs significant rework:
+- Concept is strong but implementation collapsed
+- Tests need redesign (partial-oracle passes everything)
+- Agent trial results suggest medium difficulty, not hard
+- Discoverability signals require structural changes beyond simple fixes
+
+### Blocking conditions (cannot be deferred with a NOTE)
+
+These must be resolved before any form of approval:
+
+1. **Partial-oracle passes all tests** → at least one test must fail when only a subset of the oracle is applied. If every partial fix still passes, the verifier doesn't test the bugs it claims to test. Fix the tests.
+2. **Agent trial 1.0 with fewer than 3 total trials** → run more trials. A single pass could be lucky. Three passes at 1.0 means the task is too easy.
+3. **Discoverability signals found but not eliminated** → `(void)` casts next to zero overrides, `// BUG:` comments, compile flags, hardcoded zeros where fields should be — these must be fixed, not noted.
+4. **Collapse verdict FAIL** → redesign, don't approve.
+
+---
+
+## Interpreting Results
+
+### Oracle failed or NOP passed
+Focus on: solution may be incomplete or non-deterministic, tests may be wrong or too weak, instruction and verifier may be misaligned, task may be trivial or accidentally satisfied by the base environment.
+
+### Collapse audit is WARN or FAIL
+The task may be too easy despite passing Oracle/NOP: solve path too obvious, oracle too localized, requirements map 1:1 to obvious code sites, task is a recipe/checklist/policy-knob transcription.
+
+### Oracle discoverability (HIGH)
+Could the agent find where and what to fix without doing the hard intellectual work the task demands? Check ALL channels — instruction wording, source code, file/directory names, test names and assertions, error messages, metadata, comments, config files. If any channel shortcuts the domain reasoning the task is supposed to test, the signal must be eliminated while preserving difficulty.
+
+### Per-test feasibility flags HIGH-risk tests
+The task may be too hard for specific tests. Fix by: loosening assertions to accept any valid solution, making chain-dependent tests set up their own preconditions, verifying two valid approaches would pass each test.
+
+### Hard and aligned but only mechanical issues
+Say so explicitly. Do not imply the task concept is weak when the only issues are verifier setup, dependency placement, timeout tuning, or metadata compliance.
+
+### Fix Classification
+- **Concept-level**: affects difficulty, task design, instruction/verifier alignment, cheating resistance, solution semantics, or per-test feasibility
+- **Mechanical/compliance-level**: verifier dependency placement, timeout tuning, reward-footer formatting, metadata fields, and similar repo-policy issues
+- If findings are mechanical only, do not recommend weakening or redesigning the core task
+- Prefer the smallest fix that resolves the issue while preserving task semantics
+
+---
+
+## Final Rule
+
+Do not tell the user the task is ready until:
+- This checklist has been applied
+- The difficulty calibration from `difficulty-calibration.mdc` has been run
+- Oracle and NOP have been executed (not just claimed)
+- No HIGH-severity issues remain
+- No blocking conditions are unresolved (see Decision Criteria above)
+- Partial-oracle simulation has been run and at least one test fails under partial fix
+- The decision follows the criteria above — do not use APPROVE WITH NOTE to defer concept-level problems
