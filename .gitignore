@@ -20,9 +20,5 @@ TASK_PROPOSAL_RUBRIC-results/
 .vscode/
 .idea/
 
-# Cursor (ignore everything except rules)
-.cursor/*
-!.cursor/rules/
-
 # Harbor
 jobs/
