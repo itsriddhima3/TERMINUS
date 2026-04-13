@@ -1,9 +1,16 @@
 # Environment
 .env
+.env.*
+
+# Validation working state
+specs/
+specs/**
+.*.json
 
 # Python
 __pycache__/
 *.pyc
+*.pyo
 .venv/
 .pytest_cache/
 .mypy_cache/
@@ -15,10 +22,14 @@ TASK_PROPOSAL_RUBRIC-results/
 
 # OS
 .DS_Store
+Thumbs.db
 
 # IDEs
 .vscode/
 .idea/
+*.swp
+*.swo
+*~
 
 # Harbor
 jobs/
