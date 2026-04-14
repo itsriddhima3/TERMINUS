@@ -152,6 +152,11 @@ storage_mb = 10240
 
 Accepted `subcategories` values: `long_context`, `tool_specific`, `api_integration`, `db_interaction`, `ui_building`. Do not use `task_subtypes`.
 
+**Subcategory guardrails (do not label a task with a subcategory unless it meets the criteria):**
+- `long_context`: only when the task truly depends on at least 50k tokens of reading (roughly 50-150 pages) AND semantic reasoning. Simple parsing, filtering, or keyword search does not qualify.
+- `api_integration`: only when the API is mocked locally in Docker with no external web access. Tasks that depend on a live remote API do not qualify.
+- `ui_building`: only for genuine UI tasks that use the UI verifier stack (unit + E2E). Ordinary pytest-only backend validation does not qualify.
+
 If `environment/docker-compose.yaml` exists: set `custom_docker_compose = true`. If multiple services: also set `is_multi_container = true`.
 
 ## environment/Dockerfile

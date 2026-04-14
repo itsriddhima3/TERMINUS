@@ -78,7 +78,10 @@ alwaysApply: true
 
 ## 6. Task Structure (HIGH unless noted)
 
-- All required files present: `instruction.md`, `task.toml`, `environment/Dockerfile`, `solution/solve.sh`, `tests/test.sh`, `tests/test_outputs.py`.
+- All required files present (varies by task type — see `task-creation.mdc`):
+  - **Standard:** `instruction.md`, `task.toml`, `environment/Dockerfile`, `solution/solve.sh`, `tests/test.sh`, `tests/test_outputs.py`.
+  - **Milestone:** same as standard but `tests/test_m1.py ... test_mN.py` instead of `test_outputs.py`.
+  - **UI:** same as standard plus UI test files under `tests/` per the UI template in `task-creation.mdc`.
 - Submission zip has files at archive root (no wrapping folder).
 - Milestone tasks: `milestone_1.md ... milestone_N.md` present, no legacy `milestones.md`.
 - No `rubrics.txt` at task root or zip root.
@@ -95,7 +98,7 @@ alwaysApply: true
 - Tests pass consistently across 5+ oracle runs (no flaky/timing-dependent failures). (MEDIUM)
 - If agent trials were run, per-test pass matrix shows no test at 0/N. (MEDIUM)
 - Claimed difficulty backed by evaluation evidence, not guesswork.
-- Oracle passes, NOP fails, frontier pass rate is not 100%.
+- Oracle passes, NOP fails, frontier pass rate is below 80% (above 80% is blocked for hard tasks).
 
 ---
 
@@ -149,7 +152,7 @@ Before packaging or claiming "ready", use the task-scoped static checker:
 python3 run_static_checks.py --task-dir tasks/<task-name> --version edition_2
 ```
 
-Do NOT run bare `ci_checks/*.sh` scripts without a task path — they scan all `tasks/` and `review_task/` by default, and legacy tasks will cause spurious failures.
+Do NOT run bare `ci_checks/*.sh` scripts without a task path — they scan all `tasks/` by default, and legacy tasks will cause spurious failures.
 
 If `ruff` is available: `ruff check tasks/<task-name>`.
 
@@ -214,6 +217,8 @@ These must be resolved before any form of approval:
 2. **Agent trial 1.0 with fewer than 3 total trials** → run more trials. A single pass could be lucky. Three passes at 1.0 means the task is too easy.
 3. **Discoverability signals found but not eliminated** → `(void)` casts next to zero overrides, `// BUG:` comments, compile flags, hardcoded zeros where fields should be — these must be fixed, not noted.
 4. **Collapse verdict FAIL** → redesign, don't approve.
+5. **`collapse_check.py` FAIL** → at least one mechanical collapse signal is fatal. Fix the flagged issue (rename files, restructure oracle, add output validation to tests, etc.) before any form of approval.
+6. **Quality check HIGH-severity failure** → any `❌ fail` from `harbor tasks check` on `behavior_in_task_description`, `behavior_in_tests`, or `anti_cheating_measures` must be repaired. This is a review-and-repair prompt — repair all HIGH findings, do not defer them.
 
 ---
 

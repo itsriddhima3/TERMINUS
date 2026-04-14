@@ -30,7 +30,7 @@ Every idea must survive all six:
 5. **Interesting** — Real-world economic value. Someone would be paid to do this.
 6. **Outcome-verified** — Grade results not process. Do not dictate tools/approach. Do not overspecify output format.
 
-## 18 Anti-Trivialization Checks
+## 20 Anti-Trivialization Checks
 
 Run ALL of these before allowing an idea to proceed to spec.
 
@@ -52,6 +52,8 @@ Run ALL of these before allowing an idea to proceed to spec.
 16. **Harness-discount** — Docker complexity, seed generation, multi-service setups are realism, not hardness.
 17. **One-pass solvability** — Could a frontier model solve this in one pass after opening the obvious files? If yes, reject.
 18. **Hard-only gate** — Is this clearly hard, not merely respectable or medium? If medium, this check is FAIL.
+19. **Information delta test (BLOCKING)** — Enumerate every piece of information the agent must discover FROM THE CODEBASE that is NOT stated or directly derivable from instruction.md. The list must contain at least 3 non-trivial items where each requires reading and understanding code — not just grepping. If the list has fewer than 3 items, or every item reduces to "find where code doesn't match spec," the task is easy. Reject. This is the single most reliable hardness test.
+20. **Instruction specificity test** — Check where the instruction falls on this hierarchy: **Spec-complete** (always easy): exact algorithms, thresholds, schemas, formulas given. **Cause-revealing** (usually medium): broken component named but full fix not specified. **Symptoms-only** (can be hard): observable misbehavior without indicating where or why. A hard task's instruction must be at the symptoms-only level.
 
 ## What Does NOT Count as Hard
 
@@ -94,7 +96,7 @@ Reject these patterns actively:
 
 The validation loop is managed by `validate_loop.py`, not by the LLM. The script tracks attempts, decides when to stop (early stopping on plateau), and manages spec files.
 
-**Your job per attempt:** run the 5 hardness axes, 18 anti-trivialization checks, 6 rubric axes, instruction completeness test, and collapse audit. Output a clean spec and a RESULT line with FAIL/WARN counts. The script handles everything else.
+**Your job per attempt:** run the 5 hardness axes, 20 anti-trivialization checks, 6 rubric axes, instruction completeness test, and collapse audit. Output a clean spec and a RESULT line with FAIL/WARN counts. The script handles everything else.
 
 **Spec file rules:**
 - `specs/<task-name>.md` — contains ONLY the current variant's spec. No comparison tables, no attempt history, no clutter from other attempts.
@@ -123,7 +125,7 @@ When the winning variant is GO, produce a spec using this exact structure:
 - Milestones: [0 or count]
 
 ### Anti-trivialization verdict
-[full 18-check table with reasoning per check]
+[full 20-check table with reasoning per check]
 
 ### Rubric axes
 [for each of the 6 axes: 1 sentence reasoning + Pass/Warn/Fail]

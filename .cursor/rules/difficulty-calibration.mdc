@@ -224,9 +224,17 @@ If tests are coupled through shared prerequisites, either:
 - have the test create its own preconditions, or
 - split the coupled requirement into the same test
 
-To verify order independence, run pytest with randomized order:
+To verify order independence, run pytest with randomized order inside the task container:
 ```bash
+# Start interactive container, then run inside it:
+harbor tasks start-env -p "tasks/<task-name>" -e docker -a -i
+# Inside the container:
 uvx -p 3.13 -w pytest==8.4.1 -w pytest-randomly pytest /tests/test_outputs.py -rA -p randomly
+```
+
+Alternatively, run from the host against the repo-local test file (requires test dependencies):
+```bash
+uvx -p 3.13 -w pytest==8.4.1 -w pytest-randomly pytest tasks/<task-name>/tests/test_outputs.py -rA -p randomly
 ```
 If any test fails under random order, it depends on execution order or shared global state.
 
