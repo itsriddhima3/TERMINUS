@@ -10,60 +10,36 @@ This is a **Terminal-Bench 3.0 Edition 2** benchmark task collection repository.
 - **harbor** — CLI for initializing, building, testing, and running tasks
 - **Docker** — Each task runs inside a Docker container
 
-### Rule files
+### Source of truth
 
-Three cursor rules auto-apply to every conversation:
+All behavioral rules live in `.cursor/rules/`. Do not restate rules from those files here — reference them.
+
+| File | Purpose | Auto-applied? |
+|---|---|---|
+| `.cursor/rules/task-creation.mdc` | File layout, metadata, templates (standard + UI), Dockerfile, tests, oracle, packaging | Yes |
+| `.cursor/rules/review-and-submit.mdc` | Review checklist, decision criteria, blocking conditions, static checks | Yes |
+| `.cursor/rules/difficulty-calibration.mdc` | Collapse audit (too easy), per-test feasibility (too hard), multi-trial gate | Yes |
+| `.cursor/rules/idea-validation.mdc` | Anti-trivialization checks, rubric axes, spec format. Reference with `@idea-validation.mdc` | No |
+
+### Other references
 
 | File | Purpose |
 |---|---|
-| `.cursor/rules/task-creation.mdc` | File layout, metadata, instruction styling, Dockerfile, tests, oracle, packaging |
-| `.cursor/rules/review-and-submit.mdc` | Review checklist, static checks, common issues, submission readiness |
-| `.cursor/rules/difficulty-calibration.mdc` | Collapse audit (too easy), per-test feasibility (too hard), multi-trial gate |
+| `commands.md` | All harbor, CI, collapse-check, validation-loop, git, and debug commands |
+| `workflow-prompts.md` | Ready-to-paste prompts for each workflow step (Steps 1 → 2a → 2b → 3a → 3b) |
+| `collapse_check.py` | Mechanical collapse/discoverability checker (run after file creation and during review) |
+| `validate_loop.py` | Validation loop state machine for Step 2a (tracks attempts, early stopping, candidate selection) |
 
-Additional references (NOT auto-applied — use `@filename` to reference):
+### Key principles
 
-| File | Purpose |
-|---|---|
-| `.cursor/rules/idea-validation.mdc` | Anti-trivialization checks, rubric axes, accept/reject exemplars, spec output format. Used in Step 2. |
-| `commands.md` | All harbor, CI, git, and debug commands in one place |
-| `workflow-prompts.md` | Ready-to-paste prompts for each workflow step (ChatGPT ideation → Cursor validate+spec → Cursor create → Cursor review) |
-
-### Existing tasks
-
-The `tasks/` directory contains Edition 2 tasks. When creating new tasks, always follow the rules in `.cursor/rules/` — they are the source of truth, not patterns from existing tasks.
+- **Rules in `.cursor/rules/` are authoritative.** When creating new tasks, follow those rules, not patterns from existing tasks in `tasks/`.
+- **`task-creation.mdc` covers both standard and UI tasks.** Check it for the correct test.sh template, oracle structure, and verifier requirements for your task type.
+- **`commands.md` is the canonical CLI reference.** Do not rely on command syntax from other documents.
 
 ### Specs folder
 
-Step 2a saves validated specs to `specs/<task-name>.md`. The validation loop is managed by `validate_loop.py` — a Python script that tracks attempts, handles early stopping, and manages candidate files. The `specs/` folder is a working directory — its contents are not submitted.
-
-### Python verifiers
-
-`tests/test.sh` must run `tests/test_outputs.py` with **pytest** under **uv** (see `task-creation.mdc`). Never use `python3 /tests/test_outputs.py` or a custom test driver.
-
-### Envgen / submission pipeline
-
-Put all Edition 2 metadata under a `[metadata]` table in `task.toml`. Run `python3 run_static_checks.py --task-dir tasks/<n> --version edition_2` before claiming submission-ready.
+Step 2a saves validated specs to `specs/<task-name>.md`. The validation loop is managed by `validate_loop.py`. The `specs/` folder is a working directory — its contents are not submitted.
 
 ### Cloud VM Docker gotcha
 
-In the Cursor Cloud VM (Docker-in-Docker inside Firecracker), containers fail to start with cgroup v2 errors if Docker Compose applies resource limits. After installing Harbor, remove the `deploy` section from Harbor's compose base file:
-
-```bash
-HARBOR_COMPOSE="$(python3 -c "import harbor; import pathlib; print(pathlib.Path(harbor.__file__).parent / 'environments/docker/docker-compose-base.yaml')")"
-python3 -c "
-import yaml
-with open('$HARBOR_COMPOSE') as f:
-    data = yaml.safe_load(f)
-data['services']['main'].pop('deploy', None)
-with open('$HARBOR_COMPOSE', 'w') as f:
-    yaml.dump(data, f, default_flow_style=False)
-"
-```
-
-Also ensure Docker daemon is started with fuse-overlayfs storage driver, iptables-legacy, and the socket is readable:
-
-```bash
-sudo dockerd &>/dev/null &
-sleep 3
-sudo chmod 666 /var/run/docker.sock
-```
+In the Cursor Cloud VM (Docker-in-Docker inside Firecracker), containers fail to start with cgroup v2 errors if Docker Compose applies resource limits. See `commands.md` § Docker Troubleshooting for the fix.

@@ -1,6 +1,6 @@
 # Website LLM Task Authoring Playbook
 
-Use this playbook when you want a website LLM chat to help you design or draft a Terminal-Bench 3 / Terminus Edition 2 task from attachments.
+Use this playbook when you want a website LLM chat to help you ideate and screen Terminal-Bench 3 / Terminus Edition 2 task ideas from attachments. Validation, spec output, and file creation happen in Cursor — not here.
 
 This file is written to work for ChatGPT, Gemini, and similar attachment-based web chats.
 
@@ -68,7 +68,7 @@ If a task fails any later gate, do not rescue it by keeping the original idea-fa
 - keep the chat focused on ideation — do not jump to file creation
 - do the mandatory pre-Phase-0 search every time; do not let the first plausible idea bypass it
 - use regeneration internally and carry forward only the strongest surviving candidate
-- screen ideas against the 5 hardness axes and 18 anti-trivialization checks before handing off to Cursor
+- screen ideas against the 5 hardness axes and 20 anti-trivialization checks before handing off to Cursor
 - do not claim a task is ready to submit or CI-clean — that determination happens in Cursor
 
 ## Bundle Defaults
@@ -394,7 +394,25 @@ ChatGPT's job ends after Phase 1. Everything else happens in Cursor:
 
 ChatGPT handles ideation only (Phase -1 through Phase 1). Everything after that happens in Cursor.
 
-When responding, include:
+There are two response modes depending on where you are in the search:
+
+### Mode 1: Candidate Search (during Phase -1 iteration)
+
+Use this mode when generating, comparing, or regenerating batches. Keep it lightweight — the goal is fast iteration, not deep analysis.
+
+For each surviving candidate:
+1. Short title (3-4 words)
+2. 1-2 sentence concept
+3. Why it is hard for a good reason (1-2 sentences)
+4. What the verifier would check at a high level
+5. Biggest likely rejection risk
+6. Verdict: `strong candidate` / `borderline` / `reject`
+
+End by naming the single best candidate. If no candidate is clearly hard, say `REGENERATE`.
+
+### Mode 2: Final Winner Handoff (after search converges)
+
+Use this mode only when the user says they are satisfied with a candidate and ready to hand off to Cursor. This is heavier — it produces the analysis Cursor needs for Step 2a.
 
 1. `Chosen metadata` (title, slug, category, languages, tags, difficulty)
 2. `Anti-trivialization verdict` (20 checks from Phase 1 with brief reasoning)
@@ -403,6 +421,12 @@ When responding, include:
 5. `Residual hardness` (one paragraph: what stays hard after the agent sees all files and the instruction)
 
 Do NOT produce implementation plans, file trees, fenced code blocks, file contents, collapse audits, or GO/REGENERATE/STOP decisions. All of that is handled by Cursor.
+
+### When to use which mode
+
+- First call, seed variants, regeneration, domain exploration → Mode 1
+- "I like this one, give me the full analysis for Cursor" → Mode 2
+- If the user does not explicitly ask for handoff, default to Mode 1
 
 ## Self-audit Requirements
 

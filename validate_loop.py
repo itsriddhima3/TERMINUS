@@ -93,11 +93,14 @@ def cmd_record(args):
 
     best = state["best_score"]
     improved = (fails, warns) < (best[0], best[1])
+    same_score = [fails, warns] == best
 
     # ── Perfect ──
     if fails == 0 and warns == 0:
         state["best_score"] = score
         state["best_attempt"] = attempt
+        state["candidates"] = []  # Clear stale candidates
+        _cleanup_candidate_files(task_name, state)
         save_state(task_name, state)
         print(f"Attempt {attempt}: {fails}F, {warns}W — PERFECT")
         print(f"ACTION: GO")
@@ -110,15 +113,22 @@ def cmd_record(args):
         state["best_score"] = score
         state["best_attempt"] = attempt
         state["plateau_count"] = 0
+        # Clear stale candidates — they were from a worse score
+        _cleanup_candidate_files(task_name, state)
+        state["candidates"] = []
         save_to = f"specs/{task_name}.md"
         print(f"Attempt {attempt}: {fails}F, {warns}W — IMPROVED (was {best[0]}F, {best[1]}W)")
-    else:
-        # ── Plateau ──
+    elif same_score:
+        # ── Plateau (same score as best) — save as candidate ──
         state["plateau_count"] += 1
         cn = len(state["candidates"]) + 1
         state["candidates"].append({"attempt": attempt, "candidate_n": cn, "score": score})
         save_to = f"specs/{task_name}-candidate-{cn}.md"
         print(f"Attempt {attempt}: {fails}F, {warns}W — PLATEAU ({state['plateau_count']}/{PLATEAU_THRESHOLD})")
+    else:
+        # ── Regression (worse than best) — discard, do not save or count ──
+        save_to = "DISCARD"
+        print(f"Attempt {attempt}: {fails}F, {warns}W — REGRESSION (best is {best[0]}F, {best[1]}W, discarding)")
 
     # ── Check stopping conditions ──
 
@@ -139,13 +149,18 @@ def cmd_record(args):
             print(f"CANDIDATES: {','.join(candidates)}")
         return
 
-    # Unfixable FAILs (3+ attempts with fails)
-    if fails > 0 and attempt >= 3:
-        if all(h["fails"] > 0 for h in state["history"][-3:]):
+    # Unfixable: 3+ consecutive attempts with no improvement in either FAILs or WARNs
+    if attempt >= 3:
+        last_3 = state["history"][-3:]
+        no_improvement = all(
+            (h["fails"], h["warns"]) >= (last_3[0]["fails"], last_3[0]["warns"])
+            for h in last_3[1:]
+        ) and last_3[-1]["fails"] > 0
+        if no_improvement:
             save_state(task_name, state)
             print(f"ACTION: STOP")
             print(f"SAVE_TO: {save_to}")
-            print(f"REASON: Same FAIL persists across 3 attempts. Idea family cannot be saved.")
+            print(f"REASON: No score improvement across 3 consecutive attempts (still {fails}F). Idea family cannot be saved.")
             return
 
     # Max attempts
@@ -177,24 +192,54 @@ def cmd_record(args):
     print(f"REASON: {'Improved — fix remaining WARNs.' if improved else 'Plateau — try different fixes.'}")
 
 
+def _cleanup_candidate_files(task_name: str, state: dict):
+    """Remove candidate spec files from disk."""
+    for c in state.get("candidates", []):
+        cf = SPECS_DIR / f"{task_name}-candidate-{c['candidate_n']}.md"
+        if cf.exists():
+            cf.unlink()
+
+
 def cmd_select(args):
     task_name = args.task_name
     state = load_state(task_name)
     winner = args.winner
 
-    state["best_attempt"] = winner
-    save_state(task_name, state)
+    # Validate winner is a real attempt
+    valid_attempts = {state["best_attempt"]}
+    valid_attempts.update(c["attempt"] for c in state["candidates"])
+    if winner not in valid_attempts:
+        print(f"ERROR: --winner {winner} is not a valid candidate. Valid attempts: {sorted(valid_attempts)}")
+        sys.exit(1)
 
-    # Clean up candidate files
+    state["best_attempt"] = winner
+    canonical = SPECS_DIR / f"{task_name}.md"
+
+    # Find and promote the winning candidate file
+    winner_file = None
     for c in state["candidates"]:
-        cf = SPECS_DIR / f"{task_name}-candidate-{c['candidate_n']}.md"
-        if cf.exists():
-            cf.unlink()
+        if c["attempt"] == winner:
+            winner_file = SPECS_DIR / f"{task_name}-candidate-{c['candidate_n']}.md"
+            break
+
+    if winner_file and winner_file.exists() and winner_file != canonical:
+        canonical.write_text(winner_file.read_text(encoding="utf-8"), encoding="utf-8")
+        print(f"Promoted {winner_file.name} -> {canonical.name}")
+    elif winner == state.get("best_attempt") and canonical.exists():
+        print(f"Winner is already the canonical spec.")
+    else:
+        print(f"ERROR: Could not find spec file for winning attempt {winner}.")
+        sys.exit(1)
+
+    # Clean up ALL candidate files
+    _cleanup_candidate_files(task_name, state)
+    state["candidates"] = []
+    save_state(task_name, state)
 
     print(f"Winner: attempt {winner}")
     print(f"ACTION: GO")
     print(f"SAVE_TO: specs/{task_name}.md")
-    print(f"REASON: Candidate selected. Spec is final.")
+    print(f"REASON: Candidate selected and promoted. Spec is final.")
 
 
 def cmd_status(args):

@@ -9,7 +9,9 @@ Step 1:  ChatGPT  → Find the idea (creative, iterative)
 Step 2a: Cursor   → Validate idea + produce spec (automated loop)
          [you review specs/<task-name>.md]
 Step 2b: Cursor   → Create task files from the saved spec
-Step 3:  Cursor   → Review, repair, validate, package
+                     (includes discoverability gate + mechanical collapse check)
+Step 3a: Cursor   → Harbor execution (oracle 10x, NOP, quality check, agent trials 5x)
+Step 3b: Cursor   → Analysis & decision (collapse audit, per-test feasibility, final verdict)
 ```
 
 ### Setup
@@ -97,18 +99,21 @@ Read the ACTION line from the output.
 
 1. Evaluate the 5 hardness axes from @idea-validation.mdc (Discover, Synthesize, Diagnose, Navigate coupling, Reason beyond training). For EACH axis, write 1-2 sentences explaining how this task satisfies it. If any axis fails, the task cannot be hard — this is a FAIL.
 2. Run the instruction completeness test: "Can the agent solve this by reading ONLY instruction.md without deeply engaging with the codebase?" If yes, this is a FAIL.
-3. Run all 18 anti-trivialization checks from @idea-validation.mdc. For EACH check, write 1-2 sentences of reasoning BEFORE the Pass/Warn/Fail verdict.
+3. Run all 20 anti-trivialization checks from @idea-validation.mdc. For EACH check, write 1-2 sentences of reasoning BEFORE the Pass/Warn/Fail verdict.
 4. Evaluate against the 6 rubric axes. For EACH axis, write 1 sentence of reasoning and a Pass/Warn/Fail verdict. Show all 6 explicitly — do not summarize as "all pass."
 5. Run the collapse audit from @difficulty-calibration.mdc Part A (full template).
 6. If this is attempt 2+: for each check that was WARN or FAIL in a previous attempt and is now PASS, explicitly state what design change caused the improvement. Do not just rephrase the reasoning — name the structural change.
 7. If you changed anything from the original idea beyond fixing the flagged issues (language, scope, domain, architecture, number of modules, etc.), state each change and why it was necessary.
 8. Count your FAILs and WARNs.
 9. Produce the spec using the format in @idea-validation.mdc. The Decision line must include the attempt number (e.g., "GO — Attempt 2. ...").
-10. Read the SAVE_TO path from the last script output. Save the spec to that path.
-    The spec file must contain ONLY this variant's spec — no comparison tables, no previous attempt data, no clutter.
-11. Record the result:
+   Hold the spec in your context — do NOT save it yet.
+10. Record the result FIRST (this determines where to save):
       python validate_loop.py record <task-name> --fails N --warns N
-12. Read the script's output. It will say one of:
+11. Read SAVE_TO from the script's output. NOW save the spec to that path.
+    The spec file must contain ONLY this variant's spec — no comparison tables, no previous attempt data, no clutter.
+    If SAVE_TO is DISCARD, do not save — the attempt was a regression and should not be persisted.
+    IMPORTANT: always save AFTER record, never before. The script decides whether this attempt should overwrite the best spec or go to a candidate file.
+12. Read the script's ACTION. It will say one of:
     - ACTION: CONTINUE — list your current WARNs and FAILs. For each, propose a specific concrete change (not vague — e.g., "move matvec accounting into a separate module with its own seeded defect" not "spread bugs around"). Apply ALL changes to create a new variant. Go back to step 1 of this loop with the new variant.
     - ACTION: SELECT — go to the SELECT section below.
     - ACTION: GO — go to the DONE section below.
@@ -121,10 +126,9 @@ The script hit a plateau — multiple variants have the same score but may diffe
 2. Read each candidate spec file.
 3. For each, run the collapse audit and summarize: collapse verdict, oracle complexity (lines), editable frontier (files), residual hardness (one sentence).
 4. Pick the winner — the spec a reviewer would most confidently approve.
-5. Copy the winning spec to specs/<task-name>.md. Delete the other candidate files.
-6. Tell the script:
+5. Tell the script (it handles promotion and cleanup automatically):
      python validate_loop.py select <task-name> --winner N
-   (where N is the winning attempt number)
+   (where N is the winning attempt number from the CANDIDATES list)
 
 ### On ACTION: GO or STOP — DONE
 
@@ -160,14 +164,29 @@ Place files under tasks/<task-name>/ (get the task name from the spec's Metadata
 
 ## File creation
 
-Create all files described in the spec:
-- instruction.md: write it human-style per the humanization rules in @task-creation.mdc. Use the spec's instruction summary as the contract but write it in your own voice.
-- task.toml: fill in all metadata from the spec.
-- environment/Dockerfile: pin FROM by digest. Pin apt versions.
-- solution/solve.sh: implement the oracle approach from the spec. Use set -euo pipefail (solve.sh only — test.sh must NOT use it).
-- tests/test_outputs.py: implement the test plan from the spec. Target 6+ discoverable tests.
-- tests/test.sh: copy the official platform template from @task-creation.mdc exactly.
-- All environment source files described in the spec.
+Create all files described in the spec. The exact file set depends on task type:
+
+**Standard tasks (most tasks):**
+- tests/test_outputs.py — implement test plan, target 6+ tests
+- tests/test.sh — copy the standard platform template from @task-creation.mdc exactly
+
+**Milestone tasks (number_of_milestones > 0):**
+- tests/test_m1.py, tests/test_m2.py, ... — one test file per milestone
+- tests/test.sh — copy the standard platform template from @task-creation.mdc exactly
+
+**UI tasks (subcategories includes ui_building):**
+- tests/test_outputs.py — unit tests
+- tests/ e2e test files — Playwright/Vitest as specified in @task-creation.mdc
+- tests/test.sh — copy the UI platform template from @task-creation.mdc (different from standard)
+
+**All task types:**
+- instruction.md — write human-style per humanization rules in @task-creation.mdc
+- task.toml — fill in all metadata from the spec
+- environment/Dockerfile — pin FROM by digest, pin apt versions
+- solution/solve.sh — implement oracle approach from spec (set -euo pipefail for solve.sh only)
+- All environment source files described in the spec
+
+Check @task-creation.mdc for the correct template and file layout for your task type.
 
 ## Discoverability gate (mandatory, run after all files exist)
 
@@ -195,120 +214,184 @@ Then verify the environment file count (excluding Dockerfile/docker-compose):
 
 This must be 20 or more. Under 20 = "minimal" codebase which is blocked on the platform. If under 20, add source modules, headers, data files, or config files. Aim for 25-30+ — do not design tasks that hover at exactly 20. Do not add empty or trivial padding files — each file should serve a purpose in the task.
 
-Report any failures and fix them before moving to Step 3.
+Report any failures and fix them.
+
+## Mechanical collapse gate (BLOCKING — run after static checks pass)
+
+Run the automated collapse/discoverability checker:
+  python3 collapse_check.py tasks/<task-name>
+
+This checks 7 mechanical signals: grep-collapse, oracle no-op ratio, edit frontier size, oracle locality, harness editability, pre-factored helpers, oracle line count.
+
+- **FAIL (exit 1):** At least one fatal signal. Fix the flagged issue before proceeding to Step 3a. Common fixes: rename files/directories to not encode the task contract, restructure oracle to not be all no-ops, add output validation to tests so exit-code-only cheating doesn't work, spread oracle edits across more directories.
+- **WARN (exit 2):** Non-fatal signals that need justification. Proceed to Step 3a but document why each WARN is acceptable in your report.
+- **PASS (exit 0):** No signals. Proceed to Step 3a.
+
+Do NOT proceed to Step 3a with a collapse_check.py FAIL. Fix the issues first, re-run static checks, re-run collapse_check.py, and only proceed when it returns PASS or WARN.
 
 Spec file path: [PASTE THE PATH e.g. specs/block-krylov-resume.md]
 ```
 
 ---
 
-## Step 3: Cursor — Review & Repair
+## Step 3a: Cursor — Harbor Execution
 
-Paste this after task creation is complete.
+Run all harbor commands. This step is purely execution — no analysis or decisions yet.
 
 ```text
-Review and repair the task following @review-and-submit.mdc and @difficulty-calibration.mdc.
-You are allowed to run shell commands. Start from the project root.
+Run harbor validation for the task. You are allowed to run shell commands. Start from the project root.
 
-## Execution procedure
+### 1. Oracle stress test (10 parallel runs — no API key needed)
+  harbor run -p "tasks/<task-name>" -a oracle -k 10
 
-### Phase 1: Structural review
-Review against @review-and-submit.mdc. Fix any issues found.
+ALL 10 must score 1.0. Any failure = oracle is broken or flaky. Report exact scores.
 
-Mandatory: compare `tests/test.sh` against the official platform template in @task-creation.mdc.
-- **Standard tasks:** CI checker validates the last 6 lines must be `if [ $? -eq 0 ]; then` / reward writes / `fi`. No `set -euo pipefail`, no `set +e`, no `$status`, no `exit` after `fi`. If any mismatch, rewrite from the template.
-- **UI tasks:** Use the separate UI template (with `set -e`, `UNIT_EXIT`/`E2E_EXIT`, final assertion). CI checker skips the strict tail check for UI tasks.
+### 2. NOP baseline (no API key needed)
+  harbor run -p "tasks/<task-name>" -a nop
 
-Mandatory: verify environment file count:
-  find tasks/<task-name>/environment -type f ! -iname 'Dockerfile' ! -iname 'docker-compose*' | wc -l
-Must be 20+. Under 20 = "minimal" which is blocked on the platform. If under 20, warn the user. Verify `codebase_size` in task.toml matches the actual count (20-200 = small, 200+ = large). Tasks at exactly 20 should be flagged as borderline.
+Must score 0.0. If it scores above 0.0, the verifier accepts the broken baseline.
 
-### Phase 2: Collapse audit + discoverability
-Run @difficulty-calibration.mdc Part A on the actual drafted files. Report:
-- smallest plausible successful patch
-- likely editable frontier
-- requirement-to-file map
-- oracle line count (non-boilerplate)
-- red flags
-- residual hardness
-- collapse verdict (PASS / WARN / FAIL)
+### 3. Source API key (needed for quality check and agent trials)
+  set -a && source .env && set +a
+If .env is missing or does not contain an API key, state so and skip steps 4 and 5. Oracle and NOP results above are still valid.
 
-**Discoverability dimension:** The collapse audit has two dimensions — patch SIZE (how much work) and patch FINDABILITY (can the agent locate where and what to work on without domain understanding). A 200-line oracle across 7 files is still trivial if any channel tells the agent where to look.
-
-Put yourself in the agent's position. It has instruction.md, environment/, and at runtime tests/ and error output. Ask:
-- Could surface-level signals in ANY channel (instruction wording, source code, file names, test names, error messages, metadata, comments) shortcut the domain reasoning this task demands?
-- Would a strong model's first attempt likely succeed without deep understanding of the problem domain?
-
-If discoverability risk found: fix the signals, then re-verify oracle+NOP.
-If collapse verdict is FAIL: stop and recommend redesign.
-
-### Phase 3: Oracle + NOP
-Run Oracle 3x to catch flakiness:
-  cd <project_root> && harbor run -p "<task_path>" -a oracle
-Run NOP:
-  cd <project_root> && harbor run -p "<task_path>" -a nop
-
-Oracle must score 1.0. NOP must score 0.0.
-
-### Phase 4: Per-test feasibility
-Run @difficulty-calibration.mdc Part B:
-- Per-test feasibility template for each test function
-- Flag any HIGH-risk tests
-- Run test order independence check (pytest with random order)
-- Run flaky stress-test: run full test suite 5+ times after oracle passes, flag any intermittent failures
-- Partial-oracle simulation: comment out ~30% of solve.sh, run tests, report which pass
-  **BLOCKING: if ALL tests still pass under partial oracle, the verifier doesn't discriminate. Fix the tests so at least one fails before proceeding. Do not approve with a note.**
-- Propose fixes for any HIGH-risk or flaky tests
-
-### Phase 5: Harbor tasks check
+### 4. Quality check (requires API key)
 Only after Oracle and NOP pass:
-  cd <project_root> && set -a && source .env && set +a && harbor tasks check "<task_path>" -m "anthropic/claude-sonnet-4-6"
+  harbor tasks check "tasks/<task-name>" -m "anthropic/claude-sonnet-4-6"
 
-If no API key in .env or source fails, state that harbor tasks check was skipped due to missing API key.
+Report ALL results. Any ❌ fail on behavior_in_task_description, behavior_in_tests, or anti_cheating_measures is a HIGH-severity finding that MUST be repaired before proceeding.
 
-### Phase 6: Agent trials (if API key available)
-Source the API key and run agent trials (1 minimum, 3 preferred, 5 maximum):
-  cd <project_root> && set -a && source .env && set +a && harbor run -p "<task_path>" -a terminus-2 -m "anthropic/claude-opus-4-6"
+If quality check reports HIGH failures: fix them, then rerun ALL prior steps (oracle -k 10, NOP) to confirm they still pass with the modified files, then rerun the quality check. Do not proceed to agent trials with unrepaired HIGH findings or stale oracle/NOP evidence.
 
-Run the above command at least once, ideally 3-5 times (maximum 5). Build per-test pass matrix from the results.
-If any test is 0/N across all trials, investigate and fix.
-**BLOCKING: if pass rate >80% across 3-5 trials, the task is too easy. Harden or redesign before approving. Do not approve with a note.**
-If no API key in .env, state that difficulty is estimated, not empirical.
+If no API key in .env, state that quality check was skipped due to missing API key.
 
-### Phase 7: Fix and rerun
-Fix issues found in any phase and rerun the relevant checks.
+### 5. Agent trials (5 parallel runs)
+Only after quality check passes or HIGH findings are repaired:
+  harbor run -p "tasks/<task-name>" -a terminus-2 -m "anthropic/claude-opus-4-6" -k 5
+
+Report: mean score, per-trial scores, total time.
+
+After trials complete, extract per-test pass/fail data from the trial's job directory.
+Harbor prints the job directory in its output (e.g., `jobs/2026-04-13__16-41-36/`). Use that exact path:
+  find <job-dir>/ -name "*.json" -path "*/ctrf/*"
+Read each CTRF report to build a per-test pass matrix (test name × trial → pass/fail).
+Do NOT use a broad `find jobs/` — that mixes results from old runs.
+If any test is 0/N across all trials, flag it — that test may be too hard or broken.
+
+If no API key in .env, state that agent trials were skipped.
+
+### 6. Fix and rerun
+If any harbor step fails or reports HIGH findings, fix the issue and rerun from step 1 (oracle). Every step's evidence must reflect the current state of task files — never carry forward results from before an edit.
 
 ## Constraints
 - Do not claim any command passed unless it was actually run.
-- If harbor tasks check is blocked by Oracle/NOP failure, say so clearly.
-- Report discoverable test count explicitly.
-- Show diffs for any edited files.
+- Show the exact output of each harbor command.
+- If harbor tasks check is blocked by Oracle/NOP failure, say so.
 
-## Required report
+## Required output
+1. Oracle result: N/10 passed, any failures
+2. NOP result: score
+3. Quality check: full result, list any ❌ fail findings
+4. Agent trial results: per-trial scores, mean, time
+5. Per-test pass matrix (test name × trial → pass/fail) — from CTRF logs
+6. What you fixed and why (if anything)
+7. Whether any task files were edited during this step (triggers full rerun)
 
-1. Overall decision — follow the Decision Criteria in @review-and-submit.mdc exactly:
-   - APPROVE: all gates pass, no concept-level issues, partial-oracle fails at least one test
-   - APPROVE WITH NOTE: only when collapse is WARN (not FAIL), no blocking conditions, agent trials not run
-   - REJECT: collapse FAIL, oracle broken, NOP passes, or 3-5 agent trials >80%
-   - SEND FEEDBACK: concept strong but implementation needs rework
-   **Do NOT use APPROVE WITH NOTE to defer concept-level problems (partial-oracle passes all tests, discoverability signals unfixed, agent trial 1.0 without more trials).**
-2. Difficulty estimate with evidence
-3. Discoverable test count
-4. Collapse audit verdict with full template
-5. Oracle result (pass/fail, run count)
-6. NOP result
-7. Per-test feasibility flags (any HIGH-risk tests with recommendations)
-8. Partial-oracle simulation results
-9. harbor tasks check result
-10. Per-test pass matrix (if agent trials were run)
-11. Highest-severity findings first
-12. Classify each finding as concept-level or mechanical/compliance-level
-13. What you changed and why
+Task path: tasks/<task-name>
 ```
 
 ---
 
-## After Step 3: Package & Submit
+## Step 3b: Cursor — Analysis & Decision
+
+Run after Step 3a completes. This step is primarily analysis, but if you fix any issues, you must revalidate.
+
+**DIRTY-FLAG RULE: If you edit ANY file under `tasks/<task-name>/` during this step (tests, instruction, oracle, environment, metadata) and do NOT restore it to byte-identical state, you MUST rerun Step 3a before making a final decision. Do not approve using pre-edit oracle, NOP, quality check, or agent trial results. State which files changed and why rerun is needed. Byte-identical restores (e.g., partial-oracle simulation with backup/restore) do not trigger this rule.**
+
+```text
+Analyze the task for collapse, feasibility, and discoverability. Use results from Step 3a.
+Follow @review-and-submit.mdc and @difficulty-calibration.mdc for all rules — do not rely on behavioral descriptions in this prompt.
+
+Track whether you edit any task files. If you do, you must rerun Step 3a before the final decision.
+
+### 1. Mechanical collapse check
+  python3 collapse_check.py tasks/<task-name>
+
+FAIL = blocking. Fix the flagged issues, re-run collapse_check.py, and re-run oracle from Step 3a to confirm it still passes.
+WARN = document justification for each signal.
+
+### 2. Structural review
+Review against @review-and-submit.mdc checklist. Fix any issues.
+
+Mandatory: compare tests/test.sh against the official platform template in @task-creation.mdc. Standard and UI tasks have different templates — check which applies.
+
+Mandatory: verify environment file count:
+  find tasks/<task-name>/environment -type f ! -iname 'Dockerfile' ! -iname 'docker-compose*' | wc -l
+Must be 20+. Verify codebase_size in task.toml matches (see @review-and-submit.mdc § Task Metadata).
+
+### 3. Collapse audit (LLM-level)
+Run @difficulty-calibration.mdc Part A on the actual drafted files. Report the full template:
+- smallest plausible successful patch
+- likely editable frontier
+- requirement-to-file map
+- oracle line count (non-boilerplate)
+- discoverability analysis
+- red flags
+- residual hardness
+- collapse verdict (PASS / WARN / FAIL)
+
+**Discoverability dimension:** Patch SIZE (how much work) and patch FINDABILITY (can the agent locate where to work without domain understanding) are both required. A 200-line oracle across 7 files is still trivial if any channel tells the agent where to look.
+
+### 4. Per-test feasibility
+Run @difficulty-calibration.mdc Part B:
+- Per-test feasibility template for each test function
+- Flag any HIGH-risk tests
+- Run test order independence check (pytest with random order)
+- Partial-oracle simulation using the non-dirty procedure below
+  **BLOCKING: if ALL tests still pass under partial oracle, fix tests so at least one fails.**
+- Propose fixes for any HIGH-risk tests
+
+**Partial-oracle procedure (does NOT trigger the dirty-flag rule):**
+To avoid triggering a full Step 3a rerun, use a temp copy of solve.sh:
+```
+cp tasks/<task-name>/solution/solve.sh /tmp/solve.sh.bak
+# Edit solve.sh: comment out ~30% of fixes
+harbor run -p "tasks/<task-name>" -a oracle
+# Record which tests pass/fail
+cp /tmp/solve.sh.bak tasks/<task-name>/solution/solve.sh
+```
+Because solve.sh is byte-identical restored before the final decision, this does not count as a task-file edit. Do NOT leave a modified solve.sh in place.
+
+### 5. Final decision
+
+**Before deciding:** Did you edit any file under tasks/<task-name>/ during steps 1-4 above?
+- If YES: state which files changed, then STOP. Report: "Cannot make final decision — task files were modified. Rerun Step 3a." Do not approve, reject, or send feedback using pre-edit evidence.
+- If NO: proceed to the decision.
+
+Use the Decision Criteria from @review-and-submit.mdc (APPROVE / APPROVE WITH NOTE / REJECT / SEND FEEDBACK). Apply all blocking conditions from that file. Do not restate the criteria here — read them from the rule file.
+
+## Required report
+1. Overall decision (APPROVE / APPROVE WITH NOTE / REJECT / SEND FEEDBACK)
+2. collapse_check.py result (PASS/WARN/FAIL + details)
+3. Collapse audit verdict with full template
+4. Difficulty estimate with evidence
+5. Discoverable test count
+6. Oracle result (from Step 3a)
+7. NOP result (from Step 3a)
+8. Quality check result (from Step 3a)
+9. Per-test feasibility flags
+10. Partial-oracle simulation results
+11. Per-test pass matrix (if agent trials were run)
+12. Highest-severity findings first
+13. Classify each finding as concept-level or mechanical/compliance-level
+14. What you changed and why
+
+Task path: tasks/<task-name>
+```
+
+---
+
+## After Step 3b: Package & Submit
 
 Once the review passes:
 

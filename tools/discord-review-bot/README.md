@@ -1,6 +1,6 @@
 # Discord Review Bot
 
-A Discord bot that automatically reviews task proposals posted in a forum channel. It uses the same rubric and review pipeline as the CI checks, so customizing `TASK_PROPOSAL_RUBRIC.md` at the repo root updates both CI and Discord reviews.
+A Discord bot that automatically reviews task proposals posted in a forum channel. It uses the same rubric and review pipeline as the CI checks, so customizing `web/TASK_PROPOSAL_RUBRIC.md` updates both CI and Discord reviews.
 
 ## How It Works
 
@@ -16,11 +16,11 @@ The bot reuses shared abstractions from `ci_checks/rubric_review.py`:
 
 | Import | Purpose |
 |--------|---------|
-| `load_rubric()` | Loads `TASK_PROPOSAL_RUBRIC.md` from the repo root |
+| `load_rubric()` | Loads `web/TASK_PROPOSAL_RUBRIC.md` |
 | `async_call_anthropic()` | Async wrapper around the Anthropic Messages API |
 | `extract_decision()` | Parses the decision line from the review output |
 | `DEFAULT_MODEL` | Default Claude model (consistent with CI) |
-| `DEFAULT_RUBRIC_FILE` | Default rubric path (repo root) |
+| `DEFAULT_RUBRIC_FILE` | Default rubric path (`web/`) |
 
 This means there is a single source of truth for the rubric, model defaults, and decision parsing logic.
 
@@ -50,7 +50,7 @@ cp .env.example .env
 | `CHANNEL_ID` | Yes | — | Forum channel ID to watch |
 | `MODEL` | No | Value from `rubric_review.py` | Claude model to use |
 | `MIN_PROPOSAL_LENGTH` | No | `50` | Minimum character length to trigger a review |
-| `RUBRIC_FILE` | No | `TASK_PROPOSAL_RUBRIC.md` (repo root) | Path to rubric file |
+| `RUBRIC_FILE` | No | `web/TASK_PROPOSAL_RUBRIC.md` | Path to rubric file |
 
 ## Running
 
@@ -129,4 +129,4 @@ Then deploy:
 
 ## Customization
 
-To change how proposals are reviewed, edit `TASK_PROPOSAL_RUBRIC.md` at the repo root. Both the CI rubric review workflow and this Discord bot read from the same file.
+To change how proposals are reviewed, edit `web/TASK_PROPOSAL_RUBRIC.md`. Both the CI rubric review workflow and this Discord bot read from the same file.

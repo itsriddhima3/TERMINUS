@@ -5,7 +5,7 @@
 # ///
 """Batch rubric grading for benchmark tasks.
 
-Grades task proposals against TASK_PROPOSAL_RUBRIC.md (or a custom rubric)
+Grades task proposals against web/TASK_PROPOSAL_RUBRIC.md (or a custom rubric)
 using the Anthropic API. Supports single-task and batch modes with concurrent
 async grading.
 
@@ -117,7 +117,7 @@ def main() -> None:
         "-r",
         type=Path,
         default=Path(os.environ.get("RUBRIC_FILE", str(DEFAULT_RUBRIC_FILE))),
-        help="Path to rubric markdown file (default: TASK_PROPOSAL_RUBRIC.md)",
+        help="Path to rubric markdown file (default: web/TASK_PROPOSAL_RUBRIC.md)",
     )
     parser.add_argument(
         "--model",

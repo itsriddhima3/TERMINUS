@@ -1,6 +1,10 @@
 # **Terminus Unified Ground Truth Specification**
 
-This document is the exhaustive, unified rulebook for Terminus task creation, evaluation, and submission. It resolves conflicts between legacy guidelines and current workflows, incorporating all automated CI checks, LLMaJ verifiers, Agent Review standards, and manual reviewer rubrics.
+> **⚠️ HISTORICAL REFERENCE — NOT THE SOURCE OF TRUTH**
+>
+> The authoritative rules are in `.cursor/rules/` (task-creation.mdc, review-and-submit.mdc, difficulty-calibration.mdc). The canonical CLI reference is `commands.md`. This document was written before those rule files existed and **may contain stale or softened versions of rules that have since been tightened**. Do not use this document as a primary reference for task creation, review, or submission. If this document conflicts with `.cursor/rules/`, the cursor rules win.
+
+This document is a historical reference for Terminus task creation, evaluation, and submission.
 
 ## **Table of Contents**
 
@@ -264,7 +268,7 @@ This document is the exhaustive, unified rulebook for Terminus task creation, ev
 
 **Consequence of Violation:** RewardNotFoundError / RewardFileNotFound.
 
-**Rule:** Standard Python/Pytest tasks SHOULD follow the uvx template pattern with pinned tooling (currently Python 3.13, pytest==8.4.1, pytest-json-ctrf==0.3.5) unless a specific task warrants a justified deviation.
+**Rule:** Standard Python/Pytest tasks MUST use the official platform test.sh template from `task-creation.mdc` exactly. The CI checker validates the last 6 lines structurally. Any deviation — even if functionally equivalent — is a HIGH rejection. UI tasks use a separate template (see `task-creation.mdc`).
 
 **Consequence of Violation:** CI check\_test\_sh failure or reviewer feedback for drifting from the maintained template.
 
@@ -383,10 +387,10 @@ This document is the exhaustive, unified rulebook for Terminus task creation, ev
 
 ### **D. Canonical Local Workflow and CLI Commands**
 
-* Use harbor tasks start-env \--path \<task-folder\> \--interactive for local interactive building.  
-* Use harbor run \--agent oracle \--path \<task-folder\> to verify the oracle.  
-* Use stb harbor run \-m gpt-5.2 \-p \<task-folder\> to benchmark difficulty.  
-* CLI submission commands (optional alternative to web UI): stb submissions create, list, view, update, feedback.
+* Use `harbor tasks start-env -p <task-folder> -e docker -a -i` for local interactive building.  
+* Use `harbor run -p <task-folder> -a oracle` to verify the oracle.  
+* Use `harbor run -p <task-folder> -a terminus-2 -m "anthropic/claude-opus-4-6"` to benchmark difficulty.  
+* See `commands.md` at the repo root for the full, up-to-date CLI reference.
 
 ### **E. Automated Checks (CI, Behavior Validation, and Agent Review)**
 
@@ -415,7 +419,7 @@ This document is the exhaustive, unified rulebook for Terminus task creation, ev
 
 * Ensure Docker Desktop (v24.0.0+) is running. Allow default Docker socket usage in macOS. Apply Linux Docker-group fixes if permissions fail.  
 * "Provider List" warnings in GPT logs and @anthropic-tbench/claude-sonnet-4-5 retrieval warnings are safe to ignore.  
-* If stb keys refresh hits the Maximum refresh limit (3), ask an admin to reset.
+* If API key refresh hits the maximum limit, ask an admin to reset.
 
 ### **J. Quality and Anti-Pattern Summary**
 
