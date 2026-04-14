@@ -99,8 +99,8 @@ def cmd_record(args):
     if fails == 0 and warns == 0:
         state["best_score"] = score
         state["best_attempt"] = attempt
-        state["candidates"] = []  # Clear stale candidates
-        _cleanup_candidate_files(task_name, state)
+        _cleanup_candidate_files(task_name, state)  # Delete files BEFORE clearing list
+        state["candidates"] = []
         save_state(task_name, state)
         print(f"Attempt {attempt}: {fails}F, {warns}W — PERFECT")
         print(f"ACTION: GO")
@@ -153,8 +153,8 @@ def cmd_record(args):
     if attempt >= 3:
         last_3 = state["history"][-3:]
         no_improvement = all(
-            (h["fails"], h["warns"]) >= (last_3[0]["fails"], last_3[0]["warns"])
-            for h in last_3[1:]
+            curr["fails"] >= prev["fails"] and curr["warns"] >= prev["warns"]
+            for prev, curr in zip(last_3, last_3[1:])
         ) and last_3[-1]["fails"] > 0
         if no_improvement:
             save_state(task_name, state)
@@ -206,32 +206,38 @@ def cmd_select(args):
     winner = args.winner
 
     # Validate winner is a real attempt
-    valid_attempts = {state["best_attempt"]}
+    prev_best = state["best_attempt"]
+    valid_attempts = {prev_best}
     valid_attempts.update(c["attempt"] for c in state["candidates"])
     if winner not in valid_attempts:
         print(f"ERROR: --winner {winner} is not a valid candidate. Valid attempts: {sorted(valid_attempts)}")
         sys.exit(1)
 
-    state["best_attempt"] = winner
     canonical = SPECS_DIR / f"{task_name}.md"
 
-    # Find and promote the winning candidate file
-    winner_file = None
-    for c in state["candidates"]:
-        if c["attempt"] == winner:
-            winner_file = SPECS_DIR / f"{task_name}-candidate-{c['candidate_n']}.md"
-            break
+    if winner == prev_best:
+        # Winner is the pre-plateau best — already in canonical spec
+        if not canonical.exists():
+            print(f"ERROR: Canonical spec {canonical} does not exist.")
+            sys.exit(1)
+        print(f"Winner is the pre-plateau best (attempt {winner}), already at {canonical.name}.")
+    else:
+        # Winner is a plateau candidate — find and promote its file
+        winner_file = None
+        for c in state["candidates"]:
+            if c["attempt"] == winner:
+                winner_file = SPECS_DIR / f"{task_name}-candidate-{c['candidate_n']}.md"
+                break
 
-    if winner_file and winner_file.exists() and winner_file != canonical:
+        if winner_file is None or not winner_file.exists():
+            print(f"ERROR: Candidate file for attempt {winner} not found on disk.")
+            sys.exit(1)
+
         canonical.write_text(winner_file.read_text(encoding="utf-8"), encoding="utf-8")
         print(f"Promoted {winner_file.name} -> {canonical.name}")
-    elif winner == state.get("best_attempt") and canonical.exists():
-        print(f"Winner is already the canonical spec.")
-    else:
-        print(f"ERROR: Could not find spec file for winning attempt {winner}.")
-        sys.exit(1)
 
-    # Clean up ALL candidate files
+    # Update state, clean up ALL candidate files
+    state["best_attempt"] = winner
     _cleanup_candidate_files(task_name, state)
     state["candidates"] = []
     save_state(task_name, state)

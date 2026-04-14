@@ -440,6 +440,82 @@ def substantive_shell_lines(content: str) -> list[str]:
     return substantive
 
 
+STANDARD_NON_UI_TEST_SH_PREFIX_PATTERNS = (
+    re.compile(r"^apt-get\s+update$", re.IGNORECASE),
+    re.compile(r"^apt-get\s+install\b.*\bcurl\b", re.IGNORECASE),
+    re.compile(r"^curl\b.+astral\.sh/uv/0\.9\.5/install\.sh\s*\|\s*sh$", re.IGNORECASE),
+    re.compile(r"^source\s+\$HOME/\.local/bin/env$"),
+    re.compile(r'^if\s+\[\s+"\$PWD"\s*=\s*"/"\s*\];\s+then$'),
+    re.compile(r'^echo\s+"Error:\s+No\s+working\s+directory\s+set\.\s+Please\s+set\s+a\s+WORKDIR\s+in\s+your\s+Dockerfile\."$'),
+    re.compile(r"^exit\s+1$"),
+    re.compile(r"^fi$"),
+)
+
+PREBUILT_APP_BUILD_PATTERN = re.compile(
+    r"^\s*RUN\b[^\n]*(?:cmake\b[^\n]*-B\s+/app/build|cmake\s+--build\s+/app/build|make\b[^\n]*/app/build)",
+    re.IGNORECASE | re.MULTILINE,
+)
+PYTHON_REBUILD_FROM_SOURCE_PATTERNS = (
+    re.compile(r'shutil\.rmtree\(\s*BUILD_DIR'),
+    re.compile(r'rm\s+-rf\s+/app/build'),
+    re.compile(r'cmake[^\n]*(?:-S\s+/app\b|str\(APP_DIR\))[^\n]*(?:-B\s+/app/build\b|str\(BUILD_DIR\))'),
+    re.compile(r'cmake[^\n]*(?:--build\s+/app/build\b|--build",\s*str\(BUILD_DIR\))'),
+    re.compile(r'/app/build/[A-Za-z0-9_.-]+'),
+    re.compile(r'\[\s*str\(BIN\)\s*\]'),
+)
+
+
+def first_verifier_command_index(substantive_lines: list[str]) -> int | None:
+    for index, line in enumerate(substantive_lines):
+        if re.search(r"^uvx\b", line) or "pytest" in line or "npm run test" in line or "npm run test:e2e" in line:
+            return index
+    return None
+
+
+def non_ui_test_sh_prefix_mismatches(substantive_lines: list[str]) -> list[str]:
+    verifier_index = first_verifier_command_index(substantive_lines)
+    if verifier_index is None:
+        return ["missing verifier command"]
+    prefix = substantive_lines[:verifier_index]
+    mismatches: list[str] = []
+    if len(prefix) != len(STANDARD_NON_UI_TEST_SH_PREFIX_PATTERNS):
+        mismatches.append(
+            "expected exactly the standard pre-pytest template before the verifier command; "
+            f"found {len(prefix)} substantive lines"
+        )
+    for idx, pattern in enumerate(STANDARD_NON_UI_TEST_SH_PREFIX_PATTERNS):
+        observed = prefix[idx] if idx < len(prefix) else "<missing>"
+        if idx >= len(prefix) or not pattern.search(observed):
+            mismatches.append(f"line {idx + 1}: {observed}")
+    return mismatches
+
+
+def dockerfile_prebuilds_app_build(task_dir: Path) -> bool:
+    dockerfile = task_dir / "environment" / "Dockerfile"
+    if not dockerfile.exists():
+        return False
+    return bool(PREBUILT_APP_BUILD_PATTERN.search(dockerfile.read_text(encoding="utf-8")))
+
+
+def python_verifier_rebuilds_from_source(task_dir: Path, characteristics: dict[str, object]) -> bool:
+    verifier_files = collect_python_verifier_files(task_dir, characteristics)
+    if not verifier_files:
+        return False
+    combined = "\n".join(
+        path.read_text(encoding="utf-8", errors="replace")
+        for path in verifier_files
+        if path.exists()
+    )
+    has_clean = bool(
+        PYTHON_REBUILD_FROM_SOURCE_PATTERNS[0].search(combined)
+        or PYTHON_REBUILD_FROM_SOURCE_PATTERNS[1].search(combined)
+    )
+    has_reconfigure = bool(PYTHON_REBUILD_FROM_SOURCE_PATTERNS[2].search(combined))
+    has_build = bool(PYTHON_REBUILD_FROM_SOURCE_PATTERNS[3].search(combined))
+    has_run = any(pattern.search(combined) for pattern in PYTHON_REBUILD_FROM_SOURCE_PATTERNS[4:])
+    return (has_clean or has_reconfigure) and has_build and has_run
+
+
 def collect_python_verifier_files(task_dir: Path, characteristics: dict[str, object]) -> list[Path]:
     tests_dir = task_dir / "tests"
     milestone_count = characteristics["milestone_count"]
@@ -872,6 +948,17 @@ def check_test_sh(task_dir: Path, task_data: dict, reporter: Reporter) -> None:
     milestone_count = characteristics["milestone_count"]
     is_ui = bool(characteristics["is_ui"])
 
+    if not is_ui:
+        prefix_mismatches = non_ui_test_sh_prefix_mismatches(substantive_lines)
+        if prefix_mismatches:
+            reporter.fail(
+                "tests/test.sh must match the official non-UI template before the verifier command. "
+                "Only apt packages, extra uvx -w flags, and milestone test paths may vary.\n"
+                + "\n".join(prefix_mismatches)
+            )
+        else:
+            reporter.ok("tests/test.sh pre-pytest block matches the standard non-UI template")
+
     if FORBIDDEN_DIRECT_PYTHON_TEST_PATTERN.search(content):
         reporter.fail(
             "tests/test.sh must not execute tests/test_outputs.py directly with python; use pytest under uv"
@@ -905,6 +992,12 @@ def check_test_sh(task_dir: Path, task_data: dict, reporter: Reporter) -> None:
 
     if not CTRF_PATTERN.search(content):
         reporter.warn("tests/test.sh does not appear to emit /logs/verifier/ctrf.json")
+
+    if (not is_ui) and dockerfile_prebuilds_app_build(task_dir) and not python_verifier_rebuilds_from_source(task_dir, characteristics):
+        reporter.fail(
+            "environment/Dockerfile prebuilds /app/build, but the Python verifier does not appear to force a fresh rebuild/run from current source inside pytest. "
+            "This leaves the task open to stale-binary reuse or compile-fail fallthrough."
+        )
 
 
 def iter_docker_instructions(dockerfile_text: str) -> list[str]:

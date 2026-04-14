@@ -50,6 +50,86 @@ def load_tests(task_dir: Path) -> str:
             parts.append(f.read_text(encoding="utf-8", errors="replace"))
     return "\n".join(parts)
 
+
+def load_test_sh(task_dir: Path) -> str:
+    p = task_dir / "tests" / "test.sh"
+    return p.read_text(encoding="utf-8", errors="replace") if p.exists() else ""
+
+
+def load_dockerfile(task_dir: Path) -> str:
+    p = task_dir / "environment" / "Dockerfile"
+    return p.read_text(encoding="utf-8", errors="replace") if p.exists() else ""
+
+
+STANDARD_NON_UI_TEST_SH_PREFIX_PATTERNS = (
+    re.compile(r"^apt-get\s+update$", re.IGNORECASE),
+    re.compile(r"^apt-get\s+install\b.*\bcurl\b", re.IGNORECASE),
+    re.compile(r"^curl\b.+astral\.sh/uv/0\.9\.5/install\.sh\s*\|\s*sh$", re.IGNORECASE),
+    re.compile(r"^source\s+\$HOME/\.local/bin/env$"),
+    re.compile(r'^if\s+\[\s+"\$PWD"\s*=\s*"/"\s*\];\s+then$'),
+    re.compile(r'^echo\s+"Error:\s+No\s+working\s+directory\s+set\.\s+Please\s+set\s+a\s+WORKDIR\s+in\s+your\s+Dockerfile\."$'),
+    re.compile(r"^exit\s+1$"),
+    re.compile(r"^fi$"),
+)
+PREBUILT_APP_BUILD_PATTERN = re.compile(
+    r"^\s*RUN\b[^\n]*(?:cmake\b[^\n]*-B\s+/app/build|cmake\s+--build\s+/app/build|make\b[^\n]*/app/build)",
+    re.IGNORECASE | re.MULTILINE,
+)
+PYTHON_REBUILD_FROM_SOURCE_PATTERNS = (
+    re.compile(r'shutil\.rmtree\(\s*BUILD_DIR'),
+    re.compile(r'rm\s+-rf\s+/app/build'),
+    re.compile(r'cmake[^\n]*(?:-S\s+/app\b|str\(APP_DIR\))[^\n]*(?:-B\s+/app/build\b|str\(BUILD_DIR\))'),
+    re.compile(r'cmake[^\n]*(?:--build\s+/app/build\b|--build",\s*str\(BUILD_DIR\))'),
+    re.compile(r'/app/build/[A-Za-z0-9_.-]+'),
+    re.compile(r'\[\s*str\(BIN\)\s*\]'),
+)
+
+
+def shell_substantive_lines(content: str) -> list[str]:
+    lines = []
+    for raw_line in content.splitlines():
+        stripped = raw_line.strip()
+        if not stripped or stripped.startswith("#!") or stripped.startswith("#") or stripped.startswith("set "):
+            continue
+        lines.append(stripped)
+    return lines
+
+
+def first_verifier_command_index(substantive_lines: list[str]) -> int | None:
+    for index, line in enumerate(substantive_lines):
+        if re.search(r"^uvx\b", line) or "pytest" in line or "npm run test" in line or "npm run test:e2e" in line:
+            return index
+    return None
+
+
+def non_ui_test_sh_prefix_mismatches(test_sh: str) -> list[str]:
+    substantive_lines = shell_substantive_lines(test_sh)
+    verifier_index = first_verifier_command_index(substantive_lines)
+    if verifier_index is None:
+        return ["missing verifier command"]
+    prefix = substantive_lines[:verifier_index]
+    mismatches: list[str] = []
+    if len(prefix) != len(STANDARD_NON_UI_TEST_SH_PREFIX_PATTERNS):
+        mismatches.append(f"expected 8 substantive template lines before verifier, found {len(prefix)}")
+    for idx, pattern in enumerate(STANDARD_NON_UI_TEST_SH_PREFIX_PATTERNS):
+        observed = prefix[idx] if idx < len(prefix) else "<missing>"
+        if idx >= len(prefix) or not pattern.search(observed):
+            mismatches.append(f"line {idx + 1}: {observed}")
+    return mismatches
+
+
+def dockerfile_prebuilds_app_build(task_dir: Path) -> bool:
+    return bool(PREBUILT_APP_BUILD_PATTERN.search(load_dockerfile(task_dir)))
+
+
+def python_verifier_rebuilds_from_source(task_dir: Path) -> bool:
+    test_code = load_tests(task_dir)
+    has_clean = bool(PYTHON_REBUILD_FROM_SOURCE_PATTERNS[0].search(test_code) or PYTHON_REBUILD_FROM_SOURCE_PATTERNS[1].search(test_code))
+    has_reconfigure = bool(PYTHON_REBUILD_FROM_SOURCE_PATTERNS[2].search(test_code))
+    has_build = bool(PYTHON_REBUILD_FROM_SOURCE_PATTERNS[3].search(test_code))
+    has_run = any(pattern.search(test_code) for pattern in PYTHON_REBUILD_FROM_SOURCE_PATTERNS[4:])
+    return (has_clean or has_reconfigure) and has_build and has_run
+
 def env_files(task_dir: Path) -> list[Path]:
     env = task_dir / "environment"
     if not env.is_dir():
@@ -271,55 +351,102 @@ def rc3_verifier_shallowness(task_dir: Path) -> dict:
 def rc4_tamper_surface(task_dir: Path) -> dict:
     """Can the agent modify what the tests depend on to bypass domain reasoning?"""
     test_code = load_tests(task_dir)
-    if not test_code:
+    test_sh = load_test_sh(task_dir)
+    if not test_code and not test_sh:
         return {"check": "rc4_tamper_surface", "severity": "WARN", "detail": "No test file"}
 
     issues = []
 
     # 1. Agent-editable binaries + exit-code-only
     base_vars = {}
-    for m in re.finditer(r'(\w+)\s*=\s*Path\(\s*["\'](/app[^"\']*)["\']', test_code):
+    for m in re.finditer(r"(\w+)\s*=\s*Path\(\s*[\"'](/app[^\"']*)[\"']", test_code):
         base_vars[m.group(1)] = m.group(2)
-    for m in re.finditer(r'(\w+)\s*=\s*(\w+)\s*/\s*["\']([^"\']+)["\']', test_code):
+    for m in re.finditer(r"(\w+)\s*=\s*(\w+)\s*/\s*[\"']([^\"']+)[\"']", test_code):
         if m.group(2) in base_vars:
             full = base_vars[m.group(2)].rstrip("/") + "/" + m.group(3)
             base_vars[m.group(1)] = full
 
     agent_bins = set()
-    for v, p in base_vars.items():
-        if not p.endswith(('.py','.sh','.json','.txt','.toml','.yaml','.yml')):
-            agent_bins.add(p)
+    for v, path in base_vars.items():
+        if not path.endswith(('.py', '.sh', '.json', '.txt', '.toml', '.yaml', '.yml')):
+            agent_bins.add(path)
     agent_bins.update(
-        p for p in re.findall(r'["\'](/app/[a-zA-Z0-9_/.-]+)["\']', test_code)
-        if not p.endswith(('.py','.sh','.json','.txt','.toml','.yaml','.yml'))
-        and '/app/' in p and '.' not in p.split('/')[-1]  # likely binary
+        path for path in re.findall(r"[\"'](/app/[a-zA-Z0-9_/.-]+)[\"']", test_code)
+        if not path.endswith(('.py', '.sh', '.json', '.txt', '.toml', '.yaml', '.yml'))
+        and '/app/' in path and '.' not in path.split('/')[-1]
     )
 
     if agent_bins:
         has_output_val = bool(re.search(r'assert.*(?:stdout|stderr|json\.loads|\.read_text|fnv|checksum|hash)', test_code))
         ec_only = bool(re.search(r'returncode\s*==\s*0', test_code)) and not has_output_val
         if ec_only:
-            issues.append({"type": "exit_code_only_binary", "binaries": sorted(agent_bins),
-                           "detail": "Tests run agent-editable binaries and only check exit code"})
+            issues.append({
+                "type": "exit_code_only_binary",
+                "binaries": sorted(agent_bins),
+                "detail": "Tests run agent-editable binaries and only check exit code",
+            })
 
-    # 2. Baseline derived from agent-editable binary
+    # 2. Baseline derived from an agent-editable binary
     for m in re.finditer(r'subprocess\.\w+\(\s*\[.*?str\((\w+)\)', test_code):
         var = m.group(1)
         if var in base_vars and not base_vars[var].endswith('.py'):
-            issues.append({"type": "editable_baseline", "path": base_vars[var],
-                           "detail": f"Gold values derived from agent-editable binary {base_vars[var]}"})
+            issues.append({
+                "type": "editable_baseline",
+                "path": base_vars[var],
+                "detail": f"Gold values derived from agent-editable binary {base_vars[var]}",
+            })
 
     # 3. Agent-editable test inputs without integrity
-    editable_inputs = re.findall(r'Path\(\s*["\'](/app/(?:programs|data|inputs?|fixtures?)[^"\']*)["\']', test_code)
+    editable_inputs = re.findall(r"Path\(\s*[\"'](/app/(?:programs|data|inputs?|fixtures?)[^\"']*)[\"']", test_code)
     if editable_inputs and not re.search(r'hash|checksum|digest|hmac|sha|md5', test_code, re.IGNORECASE):
-        issues.append({"type": "editable_inputs", "paths": editable_inputs,
-                       "detail": f"Tests use {len(editable_inputs)} agent-editable input paths without integrity checks"})
+        issues.append({
+            "type": "editable_inputs",
+            "paths": editable_inputs,
+            "detail": f"Tests use {len(editable_inputs)} agent-editable input paths without integrity checks",
+        })
 
-    severity = "FAIL" if any(i["type"] in ("exit_code_only_binary", "editable_baseline") for i in issues) else \
-               "WARN" if issues else "PASS"
+    # 4. Non-standard pre-pytest shell flow
+    if test_sh:
+        prefix_mismatches = non_ui_test_sh_prefix_mismatches(test_sh)
+        if prefix_mismatches:
+            issues.append({
+                "type": "custom_pre_pytest_commands",
+                "detail": "tests/test.sh deviates from the standard non-UI template before the verifier command",
+                "examples": prefix_mismatches[:6],
+            })
+
+    # 5. Docker image prebuilds /app/build but verifier does not force a fresh rebuild/run from current source
+    if dockerfile_prebuilds_app_build(task_dir) and not python_verifier_rebuilds_from_source(task_dir):
+        issues.append({
+            "type": "stale_prebuilt_binary_risk",
+            "detail": "Dockerfile prebuilds /app/build but the verifier does not appear to rebuild from current source inside pytest",
+        })
+
+    # 6. Oracle edits persistence code but verifier never reloads or inspects the persisted bundle contents
+    oracle_targets = oracle_touched_files(load_oracle(task_dir))
+    touches_persistence = any("persistence/" in path for path in oracle_targets)
+    inspects_bundle_contents = bool(re.search(r'BundleReader|bundle_probe|loaded_snapshot|integral_err|stage_index|read_bytes\(|open\([^\n]*\.bin|try_load\(', test_code))
+    if touches_persistence and not inspects_bundle_contents:
+        issues.append({
+            "type": "unobserved_persistence_fix_surface",
+            "detail": "Oracle edits persistence code, but the verifier never reloads or inspects the persisted bundle contents",
+        })
+
+    severity = "FAIL" if any(
+            issue["type"] in {
+                "exit_code_only_binary",
+                "editable_baseline",
+                "custom_pre_pytest_commands",
+                "stale_prebuilt_binary_risk",
+                "unobserved_persistence_fix_surface",
+            }
+            for issue in issues
+        ) else "WARN" if issues else "PASS"
     return {
-        "check": "rc4_tamper_surface", "severity": severity,
-        "issue_count": len(issues), "issues": issues[:10],
+        "check": "rc4_tamper_surface",
+        "severity": severity,
+        "issue_count": len(issues),
+        "issues": issues[:10],
         "detail": f"{len(issues)} tamper surface(s)" if issues else "No tamper surfaces detected",
     }
 

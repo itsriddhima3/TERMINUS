@@ -5,16 +5,16 @@ All harbor, CI, validation, and debug commands for Terminal-Bench 3 task develop
 ## Harbor — Task Validation
 
 ```bash
-# Source API key first (required for agent trials and quality checks)
-set -a && source .env && set +a
-
-# Oracle stress test — 10 parallel runs with isolated job dirs (must ALL score 1.0)
+# Oracle stress test — 10 parallel runs (no API key needed)
 harbor run -p "tasks/<task-name>" -a oracle -k 10
 
-# NOP (must score 0.0)
+# NOP (must score 0.0, no API key needed)
 harbor run -p "tasks/<task-name>" -a nop
 
-# Agent trials — 5 parallel runs (want pass rate <20% for hard tasks)
+# Source API key (required for quality check and agent trials only)
+set -a && source .env && set +a
+
+# Agent trials — 5 parallel runs (requires API key)
 harbor run -p "tasks/<task-name>" -a terminus-2 -m "anthropic/claude-opus-4-6" -k 5
 
 # Quality check
