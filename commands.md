@@ -18,7 +18,7 @@ set -a && source .env && set +a
 harbor run -p "tasks/<task-name>" -a terminus-2 -m "anthropic/claude-opus-4-6" -k 5
 
 # Quality check
-harbor tasks check "tasks/<task-name>" -m "anthropic/claude-sonnet-4-6"
+harbor tasks check "tasks/<task-name>" -m "anthropic/claude-opus-4-6"
 
 # Interactive debug (shell into the container)
 harbor tasks start-env -p "tasks/<task-name>" -e docker -a -i

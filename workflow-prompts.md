@@ -257,7 +257,7 @@ If .env is missing or does not contain an API key, state so and skip steps 4 and
 
 ### 4. Quality check (requires API key)
 Only after Oracle and NOP pass:
-  harbor tasks check "tasks/<task-name>" -m "anthropic/claude-sonnet-4-6"
+  harbor tasks check "tasks/<task-name>" -m "anthropic/claude-opus-4-6"
 
 Report ALL results. Any ❌ fail on behavior_in_task_description, behavior_in_tests, or anti_cheating_measures is a HIGH-severity finding that MUST be repaired before proceeding.
 
