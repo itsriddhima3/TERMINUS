@@ -1,3 +1,0 @@
-[workspace]
-members = ["plugin-core"]
-resolver = "2"

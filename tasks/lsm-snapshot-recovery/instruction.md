@@ -1,5 +1,0 @@
-Repair the storage prototype under `/app/src`. It journals mutations to `/app/data/journal.wal`, materializes immutable run files in `/app/data`, supports background folding of adjacent runs, exposes point and range reads, and allows nested read pins whose view must stay frozen while later writes, flushes, folds, and restarts happen around them.
-
-Right now the live engine diverges from its intended contract in a few coupled ways: visibility seen through pins is not stable, delete markers do not always dominate older material after folding, and restart from a surviving WAL prefix can drift from the state implied by replay, including layout-generation metadata. Fix the engine so those behaviors stay consistent across normal execution, compaction, truncated-journal recovery, and repeated restart.
-
-Use the bundled sample traces under `/app/samples` only as debugging aids; they are not exhaustive. Rebuild with CMake in `/app/build`. Only `/app/src` is in scope. The repaired code must still build cleanly, keep emitted `tile_*.dat` files lexicographically sorted by key, and preserve deterministic behavior across reruns.

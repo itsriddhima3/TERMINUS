@@ -1,6 +1,0 @@
-reloc:
-  enabled: true
-  background: true
-
-merge:
-  strict_legacy_only: false
