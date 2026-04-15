@@ -4,6 +4,8 @@ Use this file to judge whether a proposed Terminal-Bench 3 / Terminus Edition 2 
 
 This rubric is for phase-1 idea screening. It is not the final implementation review.
 
+Any automated review that uses this rubric is an **advisory reviewer aid**, not a standalone acceptance gate. Treat it as one input into human review until there is enough regression evidence to calibrate it against later collapse and trial outcomes.
+
 Any `Accept` or `Strong Accept` from this file is **provisional**. The candidate must still survive the mandatory implementation-collapse audit after the file tree, likely edit frontier, and verifier plan become concrete.
 
 ## Goal
@@ -12,12 +14,14 @@ Your job is to evaluate the task proposal as presented and decide whether it app
 
 - focus on whether the idea is likely to become a strong benchmark task
 - be skeptical of ideas that are only hard because of hidden-instance discovery, giant scope, subjective grading, or sheer tedium
+- if the input includes a short structure summary derived from `task.toml`, visible file names, or test names, use it as auxiliary evidence for shallow templating or repeated scaffolds that fresh wording can hide
+- do not over-penalize the required standard file layout by itself; repeated structure only matters when it points to reused task shape, shallow edit frontiers, or templated verifier design
 - preserve the modern rejection rules from the current bundle, including the Python, FastAPI, and subtype guardrails
 - do not redesign the task for the user unless they explicitly ask for improvement work elsewhere
 
 ## Hard-Only Policy For This Bundle
 
-The underlying schema allows `easy`, `medium`, and `hard`, but this bundle is intentionally hard-only.
+The default Edition 2 acceptance profile for this repo and bundle is intentionally hard-only.
 
 That means:
 

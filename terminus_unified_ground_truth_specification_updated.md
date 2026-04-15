@@ -22,7 +22,7 @@ This document is a historical reference for Terminus task creation, evaluation, 
 12. [tests/test\_outputs.py (and legacy test\_outputs.yaml)](https://www.google.com/search?q=%2312-teststest_outputspy-and-legacy-test_outputsyaml)  
 13. [tests/test\_m1.py ... tests/test\_mN.py](https://www.google.com/search?q=%2313-teststest_m1py--teststest_mnpy)  
 14. [UI Verifier Stack (tests/README.md, .gitignore, package.json, playwright.config.ts, vitest.config.ts, unit/, e2e/, fixtures/, index.html)](https://www.google.com/search?q=%2314-ui-verifier-stack)  
-15. [Logs and Rewards (ctrf.json, reward.txt, reward.json)](https://www.google.com/search?q=%2315-logs-and-rewards-ctrfjson-rewardtxt-rewardjson)  
+15. [Logs and Rewards (ctrf.json, reward.txt)](https://www.google.com/search?q=%2315-logs-and-rewards-ctrfjson-rewardtxt)  
 16. [Forbidden & Optional Root Artifacts (rubrics.txt, README.md, jobs/, data/)](https://www.google.com/search?q=%2316-forbidden--optional-root-artifacts)  
 17. [Platform, UI & Workflow Rules](https://www.google.com/search?q=%2317-platform-ui--workflow-rules)
 
@@ -84,7 +84,7 @@ This document is a historical reference for Terminus task creation, evaluation, 
 
 **Rule:** instruction.md MUST NOT include the task name or legacy canary strings.
 
-**Consequence of Violation:** Medium-severity review issue or check\_canary CI failure.
+**Consequence of Violation:** Medium-severity review issue or legacy-canary static-check failure.
 
 **Rule:** For milestone tasks, instruction.md MUST include the overall task introduction AND the description of every milestone, explicitly telling the agent to signal completion before advancing.
 
@@ -264,11 +264,11 @@ This document is a historical reference for Terminus task creation, evaluation, 
 
 **Consequence of Violation:** Verifier exit failure ("No working directory set").
 
-**Rule:** It MUST always produce /logs/verifier/reward.txt or /logs/verifier/reward.json. Failed runs MUST still emit a failure reward rather than exiting before the artifact is written.
+**Rule:** It MUST always produce /logs/verifier/reward.txt. Failed runs MUST still emit a failure reward rather than exiting before the artifact is written.
 
 **Consequence of Violation:** RewardNotFoundError / RewardFileNotFound.
 
-**Rule:** Standard Python/Pytest tasks MUST use the official platform test.sh template from `task-creation.mdc` exactly. The CI checker validates the last 6 lines structurally. Any deviation — even if functionally equivalent — is a HIGH rejection. UI tasks use a separate template (see `task-creation.mdc`).
+**Rule:** Standard Python/Pytest tasks MUST preserve the official `task-creation.mdc` test.sh command order and control flow. The CI checker semantically validates the pre-`pytest` portion (including the required `$PWD` guard) and validates the final 5-line `reward.txt` footer exactly. UI tasks use a separate template (see `task-creation.mdc`).
 
 **Consequence of Violation:** CI check\_test\_sh failure or reviewer feedback for drifting from the maintained template.
 
@@ -346,9 +346,9 @@ This document is a historical reference for Terminus task creation, evaluation, 
 
 **Rule (index.html):** Placeholder app MUST be replaced with the task's required UI.
 
-## **15\. Logs and Rewards (ctrf.json, reward.txt, reward.json)**
+## **15\. Logs and Rewards (ctrf.json, reward.txt)**
 
-**Rule:** The verifier MUST emit /logs/verifier/reward.txt or /logs/verifier/reward.json. In standard regular/milestone templates, reward.txt with binary 1/0 output is the normal convention.
+**Rule:** The verifier MUST emit /logs/verifier/reward.txt. Standard regular/milestone templates use the exact 5-line `reward.txt` footer from `task-creation.mdc`, and UI templates use the separate `reward.txt` block from the UI template there.
 
 **Rule:** Regular/Milestone templates SHOULD emit /logs/verifier/ctrf.json via the pytest \--ctrf flag for rich reporting.
 

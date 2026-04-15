@@ -29,6 +29,10 @@ Terminal-Bench is a popular benchmark for measuring the capabilities of agents a
 
 We're actively looking for contributors to add new, challenging tasks. See the [Open Call for Task Contributions](https://docs.google.com/document/d/1pe_gEbhVDgORtYsQv4Dyml8uaR7PZBEyVZnBUrs1z0M/edit?tab=t.0) for goals, timeline, and expectations. See [workflow-prompts.md](workflow-prompts.md) for the step-by-step task creation pipeline and [commands.md](commands.md) for CLI reference.
 
+The default Terminal-Bench 3.0 Edition 2 authoring and review path in this repo is hard-only. Medium tasks are out of scope unless the repo adds a separately named profile.
+Hard-task approval is empirical in this repo: run 5 `anthropic/claude-opus-4-6` trials by default before approving. The platform ultimately uses the better-performing model between Claude Opus 4.6 and GPT-5.2, so borderline local Claude results are treated conservatively rather than approved on estimate.
+Use `tasks/` only for active authoring work. Checked-in tooling fixtures now live under `repo_tests/fixtures/tasks/` so contributors are not trained on negative examples from the primary workspace.
+
 Read the [task proposal rubric](web/TASK_PROPOSAL_RUBRIC.md) before getting started.
 
 ## Resources

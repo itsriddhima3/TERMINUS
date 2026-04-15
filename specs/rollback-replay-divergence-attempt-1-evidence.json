@@ -1,0 +1,237 @@
+{
+  "hardness_axes": [
+    {
+      "id": "discover",
+      "name": "Discover",
+      "verdict": "PASS",
+      "reasoning": "Symptoms-only framing hides which subsystem breaks invariants; the agent must run reconnect/replay/resume scenarios, diff traces, and read serialization/prediction/RNG paths to localize drift. Nothing in an honest instruction can name the defective interaction without becoming cause-revealing."
+    },
+    {
+      "id": "synthesize",
+      "name": "Synthesize",
+      "verdict": "PASS",
+      "reasoning": "Coherent diagnosis requires connecting replay codec invariants, input prediction/rollback windows, RNG snapshot boundaries, and reconnect join semantics; no single module owns the failure mode end-to-end."
+    },
+    {
+      "id": "diagnose",
+      "name": "Diagnose",
+      "verdict": "PASS",
+      "reasoning": "Public contract stays at observable divergence (hashes/traces diverge after resume/reconnect while straight-through matches agree); causes are inferred from cross-run evidence, not stated as a broken function or field."
+    },
+    {
+      "id": "navigate_coupling",
+      "name": "Navigate coupling",
+      "verdict": "PASS",
+      "reasoning": "Naive fixes risk restoring one path while breaking replay compatibility, checksum-stable exports, or rollback safety; the agent must preserve multi-scenario contracts simultaneously, not patch a single call site in isolation."
+    },
+    {
+      "id": "reason_beyond_training",
+      "name": "Reason beyond training",
+      "verdict": "PASS",
+      "reasoning": "Although rollback netcode is familiar in the abstract, this failure mode depends on timing- and ordering-sensitive interactions between predicted-input correction, snapshot boundaries, and serialized state\u2014not a drop-in GGPO checklist."
+    }
+  ],
+  "anti_trivialization_checks": [
+    {
+      "id": "disclosure_collapse",
+      "name": "Disclosure-collapse",
+      "verdict": "PASS",
+      "reasoning": "An honest symptoms-only prompt does not enumerate the exact defect cluster; residual work remains tracing cross-cutting state flow. Stating every checked invariant verbatim would widen the prompt toward spec-implementation, but that is an authoring failure mode, not the intended design."
+    },
+    {
+      "id": "hidden_instance",
+      "name": "Hidden-instance",
+      "verdict": "PASS",
+      "reasoning": "Hardness does not rely on picking one corrupted artifact among many; divergence must reproduce across seeded reconnect/replay matrices, so the agent cannot win by identifying a single magic record."
+    },
+    {
+      "id": "single_artifact_repair",
+      "name": "Single-artifact repair",
+      "verdict": "WARN",
+      "reasoning": "A careless implementation could still collapse to one omitted serialized field or one RNG reseed bug; authoring must deliberately split defects across codec, prediction reconciliation, and reconnect join logic so no single-file flip clears the matrix."
+    },
+    {
+      "id": "generalization",
+      "name": "Generalization",
+      "verdict": "PASS",
+      "reasoning": "Verifier intent spans multiple seeds and scenarios (disconnect/reconnect, prediction rollback stress, export/import, resume), so solutions must generalize rather than fitting one demo match."
+    },
+    {
+      "id": "prompt_honesty",
+      "name": "Prompt-honesty",
+      "verdict": "PASS",
+      "reasoning": "Staying honest at symptoms-only does not shrink the search space to a named broken instance; naming the precise subsystem would be cause-revealing and is excluded from the public contract."
+    },
+    {
+      "id": "cheating_vs_difficulty",
+      "name": "Cheating-vs-difficulty",
+      "verdict": "PASS",
+      "reasoning": "Difficulty must come from real coupling and invariants, not from hiding logs or banning debug tools; tests grade deterministic state hashes and traces, not process."
+    },
+    {
+      "id": "mechanical_fix_filter",
+      "name": "Mechanical-fix filter",
+      "verdict": "PASS",
+      "reasoning": "Task weakness is not verifier plumbing; the conceptual risk is design collapse into a trivial seed/field omission, which is substantive rather than mechanical."
+    },
+    {
+      "id": "localized_fix",
+      "name": "Localized-fix",
+      "verdict": "WARN",
+      "reasoning": "If the seeded bug lands in one obvious serializer function, the map from symptom to edit becomes too direct; environment design must distribute subtle ordering/consistency mistakes across interacting layers."
+    },
+    {
+      "id": "oracle_locality",
+      "name": "Oracle-locality",
+      "verdict": "WARN",
+      "reasoning": "Until the repo exists, oracle risk is whole-file rewrites of a few small netcode files; Step 2b should structure modules and fixtures so the oracle performs coordinated, multi-file semantic edits rather than one-shot replacements."
+    },
+    {
+      "id": "small_declarative_cluster",
+      "name": "Small declarative-cluster",
+      "verdict": "PASS",
+      "reasoning": "The solve is not primarily editing one manifest/table; it is behavioral reconciliation across simulation, networking, and persistence codecs with executable evidence."
+    },
+    {
+      "id": "grep_collapse",
+      "name": "Grep-collapse",
+      "verdict": "PASS",
+      "reasoning": "Neutral subsystem names and symptom-level instructions avoid letting prompt nouns grep straight to a uniquely labeled broken block; defects should read as plausible engineering mistakes, not keywords copied from the prompt."
+    },
+    {
+      "id": "pre_factored_helper",
+      "name": "Pre-factored-helper",
+      "verdict": "PASS",
+      "reasoning": "Avoid helpers whose names mirror instruction bullets (e.g., 'ensureDeterminism'); keep responsibilities named like production code so completion is not stub-filling."
+    },
+    {
+      "id": "recipe_discount",
+      "name": "Recipe-discount",
+      "verdict": "WARN",
+      "reasoning": "Deterministic lockstep/rollback patterns are well-trodden; hardness must come from interaction bugs and ordering subtleties, not from reciting textbook snapshot rules from memory."
+    },
+    {
+      "id": "security_aura_discount",
+      "name": "Security-aura discount",
+      "verdict": "PASS",
+      "reasoning": "No security theater inflation; difficulty is ordinary multiplayer engineering integrity under stress paths."
+    },
+    {
+      "id": "orthogonal_checklist",
+      "name": "Orthogonal-checklist",
+      "verdict": "PASS",
+      "reasoning": "Fixes trade off replay byte-compatibility vs live resync vs prediction correction; independent knob tweaks should fail at least one matrix cell, forcing integrated reasoning rather than a linear checklist."
+    },
+    {
+      "id": "harness_discount",
+      "name": "Harness-discount",
+      "verdict": "PASS",
+      "reasoning": "Multi-seed matrices add realism but are not substitutes for intellectual work; the harness exposes divergence signals, not answers."
+    },
+    {
+      "id": "one_pass_solvability",
+      "name": "One-pass solvability",
+      "verdict": "WARN",
+      "reasoning": "A senior netcode engineer might converge quickly once the right files are open; mitigate via multiple coupled defects, neutral naming, and tests that fail on partial fixes."
+    },
+    {
+      "id": "hard_only_gate",
+      "name": "Hard-only gate",
+      "verdict": "WARN",
+      "reasoning": "As an idea family it is plausibly hard, but empirical hardness requires verifier-backed trials; until then, treat as a strong candidate with collapse risk, not a proven sub-20% frontier outcome."
+    },
+    {
+      "id": "information_delta_test",
+      "name": "Information delta test",
+      "verdict": "PASS",
+      "reasoning": "At least three non-obvious codebase discoveries are required to explain the divergence (see information_delta); these are not derivable from symptoms-only instruction text alone."
+    },
+    {
+      "id": "instruction_specificity_test",
+      "name": "Instruction specificity test",
+      "verdict": "PASS",
+      "reasoning": "The honest public contract stays at symptoms-only (divergence under reconnect/replay resume with straight-through agreement), which is the required level for a hard-only candidate."
+    }
+  ],
+  "rubric_axes": [
+    {
+      "id": "verifiable",
+      "name": "Verifiable",
+      "verdict": "PASS",
+      "reasoning": "Seeded headless matches with deterministic state hashing and golden trace slices provide objective pass/fail without subjective grading."
+    },
+    {
+      "id": "well_specified",
+      "name": "Well-specified",
+      "verdict": "PASS",
+      "reasoning": "Two implementers can agree on scenario matrix, hash inputs, and replay round-trip contracts while keeping player-facing prose minimal and symptoms-oriented."
+    },
+    {
+      "id": "solvable",
+      "name": "Solvable",
+      "verdict": "PASS",
+      "reasoning": "An expert can bound the failure to a finite interaction surface (netcode + replay + RNG snapshots) within a contained synthetic game engine module set."
+    },
+    {
+      "id": "difficult",
+      "name": "Difficult",
+      "verdict": "WARN",
+      "reasoning": "Conceptually strong, but easy collapse into a single-field bug makes realized difficulty sensitive to authoring fidelity until partial-oracle and trials prove discrimination."
+    },
+    {
+      "id": "interesting",
+      "name": "Interesting",
+      "verdict": "PASS",
+      "reasoning": "Production multiplayer teams routinely pay for determinism under reconnect and replay tooling; the scenario has direct economic value."
+    },
+    {
+      "id": "outcome_verified",
+      "name": "Outcome-verified",
+      "verdict": "PASS",
+      "reasoning": "Grade end-state hashes/traces and replay compatibility, not tool usage or patch style."
+    }
+  ],
+  "instruction_completeness_test": {
+    "verdict": "PASS",
+    "reasoning": "Symptoms-only instructions cannot specify the cross-layer ordering mistakes needed to fix divergence; the agent must execute the codebase and harness scenarios, so instruction alone is insufficient."
+  },
+  "information_delta": [
+    {
+      "item": "Which subsystem breaks first depends on frame-aligned vs tick-aligned snapshot boundaries relative to predicted remote inputs\u2014visible only by comparing rollback windows against serialized checkpoint timestamps in the sim loop.",
+      "source_area": "simulation/timing + snapshot writer",
+      "why_non_trivial": "The instruction can state hashes diverge without revealing whether snapshots are cut mid-pipeline or after input merge; resolving it requires reading scheduling and buffer lifetimes, not grepping error strings."
+    },
+    {
+      "item": "Replay resume desync traces to a mismatch between on-wire input timeline reconstruction and local prediction reconciliation after partial round-trip through the replay codec (field presence vs semantic defaults).",
+      "source_area": "replay codec + input timeline",
+      "why_non_trivial": "Symptoms look like generic 'RNG drift' until the agent proves RNG streams match while input streams diverge; that discrimination needs reading encode/decode paths and defaulting rules."
+    },
+    {
+      "item": "Reconnect join uses a fast-forward catch-up path that reuses RNG draw counters differently than the steady-state session loop, so identical post-reconnect inputs yield different draws even when seeds match on paper.",
+      "source_area": "reconnect/session bootstrap + RNG facade",
+      "why_non_trivial": "Seed literals can be equal across branches while consumption order differs; discovering it requires tracing call order through catch-up vs normal tick, not inspecting a single constant."
+    }
+  ],
+  "instruction_specificity": {
+    "level": "symptoms-only",
+    "reasoning": "Public-facing description should report deterministic straight-through play vs divergence after reconnect/replay resume, plus required artifacts (hashes/traces), without naming the broken function, missing field, or branch condition."
+  },
+  "attack_path": {
+    "summary": "A strong agent could still win quickly if defects are shallow or names leak intent; the main exploit is oracle-local single-hunk fixes once the right file is opened.",
+    "reasoning": "Mitigations: neutral module naming, multiple coupled mistakes, property-style assertions over scenario matrices, and partial-oracle gates so one-line RNG reseeds or one serializer field cannot satisfy every test simultaneously."
+  },
+  "smallest_plausible_patch": {
+    "summary": "One-line or single-field changes remain plausible if authoring slips\u2014this is the primary collapse mode.",
+    "reasoning": "Smallest successful real-world patch might be adjusting when RNG is advanced relative to input merge, adding one omitted replay field, or tightening a reconnect catch-up guard; Step 2b must ensure the minimal patch that actually fixes all scenarios is wider than that through deliberate coupling."
+  },
+  "collapse_audit": {
+    "verdict": "WARN",
+    "reasoning": "The idea family is structurally aligned with hard debugging (symptoms-only, cross-layer), but pre-implementation collapse risk is high if the seeded bug is localized, grepable, or textbook-recipe-shaped.",
+    "residual_hardness": "After a faithful multi-module toy engine exists, residual work is reconciling incompatible abstractions across replay bytes, prediction rollback, and reconnect timing so all scenario hashes agree\u2014integration debugging, not spec transcription.",
+    "red_flags": [
+      "Single-field / single-seed omission collapse",
+      "Over-familiar rollback recipes reducing reason-beyond-training leverage",
+      "Oracle whole-file locality if modules stay tiny"
+    ]
+  }
+}

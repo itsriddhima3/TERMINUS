@@ -1,75 +1,74 @@
 #!/bin/bash
 
+# Compatibility wrapper for the old Dockerfile reference checker.
+# The authoritative Edition 2 behavior now comes from
+# run_static_checks.py --only dockerfile.
+
 set -euo pipefail
 
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-NC='\033[0m'
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$ROOT_DIR"
 
-ALLOWLISTED_TASKS=(
-    # "example-task"
-)
+resolve_task_dir() {
+    local candidate="$1"
 
-is_task_allowlisted() {
-    local task_name="$1"
+    if [ -d "$candidate" ] && [ -f "$candidate/task.toml" ]; then
+        printf '%s\n' "$candidate"
+        return 0
+    fi
 
-    local allowlisted_task
-    for allowlisted_task in "${ALLOWLISTED_TASKS[@]}"; do
-        if [ "$task_name" = "$allowlisted_task" ]; then
+    if [ ! -e "$candidate" ]; then
+        return 1
+    fi
+
+    local search_dir
+    if [ -d "$candidate" ]; then
+        search_dir="$candidate"
+    else
+        search_dir="$(dirname "$candidate")"
+    fi
+
+    while [ "$search_dir" != "." ] && [ "$search_dir" != "/" ]; do
+        if [ -f "$search_dir/task.toml" ]; then
+            printf '%s\n' "$search_dir"
             return 0
         fi
+        search_dir="$(dirname "$search_dir")"
     done
+
     return 1
 }
 
-if [ $# -eq 0 ]; then
-    FILES_TO_CHECK=$(find tasks -type f -name "Dockerfile" 2>/dev/null || true)
+TASK_DIRS=()
+if [ "$#" -eq 0 ]; then
+    while IFS= read -r task_dir; do
+        TASK_DIRS+=("$task_dir")
+    done < <(find tasks -mindepth 1 -maxdepth 1 -type d | sort)
 else
-    FILES_TO_CHECK="$*"
+    declare -A seen=()
+    for arg in "$@"; do
+        if task_dir="$(resolve_task_dir "$arg")"; then
+            if [ -z "${seen[$task_dir]:-}" ]; then
+                seen["$task_dir"]=1
+                TASK_DIRS+=("$task_dir")
+            fi
+        fi
+    done
 fi
 
-if [ -z "$FILES_TO_CHECK" ]; then
-    echo "No Dockerfiles to check"
+if [ "${#TASK_DIRS[@]}" -eq 0 ]; then
+    echo "No task directories found to check"
     exit 0
 fi
 
+echo "check-dockerfile-references.sh is deprecated."
+echo "Using run_static_checks.py --only dockerfile instead of a separate shell regex checker."
+
 FAILED=0
-for file in $FILES_TO_CHECK; do
-    if [ ! -f "$file" ]; then
-        echo "File $file does not exist, skipping" >&2
-        continue
-    fi
-
-    task_dir=$(dirname "$(dirname "$file")")
-    task_name=$(basename "$task_dir")
-
-    if is_task_allowlisted "$task_name"; then
-        echo -e "${YELLOW}Skipping allowlisted task: $task_name${NC}"
-        continue
-    fi
-
-    copy_hits=$(grep -nE '^\s*(ADD|COPY)\b.*\b(solution/|tests/)' "$file" || true)
-    reserved_hits=$(grep -nE '^\s*(ADD|COPY|WORKDIR|VOLUME)\b.*[[:space:]]/(tests|solution|oracle)(/|$)|^\s*RUN\b.*\b(mkdir|install -d|ln -s|cp|mv|touch)\b.*[[:space:]]/(tests|solution|oracle)(/|$)' "$file" || true)
-
-    if [ -n "$copy_hits" ] || [ -n "$reserved_hits" ]; then
-        echo -e "${RED}Error: $file contains forbidden task-answer or reserved-path references${NC}"
-        if [ -n "$copy_hits" ]; then
-            echo "Problematic solution/tests copy lines:"
-            echo "$copy_hits"
-        fi
-        if [ -n "$reserved_hits" ]; then
-            echo "Problematic reserved-path lines:"
-            echo "$reserved_hits"
-        fi
+for task_dir in "${TASK_DIRS[@]}"; do
+    if ! python3 run_static_checks.py --task-dir "$task_dir" --version edition_2 --only dockerfile; then
         FAILED=1
     fi
 done
 
-if [ $FAILED -eq 1 ]; then
-    echo -e "${RED}Some Dockerfiles contain forbidden task-answer or reserved-path references${NC}"
-    echo -e "${YELLOW}Dockerfiles must not copy solution/tests into the image or create /tests, /solution, or /oracle${NC}"
-    exit 1
-fi
-
-echo -e "${GREEN}All Dockerfiles are clean of forbidden task-answer and reserved-path references${NC}"
+exit "$FAILED"

@@ -5,7 +5,7 @@ Use this file as the canonical authoring reference inside the standalone `web` b
 - If any older note or example conflicts with this guide, follow this guide.
 - This guide is synced to the current active authoring rules.
 - If the active rules are silent or ambiguous on a point, prefer the stricter interpretation already stated elsewhere in this bundle. If the bundle still does not resolve it, flag the ambiguity instead of inventing a new rule.
-- The only intentional bundle-level override is that this bundle is hard-only during ideation and final selection. Draft `difficulty = "hard"` unless the user explicitly asks for another label, and if a candidate later looks empirically `medium`, regenerate or stop rather than carrying it forward.
+- The default Edition 2 authoring and review profile in this bundle is hard-only. Draft `difficulty = "hard"`, and if a candidate later looks empirically `medium`, regenerate or stop rather than carrying it forward.
 
 ## Intake Rules
 
@@ -18,7 +18,7 @@ Use this file as the canonical authoring reference inside the standalone `web` b
    Use the primary implementation languages the task actually needs.
 
 3. **Difficulty**
-   The schema allows `easy`, `medium`, or `hard`, but this bundle should only pursue `hard`, and the final label must still be supported empirically.
+   The default Edition 2 path in this bundle pursues `hard` only, and the final label must still be supported empirically.
 
 4. **Category**
    Allowed values:
@@ -53,15 +53,15 @@ Use this file as the canonical authoring reference inside the standalone `web` b
 - `author_name = "anonymous"`
 - `author_email = "anonymous"`
 - `version = "2.0"`
-- drafting default: `difficulty = "hard"` unless the user explicitly overrides it
+- drafting default: `difficulty = "hard"`
 
-If you use the bundle-level `hard` default during ideation, still treat the final difficulty label as provisional until benchmarked. If later evidence says the task is `medium`, send it back to regeneration or stop instead of downgrading and continuing.
+Treat the `hard` default during ideation as provisional until benchmarked. If later evidence says the task is `medium`, send it back to regeneration or stop instead of downgrading and continuing.
 
 ## Current Acceptance Gates
 
 Apply these gates while shaping the task:
 
-- `minimal` codebase size is blocked on the platform. The environment must have 20+ files (excluding Dockerfile/docker-compose) for `small` (20-200), or 200+ for `large`
+- `minimal` codebase size is blocked on the platform and treated as a blocking failure in this repo. The environment must have 20+ files (excluding Dockerfile/docker-compose) for `small` (20-200), or 200+ for `large`
 - `easy` and `medium` are blocked for this bundle; accepted tasks should end up `hard`
 - Python tasks are accepted only when the empirical difficulty is `hard`
 - during ideation, avoid Python unless there is a compelling reason to choose it

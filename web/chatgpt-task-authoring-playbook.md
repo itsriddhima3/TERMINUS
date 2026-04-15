@@ -8,7 +8,7 @@ This file is written to work for ChatGPT, Gemini, and similar attachment-based w
 
 This folder is a standalone attachment bundle for ChatGPT ideation. ChatGPT generates and screens task ideas; Cursor handles everything else (validation, file creation, review, difficulty calibration).
 
-This bundle is intentionally **hard-only** and intentionally **anti-collapse**:
+This bundle follows the repo's default **hard-only** Edition 2 profile and is intentionally **anti-collapse**:
 - a task idea is not enough
 - a task must still look hard when you imagine the concrete files and edit surface
 - if a strong idea family looks like it would collapse into a trivial concrete instance, flag it and suggest a different approach
@@ -82,7 +82,7 @@ Use these fixed values unless the user explicitly overrides them:
 
 Important:
 
-- this bundle is hard-only; if the best honest label looks `medium`, regenerate or stop rather than carrying the candidate forward
+- this bundle uses the default hard-only Edition 2 profile; if the best honest label looks `medium`, regenerate or stop rather than carrying the candidate forward
 - the `hard` default is a bundle-level ideation preference, not proof that the finished task empirically qualifies as hard
 - avoid choosing Python as the default implementation language unless the idea clearly calls for it
 - avoid choosing FastAPI as the default framework unless there is a strong justification
