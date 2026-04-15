@@ -1,0 +1,20 @@
+user_visible_outputs = [
+  "tile_*.dat",
+  "get",
+  "scan",
+  "structure_snapshot",
+]
+
+internal_harness_files = [
+  "/app/build/trace_driver",
+]
+
+[structured_outputs.structure_snapshot]
+target = "structure_snapshot"
+format = "json"
+instruction_checks = [
+  "\"tiles\"",
+  "\"layout_generation\"",
+  "\"id\"",
+  "\"sorted_keys\"",
+]
