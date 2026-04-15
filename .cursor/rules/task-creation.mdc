@@ -11,7 +11,7 @@ Ask for ALL missing required fields BEFORE writing code:
 
 1. **Task Idea**: What problem should the agent solve?
 2. **Programming Language**: What language(s)? (Avoid Python unless justified — Python tasks must be hard.)
-3. **Difficulty Level**: medium or hard (easy is blocked)
+3. **Difficulty Level**: hard only for the default Edition 2 path
 4. **Category**: system-administration | build-and-dependency-management | data-processing | games | software-engineering | machine-learning | debugging | security | scientific-computing
 5. **Task Name**: kebab-case (e.g., `distributed-trace-analysis`)
 
@@ -21,8 +21,8 @@ Fixed values: `author_name = "anonymous"`, `author_email = "anonymous"`, `versio
 
 ## Acceptance Gates
 
-- `minimal` codebase size: blocked on platform. Count files under `environment/` EXCLUDING Dockerfile/docker-compose — must be 20+ for `small`. Aim for 25-30+ to avoid borderline counts — do not design tasks that hover at exactly 20, add source modules, data files, configs, or headers to reach the threshold.
-- `easy` difficulty: blocked. Use `medium` or `hard`.
+- `minimal` codebase size: blocked on platform and treated as a blocking authoring failure in this repo. Count files under `environment/` EXCLUDING Dockerfile/docker-compose — must be 20+ for `small`. Treat this as a minimum realism floor, not as evidence of hardness. If you are below it, add genuine supporting modules, data, configs, or headers that the task actually needs; do not hover at exactly 20 or pad with empty files.
+- `easy` and `medium` difficulty: blocked on the default Edition 2 path. Use `hard`.
 - Python tasks: accepted only when empirical difficulty is `hard`.
 - Avoid FastAPI. Avoid multi-container unless genuinely required.
 
@@ -33,6 +33,7 @@ Fixed values: `author_name = "anonymous"`, `author_email = "anonymous"`, `versio
 <task-folder>/
 ├── instruction.md
 ├── task.toml
+├── output_contract.toml
 ├── environment/
 │   └── Dockerfile
 ├── solution/
@@ -47,6 +48,7 @@ Fixed values: `author_name = "anonymous"`, `author_email = "anonymous"`, `versio
 <task-folder>/
 ├── instruction.md
 ├── task.toml
+├── output_contract.toml
 ├── milestone_1.md ... milestone_N.md
 ├── environment/
 │   └── Dockerfile
@@ -63,6 +65,7 @@ Fixed values: `author_name = "anonymous"`, `author_email = "anonymous"`, `versio
 <task-folder>/
 ├── instruction.md
 ├── task.toml
+├── output_contract.toml
 ├── environment/
 │   └── Dockerfile
 ├── solution/
@@ -107,14 +110,15 @@ Replace with:
 Vary the style across tasks. Some terse, some conversational, some structured. Not every task needs headers or bullet lists.
 
 ### Contract requirements
-- List ALL output files the tests will check
-- If structured data output, document exact schema including field names, types, keys
+- List ALL user-visible outputs declared in `output_contract.toml`
+- If structured data output, document the exact schema declared in `output_contract.toml`, including field names, types, and keys
+- Do NOT surface `internal_harness_files` in instruction.md unless the same path is also declared in `user_visible_outputs`; `run_static_checks.py` enforces this literal path rule
 - Do not mention specific tools unless the verifier can prove tool usage
-- Do not include the task name or canary strings
+- Do not include the task name or legacy canary strings
 
 ### Milestone-specific
 - instruction.md must include overall intro + every milestone description
-- Must tell agent to signal completion before advancing
+- Must tell agent to signal completion before advancing; `run_static_checks.py` fails milestone tasks that omit an explicit signal-completion directive
 - milestone_1.md includes intro + Milestone 1 description
 - milestone_2.md through milestone_N.md contain only their milestone description
 - Keep milestone files concise (3–5 lines, up to 10–12 for milestone_1.md)
@@ -127,11 +131,11 @@ version = "2.0"
 [metadata]
 author_name = "anonymous"
 author_email = "anonymous"
-difficulty = "hard"          # or "medium"
+difficulty = "hard"
 category = "security"        # one of the 9 accepted values
 tags = ["ssh", "hardening", "chroot"]  # 3-6 descriptive values
 languages = ["bash"]
-codebase_size = "small"      # Count files under environment/ EXCLUDING Dockerfile and docker-compose. minimal (0-19) = blocked on platform. small (20-200). large (200+). Aim for 25-30+ — do not hover at the floor.
+codebase_size = "small"      # Count files under environment/ EXCLUDING Dockerfile and docker-compose. minimal (0-19) is a blocking failure on the default Edition 2 path. small (20-200). large (200+). This is a realism floor, not hardness evidence; stay comfortably above it with genuine task components, not filler.
 number_of_milestones = 0     # 0 for non-milestone tasks
 subcategories = []           # or ["tool_specific"], etc.
 expert_time_estimate_min = 30
@@ -158,6 +162,32 @@ Accepted `subcategories` values: `long_context`, `tool_specific`, `api_integrati
 - `ui_building`: only for genuine UI tasks that use the UI verifier stack (unit + E2E). Ordinary pytest-only backend validation does not qualify.
 
 If `environment/docker-compose.yaml` exists: set `custom_docker_compose = true`. If multiple services: also set `is_multi_container = true`.
+
+## output_contract.toml
+
+Every task must include `output_contract.toml`. It is the source of truth for what the instruction must document versus what stays internal to the harness.
+
+Required top-level declarations:
+- `user_visible_outputs` — every output path or named output surface the instruction must mention
+- `internal_harness_files` — internal scripts, source files, fixtures, helper binaries, or other runtime artifacts that tests may touch but the instruction does NOT need to expose
+- `structured_outputs.<name>` — one section per structured output schema that the instruction must document
+
+Example:
+
+```toml
+user_visible_outputs = ["/app/output/report.json"]
+internal_harness_files = ["/app/ci/harness/build_and_load.sh"]
+
+[structured_outputs.report]
+target = "/app/output/report.json"
+format = "json"
+instruction_checks = ["replays", "finish_reason", "tensor_sha256_hex"]
+```
+
+Rules:
+- Every `structured_outputs.<name>.target` must also appear in `user_visible_outputs`
+- `instruction_checks` must list the schema strings or contract tokens that instruction.md explicitly mentions
+- Do not smuggle internal helper paths into `user_visible_outputs`; put them in `internal_harness_files` instead
 
 ## environment/Dockerfile
 
@@ -189,20 +219,30 @@ If `environment/docker-compose.yaml` exists: set `custom_docker_compose = true`.
 
 The task is hard because solving it requires real intellectual work — domain understanding, debugging, architectural reasoning, etc. Nothing the agent encounters should shortcut that work.
 
-Discoverability can leak through ANY channel the agent has access to:
+For discoverability and collapse analysis in this repo, the authoritative solver-visible **file** surfaces are:
+- `instruction.md`
+- everything under `environment/`
+- everything under `tests/`
+- file and directory names reachable within those surfaces
+
+Treat these as authoring/package surfaces, not solver-visible file surfaces:
+- `task.toml`
+- `output_contract.toml`
+- everything under `solution/`
+- specs, jobs, reviewer notes, and packaging artifacts
+
+Discoverability can leak through any solver-visible file surface above, and through runtime behavior if you actually run the broken task:
 - **Instruction** — describes required behavior, not implementation fixes ("resumed runs drift" not "the CRC uses half the payload")
-- **Source code** — no markers, flags, annotations, or structural hints that reveal fix locations
+- **Source/config/data files** — no markers, flags, annotations, commented-out correct values, or structural hints that reveal fix locations
 - **File/directory names** — neutral engineering names, not names that describe what's broken or what to fix
 - **Tests** — test names describe what to verify, not what to fix; assertions check outcomes, not implementation details
 - **Runtime behavior** — error messages guide debugging but don't pinpoint the exact fix
-- **Metadata/tags** — don't telegraph the solution approach
-- **Config/data files** — no commented-out correct values or examples that demonstrate the answer
 
-The general test: could the agent skip the hard reasoning and find the solution through surface-level signals in any of these channels?
+The general test: could the agent skip the hard reasoning and find the solution through surface-level signals on any solver-visible file surface, or from runtime error output?
 
 ## tests/test.sh
 
-**This is the official platform template.** Copy it exactly. Only the marked `[VARIABLE]` slots may be changed.
+**This is the official platform template.** Preserve its command order and control flow. The checker validates the non-UI pre-`pytest` portion semantically and the final 5-line `reward.txt` footer exactly. Only the marked `[VARIABLE]` slots and the documented semantic formatting variations may be changed.
 
 ```bash
 #!/bin/bash
@@ -237,7 +277,7 @@ fi
 ```
 
 **What you MAY change** (only these, nothing else):
-1. The `apt-get install` line — add/remove/pin packages the verifier needs
+1. The `apt-get install` block — add/remove/pin packages the verifier needs; multi-line continuations, `--no-install-recommends`, and optional `rm -rf /var/lib/apt/lists/*` cleanup are allowed
 2. Additional `-w` flags on the `uvx` call — e.g., `-w pytest-randomly==3.16.0`
 3. The test file path — e.g., `/tests/test_m1.py /tests/test_m2.py` for milestone tasks
 
@@ -248,8 +288,11 @@ fi
 - Do not add `exit $status` or any `exit` after the `fi`
 - Do not add `mkdir -p /logs/verifier; echo 0 > /logs/verifier/reward.txt` before the template — the reward file requirement is satisfied by the template's reward block always running (since there's no `set -e`, the script never exits early)
 - Do not restructure the control flow in any way
+- Do not add extra pre-verifier commands beyond the documented `apt-get` variations above
 
-The CI checker (`run_static_checks.py`) textually validates the last 6 lines. They must match exactly.
+Edition 2 standard/milestone templates always emit `/logs/verifier/reward.txt`; `reward.json` is not part of the supported template here.
+
+The CI checker (`run_static_checks.py`) semantically validates the non-UI pre-`pytest` block (ordered commands, required `$PWD` guard, allowed apt formatting/pinning/cleanup) and textually validates the final 5-line `reward.txt` footer. The footer must match exactly.
 
 ### UI task template
 
@@ -312,9 +355,9 @@ Files must be at the archive root (no wrapping folder):
 cd tasks/<task-name>
 rm -f ../../Task_Ready_To_Submit/<task-name>.zip
 zip -rq ../../Task_Ready_To_Submit/<task-name>.zip . -x '*/__pycache__/*' '*.pyc' '.*'
-unzip -l ../../Task_Ready_To_Submit/<task-name>.zip
+python3 ../../validate_submission_zip.py ../../Task_Ready_To_Submit/<task-name>.zip
 ```
 
-Verify `instruction.md`, `task.toml`, `environment/`, `solution/`, `tests/` are at archive root.
+Verify `instruction.md`, `task.toml`, `output_contract.toml`, `environment/`, `solution/`, and `tests/` are at archive root. Append `--json` for machine-readable output.
 
 Do NOT include `rubrics.txt`. Place zip in `Task_Ready_To_Submit/`.

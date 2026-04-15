@@ -6,6 +6,7 @@ alwaysApply: false
 # Idea Validation
 
 Reference this file when validating a task idea and producing a spec. It is NOT auto-applied — use `@idea-validation.mdc` explicitly.
+The default Edition 2 acceptance profile in this repo is hard-only. If the best honest label is medium, the idea does not advance.
 
 ## 5 Hardness Axes
 
@@ -52,7 +53,7 @@ Run ALL of these before allowing an idea to proceed to spec.
 16. **Harness-discount** — Docker complexity, seed generation, multi-service setups are realism, not hardness.
 17. **One-pass solvability** — Could a frontier model solve this in one pass after opening the obvious files? If yes, reject.
 18. **Hard-only gate** — Is this clearly hard, not merely respectable or medium? If medium, this check is FAIL.
-19. **Information delta test (BLOCKING)** — Enumerate every piece of information the agent must discover FROM THE CODEBASE that is NOT stated or directly derivable from instruction.md. The list must contain at least 3 non-trivial items where each requires reading and understanding code — not just grepping. If the list has fewer than 3 items, or every item reduces to "find where code doesn't match spec," the task is easy. Reject. This is the single most reliable hardness test.
+19. **Discovery budget test (BLOCKING)** — Before any files exist, enumerate every non-trivial discovery the future solver must extract from the finished task's codebase or runtime behavior that is NOT stated or directly derivable from instruction.md. The list must contain at least 3 items. For each, name the discovery, where it should live once Step 2b creates the task, and why the instruction must not reveal it. If you cannot name 3, or every item reduces to "find where code doesn't match spec," the task is easy. Reject. This is the single most reliable hardness test.
 20. **Instruction specificity test** — Check where the instruction falls on this hierarchy: **Spec-complete** (always easy): exact algorithms, thresholds, schemas, formulas given. **Cause-revealing** (usually medium): broken component named but full fix not specified. **Symptoms-only** (can be hard): observable misbehavior without indicating where or why. A hard task's instruction must be at the symptoms-only level.
 
 ## What Does NOT Count as Hard
@@ -96,18 +97,48 @@ Reject these patterns actively:
 
 The validation loop is managed by `validate_loop.py`, not by the LLM. The script tracks attempts, decides when to stop (early stopping on plateau), and manages spec files.
 
-**Your job per attempt:** run the 5 hardness axes, 20 anti-trivialization checks, 6 rubric axes, instruction completeness test, and collapse audit. Output a clean spec and a RESULT line with FAIL/WARN counts. The script handles everything else.
+**Your job per attempt:** run the 5 hardness axes, 20 anti-trivialization checks, 6 rubric axes, instruction completeness test, and collapse audit. Output two clean docs (authoring spec + reviewer appendix) plus a structured evidence JSON that matches `specs/validation_schema.json`. The script handles scoring, state transitions, and gating.
+
+## Structured Evidence Contract
+
+Every Step 2a attempt must produce a JSON evidence sidecar matching `specs/validation_schema.json`.
+
+Required top-level fields:
+- `hardness_axes`
+- `anti_trivialization_checks`
+- `rubric_axes`
+- `instruction_completeness_test`
+- `discovery_budget`
+- `instruction_specificity`
+- `attack_path`
+- `smallest_plausible_patch`
+- `collapse_audit`
+
+Default-workflow blocking rules:
+- `discovery_budget` must list at least 3 non-trivial solver discoveries the finished task will force from the codebase/runtime
+- each `discovery_budget` item must name the discovery, where it should live after Step 2b, and why instruction.md must not reveal it
+- `instruction_specificity.level` must be `symptoms-only` for any GO outcome
+- GO is forbidden if required evidence is missing, malformed, or contradicts those blocking checks
+
+The loop stores this evidence with each attempt. Integer FAIL/WARN counts are secondary summaries, not the source of truth.
 
 **Spec file rules:**
-- `specs/<task-name>.md` — contains ONLY the current variant's spec. No comparison tables, no attempt history, no clutter from other attempts.
-- `specs/<task-name>-candidate-N.md` — plateau candidates (script tells you when to save here).
+- `specs/<task-name>.md` — contains ONLY the current variant's authoring spec. This is the drafting input for Step 2b.
+- `specs/<task-name>-reviewer.md` — contains ONLY the current variant's reviewer appendix. Keep reviewer-only analysis here, not in the authoring spec.
+- `specs/<task-name>-candidate-N.md` — plateau candidate authoring specs (script tells you when to save here).
+- `specs/<task-name>-candidate-N-reviewer.md` — plateau candidate reviewer appendices.
+- `specs/<task-name>-attempt-N-evidence.json` — structured evidence saved by the validation loop for attempt `N`
 - `specs/<task-name>-validation-log.md` — attempt history (managed by the script).
+
+The authoring spec is the only drafting input for Step 2b. The reviewer appendix is human-review-only during authoring and should stay out of drafting until the post-build discovery confirmation step.
 
 See `workflow-prompts.md` Step 2a for the automated loop prompt.
 
 ## Spec Output Format
 
-When the winning variant is GO, produce a spec using this exact structure:
+When the winning variant is GO, produce two physical files using these exact structures:
+
+### Authoring Spec (`specs/<task-name>.md` or `specs/<task-name>-candidate-N.md`)
 
 ```
 ### Decision
@@ -119,10 +150,56 @@ When the winning variant is GO, produce a spec using this exact structure:
 - Category: [one of 9 accepted values]
 - Languages: [array]
 - Difficulty: hard
-- Codebase size: [small (20-200 files under environment/ excl. Docker files) / large (200+). Must be 20+ to avoid 'minimal' which is blocked.]
+- Codebase size: [small (20-200 files under environment/ excl. Docker files) / large (200+). Under 20 is `minimal`, which is a blocking failure on the default Edition 2 path.]
 - Subcategories: [array or []]
 - Tags: [3-6 values]
 - Milestones: [0 or count]
+
+## Authoring Brief
+[This file is the only drafting input for Step 2b. Do NOT include reviewer-only analysis, oracle steps, exact patch sites, or an exhaustive file tree here.]
+
+### Public contract
+[requirements, constraints, output files, schemas, and externally visible behavior — NOT the full instruction text]
+
+### Failure topology
+[1-2 paragraphs describing the symptom clusters, invariant boundaries, interacting subsystems, and why the task is hard without naming the fix path or solution steps]
+
+### Environment shape
+[component-level map only. Name the major directories/subsystems/data domains that must exist and what role they play. Do NOT provide an exact file-by-file scaffold or call out likely fix files.]
+
+### Required artifacts
+[what Step 2b must create at a high level: instruction, tests, Dockerfile, solve.sh, environment components, milestone/UI-specific artifacts if any, and any scale constraints such as 20+ environment files]
+
+### Test plan
+[what each test checks — at least 6 tests]
+[for each: what it verifies, whether multiple valid approaches exist, whether chain-dependent]
+
+### Drafting guardrails
+[1 short paragraph on what Step 2b must avoid leaking through instructions, names, tests, comments, fixtures, or structure]
+```
+
+### Reviewer Appendix (`specs/<task-name>-reviewer.md` or `specs/<task-name>-candidate-N-reviewer.md`)
+
+```
+### Decision
+[GO / STOP] — Attempt [N]. [Same decision line as the authoring spec.]
+
+### Metadata
+- Task name: [same kebab-case slug]
+- Title: [same 3-4 word human title]
+- Category: [same accepted value]
+- Languages: [same array]
+- Difficulty: hard
+- Codebase size: [same size label]
+- Subcategories: [same array or []]
+- Tags: [same 3-6 values]
+- Milestones: [same 0 or count]
+
+### Discovery budget
+[At least 3 entries. For each entry:]
+- Discovery: [the hidden fact / coupling / runtime behavior the solver must recover]
+  Planned location: [where this should live after Step 2b]
+  Why instruction must not reveal it: [why naming it in instruction.md would collapse the task]
 
 ### Anti-trivialization verdict
 [full 20-check table with reasoning per check]
@@ -136,20 +213,16 @@ When the winning variant is GO, produce a spec using this exact structure:
 ### Instruction completeness test
 [Answer: "Can the agent solve this by reading ONLY instruction.md without deeply engaging with the codebase?" Explain why not.]
 
+## Reviewer Appendix
+[Human review only during authoring. This file may be reopened after Step 2b to confirm the discovery budget still survives.]
+
 ### Implementation plan
 [1-2 paragraphs: what the environment contains, what is broken/needs building, what the agent must do, what makes it genuinely hard]
 
-### File tree
-[exact file list with one-line description per file. Must have 20+ files under environment/ excluding Dockerfile/docker-compose to qualify as 'small' (not 'minimal' which is blocked). Include headers, source modules, data files, configs as needed.]
+### Proposed file inventory
+[exact or near-exact file tree with one-line description per file. Must have 20+ files under environment/ excluding Dockerfile/docker-compose to qualify as `small`; under 20 is `minimal` and blocking on the default Edition 2 path. Include headers, source modules, data files, configs as needed.]
 
-### Instruction summary
-[requirements, constraints, output files, schemas — NOT the full instruction text]
-
-### Test plan
-[what each test checks — at least 6 tests]
-[for each: what it verifies, whether multiple valid approaches exist, whether chain-dependent]
-
-### Oracle approach
+### Oracle notes
 [how solve.sh will solve it — enough detail to implement, not a hint dump]
 
 ### Collapse audit

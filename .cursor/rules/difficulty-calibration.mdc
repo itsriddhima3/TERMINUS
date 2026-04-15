@@ -11,6 +11,16 @@ Use this rule whenever you are reviewing, repairing, or approving a task for sub
 - **Too hard**: one or more individual tests are never passed by any agent across 10 trials
 
 Both are rejection reasons on the platform. Catch them before uploading.
+The default Edition 2 acceptance profile in this repo is hard-only, so medium-range evidence is also non-approvable even when it is not a platform-level rejection.
+The platform uses the better-performing frontier model. Because the current repo archive has no GPT-5.2 job artifacts, repo reviews default to 5 verifier-backed `anthropic/claude-opus-4-6` trials unless newer GPT-5.2 evidence is available.
+
+## Solver-Visible Surface Policy
+
+Use the authoritative solver-visible file-surface policy from `@task-creation.mdc`'s discoverability principle when judging discoverability or collapse.
+
+On the current repo policy, the solver-visible file surfaces are `instruction.md`, everything under `environment/`, everything under `tests/`, and the file/directory names within those surfaces. `task.toml`, `output_contract.toml`, `solution/`, specs, jobs, reviewer notes, and packaging artifacts are authoring/package surfaces, not solver-visible file surfaces for this gate.
+
+If you actually ran the broken task, also inspect runtime error output manually. `collapse_check.py` models only the solver-visible file surfaces above.
 
 ## When To Run
 
@@ -130,7 +140,7 @@ If yes, reject or regenerate.
 
 ### A11. Oracle-locality test
 
-Inspect `solution/solve.sh` and any scripts it calls.
+Inspect `solution/solve.sh` plus any transitive oracle materials it invokes or embeds: called scripts, patch files, heredoc writes, in-place shell rewrites (`sed -i`, `perl -0pi`, temp-file rewrite + `mv`, `cp`/`install` replacements), and simple inline Python rewrite/write patterns.
 
 Strong warning signs:
 - whole-file overwrites of 1-4 small files
@@ -141,7 +151,7 @@ Strong warning signs:
 
 ### A12. Oracle line-count heuristic
 
-Count non-boilerplate lines in the oracle (solve.sh + called scripts).
+Count non-boilerplate lines in the transitive oracle material (`solve.sh` + called scripts + patch hunks + embedded write payloads that actually encode the fix).
 
 - Under ~30 lines of real logic: strong trivial-risk signal, justify why it is still hard
 - 30-80 lines: moderate, check other signals
@@ -174,7 +184,7 @@ Requirement-to-file map:
 Oracle line count (non-boilerplate): [N]
 
 Discoverability:
-[Could the agent find where and what to fix without doing the hard intellectual work the task demands? Consider ALL information channels: instruction wording, source code, file/directory names, test names and assertions, error messages from running the broken code, metadata and tags, comments, config files. A task is discoverable if any of these channels shortcut the domain reasoning the task is supposed to test.]
+[Could the agent find where and what to fix without doing the hard intellectual work the task demands? Use the solver-visible file surfaces defined above: instruction wording, source/config/data files under `environment/`, file/directory names on those surfaces, and test names/assertions under `tests/`. If you ran the task, also consider runtime error output. A task is discoverable if any of these channels shortcut the domain reasoning the task is supposed to test.]
 
 Red flags:
 - [flag]
@@ -224,15 +234,12 @@ If tests are coupled through shared prerequisites, either:
 - have the test create its own preconditions, or
 - split the coupled requirement into the same test
 
-To verify order independence, run pytest with randomized order inside the task container:
+Prefer the repo-local verifier-health automation so the randomized-order check, repeated oracle runs, and partial-oracle ablations are captured in one report:
 ```bash
-# Start interactive container, then run inside it:
-harbor tasks start-env -p "tasks/<task-name>" -e docker -a -i
-# Inside the container:
-uvx -p 3.13 -w pytest==8.4.1 -w pytest-randomly pytest /tests/test_outputs.py -rA -p randomly
+python3 verifier_health.py --task-dir tasks/<task-name> --output-json /tmp/<task-name>-verifier-health.json
 ```
 
-Alternatively, run from the host against the repo-local test file (requires test dependencies):
+Manual fallback only if you are debugging the randomized-order failure itself:
 ```bash
 uvx -p 3.13 -w pytest==8.4.1 -w pytest-randomly pytest tasks/<task-name>/tests/test_outputs.py -rA -p randomly
 ```
@@ -240,7 +247,7 @@ If any test fails under random order, it depends on execution order or shared gl
 
 ### B3.5. Flaky test stress-test
 
-After oracle passes 3x, run the full test suite 5+ additional times to confirm 100% consistency.
+After oracle passes 3x, confirm 100% consistency across 5+ additional oracle-backed runs. `verifier_health.py` performs this repeated-oracle stress test by default.
 
 Flag any test that uses:
 - subprocess calls, service checks, or network connections (needs adequate timeouts)
@@ -252,21 +259,20 @@ If any test fails intermittently across these runs, it is flaky and must be fixe
 
 ### B4. Partial-oracle simulation
 
-After oracle passes 3x:
+Use the repo-local verifier-health automation to generate temp-copy ablations and classify the result:
 
-1. Comment out the last ~30% of `solve.sh`
-2. Run the test suite
-3. Record which tests still pass
+```bash
+python3 verifier_health.py --task-dir tasks/<task-name> --output-json /tmp/<task-name>-verifier-health.json
+```
+
+It automatically tries multiple ablations (tail, middle, and second-half style cuts) on temporary task copies so the real task directory stays untouched. The report distinguishes:
+- **behavioral verifier failures** — acceptable evidence that the verifier discriminates
+- **compile-only failures** — not sufficient; build breakage does not prove discrimination
+- **ambiguous failures** — investigate before approval
 
 Any test that fails here AND requires a niche technique is high-risk for 0/10.
 
-**BLOCKING: If ALL tests still pass under a partial oracle, the verifier does not discriminate between partial and complete fixes. This means some bugs are untested. Fix the tests so at least one fails under each meaningful partial-fix scenario before approving the task.**
-
-Also try:
-- Comment out different ~30% segments (not just the end)
-- Run with only the first half of the solution
-
-This reveals chain-dependency patterns.
+**BLOCKING: If the verifier-health report shows only full-pass ablations, compile-only ablations, or ambiguous ablations, the verifier does not yet prove it discriminates between partial and complete fixes. Fix the tests or the ablation strategy before approving the task.**
 
 ### B5. Multi-approach validation
 
@@ -290,32 +296,49 @@ Recommendation: [keep | loosen assertion | restructure]
 
 ## Part C: Multi-Trial Gate (Before Packaging)
 
-### C1. Minimum trial requirement
+### C1. Default trial requirement for hard approval
 
-Run agent trials before packaging: 1 minimum, 3 preferred, 5 maximum. Use `harbor run` or `harbor tasks check` with a frontier model.
+Run agent trials before packaging. For `difficulty = "hard"` tasks:
+- 5 verifier-backed `anthropic/claude-opus-4-6` trials are the default empirical gate for repo approval.
+- Do not approve or approve with note on 1-4 Claude Opus 4.6 trials, even if every run fails.
+- If GPT-5.2 trial artifacts also exist, incorporate them and apply the platform's better-performing-model rule to the frontier evidence.
 
 ### C2. Per-test pass matrix
 
 Build a matrix: rows = tests, columns = trial runs, cells = pass/fail.
 
+When Harbor trial artifacts exist, use the repo-local analyzer against the exact job directory Harbor printed:
+
+```bash
+python3 analyze_trials.py <job-dir>
 ```
-                Trial 1  Trial 2  Trial 3
-test_basic        PASS     PASS     PASS
-test_edge_case    PASS     FAIL     PASS
-test_advanced     FAIL     FAIL     FAIL   <-- 0/3, investigate
+
+It reads the real artifact layout:
+- `<job-dir>/result.json`
+- `<job-dir>/<trial-name>/result.json`
+- `<job-dir>/<trial-name>/verifier/ctrf.json`
+
+Use its output to review mean reward, full-suite pass rate, per-trial rewards, the per-test pass matrix, and infra errors separately.
+
+```
+                Trial 1  Trial 2  Trial 3  Trial 4  Trial 5
+test_basic        PASS     PASS     PASS     PASS     PASS
+test_edge_case    PASS     FAIL     PASS     FAIL     PASS
+test_advanced     FAIL     FAIL     FAIL     FAIL     FAIL   <-- 0/5, investigate
 ```
 
 ### C3. Decision rules
 
-- Any test at 0/N across all trials: **investigate before uploading**
+- Any test at 0/N across the verifier-backed trials: **investigate before uploading**
   - Is the test too specific? → loosen assertions
   - Is the test chain-dependent? → make it independently achievable
   - Is the required technique too niche? → verify a second valid approach exists
 - Full-suite pass rate >80%: **BLOCKING — too easy. Harden or redesign. Do not approve with a note.**
-- Full-suite pass rate 20-80%: **medium range, non-blocking**
-- Full-suite pass rate <20%: **hard range, ideal**
+- Full-suite pass rate 20-80%: **medium range. Do not approve on the default hard-only Edition 2 path; harden, redesign, or stop.** With the default 5-trial Claude gate, `1/5 = 20%` is already medium.
+- Full-suite pass rate <20%: **hard range, required for the default hard-only Edition 2 path**
+- With the default 5-trial Claude gate, only `0/5` qualifies as hard.
 - Full-suite pass rate 0% AND some tests are 0/N: **too hard, fix the 0/N tests**
-- Single trial at 1.0 with no other trials: **not enough data — run up to 4 more (max 5 total) before deciding**
+- Missing GPT-5.2 evidence does not rescue a borderline Claude result. If Claude Opus 4.6 is `1/5 = 20%` or higher and GPT-5.2 is unmeasured, treat the task as non-approvable or gather GPT-5.2 evidence; do not assume the unknown model would do worse.
 
 ### C4. When trials are not available
 
@@ -323,9 +346,21 @@ If you cannot run agent trials (no API key, time constraints):
 
 1. Still run the collapse audit (Part A)
 2. Still run the per-test feasibility analysis (Part B)
-3. Still run the partial-oracle simulation (Part B4)
+3. Still run `verifier_health.py` (Part B, including partial-oracle simulation, randomized order, and repeat-oracle checks)
 4. Flag in your report: "No agent trials run — difficulty is estimated, not empirical"
-5. Recommend the user run trials before uploading
+5. Do NOT return `APPROVE` or `APPROVE WITH NOTE` for a `difficulty = "hard"` task
+6. Require the missing 5-trial Claude Opus 4.6 gate before upload or approval
+
+### C5. Single approval gate
+
+After packaging, run the repo's single approval gate with the exact task directory, submission zip, and Claude job directory:
+
+```bash
+python3 verifier_health.py --task-dir tasks/<task-name> --output-json /tmp/<task-name>-verifier-health.json
+python3 approve_task.py --task-dir tasks/<task-name> --zip Task_Ready_To_Submit/<task-name>.zip --job-dir jobs/<job-dir> --verifier-health /tmp/<task-name>-verifier-health.json
+```
+
+This is the authoritative repo-local hard-task approval gate. It consumes the saved verifier-health report and fails on blocking conditions across static checks, collapse check, submission-zip validation, archived trial analysis, manifest verification, and zip/source mismatches.
 
 ---
 

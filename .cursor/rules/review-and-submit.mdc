@@ -22,7 +22,8 @@ alwaysApply: true
 - Does not mention specific tools unless verifier can prove tool usage.
 - Unique vs TB2, TB3, Snorkel TB1 — initial state or expected output differs non-trivially.
 - All paths are absolute in-container references.
-- Does not include the task name or canary strings.
+- Does not include the task name or legacy canary strings.
+- Does not surface `internal_harness_files` in instruction.md unless that same path is also declared in `user_visible_outputs`.
 - Milestone tasks: includes overall intro + every milestone description + "signal completion" instruction.
 
 ## 2. Environment (HIGH unless noted)
@@ -48,8 +49,8 @@ alwaysApply: true
 
 ## 4. Verifiers (HIGH unless noted)
 
-- **Standard (Python/pytest) tasks:** `tests/test.sh` matches the official platform template from `task-creation.mdc`. The CI checker textually validates the last 6 lines. Do not add `set -euo pipefail`, `set +e`, `status=0`, `$status`, or `exit` after `fi`. (HIGH)
-- **UI tasks:** `tests/test.sh` uses the separate UI template from `task-creation.mdc` (with `set -e`, `UNIT_EXIT`/`E2E_EXIT` variables, and a final assertion after the reward block). The CI checker skips the strict tail check for UI tasks. (HIGH)
+- **Standard (Python/pytest) tasks:** `tests/test.sh` matches the official platform template from `task-creation.mdc`. The CI checker textually validates the final 5-line `reward.txt` footer. Do not add `set -euo pipefail`, `set +e`, `status=0`, `$status`, or `exit` after `fi`. (HIGH)
+- **UI tasks:** `tests/test.sh` uses the separate UI template from `task-creation.mdc` (with `set -e`, `UNIT_EXIT`/`E2E_EXIT` variables, and a final assertion after the reward block). The CI checker skips the strict 5-line tail check for UI tasks because they use a different `reward.txt` footer. (HIGH)
 - Same verification logic for oracle and agent runs.
 - Verification deps installed in `tests/test.sh` with pinned versions.
 - Rewards are binary: `0` or `1`.
@@ -68,7 +69,7 @@ alwaysApply: true
 
 - `task.toml` uses `version = "2.0"` with all required fields under `[metadata]`.
 - Difficulty, codebase size, and languages satisfy acceptance gates.
-- `codebase_size` matches actual file count under `environment/` (excluding Dockerfile/docker-compose): 20-200 = `small`, 200+ = `large`. Under 20 files = `minimal` which is blocked on the platform — warn the user. (HIGH)
+- `codebase_size` matches actual file count under `environment/` (excluding Dockerfile/docker-compose): 20-200 = `small`, 200+ = `large`. Under 20 files = `minimal` and is a blocking failure on the default Edition 2 path. (HIGH)
 - `[environment]` includes `cpus`, `memory_mb`, `storage_mb` (positive integers).
 - `tags` contains 3–6 descriptive values without redundant filler.
 - No `task_subtypes` — use `subcategories`. (MEDIUM)
@@ -79,7 +80,7 @@ alwaysApply: true
 ## 6. Task Structure (HIGH unless noted)
 
 - All required files present (varies by task type — see `task-creation.mdc`):
-  - **Standard:** `instruction.md`, `task.toml`, `environment/Dockerfile`, `solution/solve.sh`, `tests/test.sh`, `tests/test_outputs.py`.
+  - **Standard:** `instruction.md`, `task.toml`, `output_contract.toml`, `environment/Dockerfile`, `solution/solve.sh`, `tests/test.sh`, `tests/test_outputs.py`.
   - **Milestone:** same as standard but `tests/test_m1.py ... test_mN.py` instead of `test_outputs.py`.
   - **UI:** same as standard plus UI test files under `tests/` per the UI template in `task-creation.mdc`.
 - Submission zip has files at archive root (no wrapping folder).
@@ -93,12 +94,12 @@ alwaysApply: true
 - Oracle is not trivially small. Under ~30 lines of non-boilerplate requires justification.
 - Every test is independently achievable, not chain-dependent on the full solution.
 - Every test accepts any valid solution approach, not just the oracle's exact output.
-- Partial-oracle simulation was run. (MEDIUM)
-- Tests pass under randomized execution order (`pytest -p randomly`). (MEDIUM)
-- Tests pass consistently across 5+ oracle runs (no flaky/timing-dependent failures). (MEDIUM)
-- If agent trials were run, per-test pass matrix shows no test at 0/N. (MEDIUM)
+- `verifier_health.py` passes (partial-oracle discrimination, randomized order, and repeated oracle consistency). (MEDIUM)
+- Hard tasks require empirical evidence: run 5 verifier-backed `anthropic/claude-opus-4-6` trials by default before any approval decision.
+- Per-test pass matrix from the verifier-backed trials shows no test at 0/N. (MEDIUM)
 - Claimed difficulty backed by evaluation evidence, not guesswork.
-- Oracle passes, NOP fails, frontier pass rate is below 80% (above 80% is blocked for hard tasks).
+- The platform uses the better-performing frontier model. If GPT-5.2 artifacts exist, interpret difficulty using the higher pass rate between Claude Opus 4.6 and GPT-5.2. The current archive has no GPT-5.2 job artifacts, so repo reviews default to the 5-trial Claude Opus 4.6 gate unless newer GPT-5.2 evidence is available.
+- Oracle passes, NOP fails, and the hard-only empirical gate is respected: full-suite pass rate must be below 20%. With the default 5-trial Claude gate, only `0/5` qualifies as hard; `1/5 = 20%` is medium-range evidence and is not approvable. Missing GPT-5.2 evidence does not justify rounding a borderline Claude result down to hard.
 
 ---
 
@@ -139,18 +140,20 @@ alwaysApply: true
 ### Metadata problems
 - `task_subtypes` used instead of `subcategories`
 - Missing `tool_specific` when task depends on specialized tools
-- Blocked acceptance gate (easy, minimal, Python + not hard)
+- Blocked acceptance gate (easy, medium, minimal, Python + not hard)
 - Tags outside 3–6 range or padded with filler
 
 ---
 
 ## Static Checks To Run
 
-Before packaging or claiming "ready", use the task-scoped static checker:
+Before packaging or claiming "ready", use the task-scoped static checker for repo-local structural/compliance checks only. It does not replace `collapse_check.py`, Harbor quality check, or agent-trial review:
 
 ```bash
 python3 run_static_checks.py --task-dir tasks/<task-name> --version edition_2
 ```
+
+This checker objectively enforces the current public-contract rules for declared user-visible outputs, literal `internal_harness_files` leakage in `instruction.md`, and milestone signal-completion directives.
 
 Do NOT run bare `ci_checks/*.sh` scripts without a task path — they scan all `tasks/` by default, and legacy tasks will cause spurious failures.
 
@@ -161,10 +164,21 @@ If `ruff` is available: `ruff check tasks/<task-name>`.
 ```bash
 cd tasks/<task-name>
 zip -rq ../../Task_Ready_To_Submit/<task-name>.zip . -x '*/__pycache__/*' '*.pyc' '.*'
-unzip -l ../../Task_Ready_To_Submit/<task-name>.zip
+python3 ../../validate_submission_zip.py ../../Task_Ready_To_Submit/<task-name>.zip
 ```
 
-Verify: `instruction.md`, `task.toml`, `environment/`, `solution/`, `tests/` at archive root.
+Verify: `instruction.md`, `task.toml`, `output_contract.toml`, `environment/`, `solution/`, and `tests/` at archive root. Append `--json` for machine-readable output.
+
+## Single Approval Gate
+
+Before claiming a hard task is approved or ready, first save a verifier-health report, then run the repo's single approval gate with the exact task directory, submission zip, Harbor job directory, and verifier-health JSON:
+
+```bash
+python3 verifier_health.py --task-dir tasks/<task-name> --output-json /tmp/<task-name>-verifier-health.json
+python3 approve_task.py --task-dir tasks/<task-name> --zip Task_Ready_To_Submit/<task-name>.zip --job-dir jobs/<job-dir> --verifier-health /tmp/<task-name>-verifier-health.json
+```
+
+`approve_task.py` is the authoritative repo-local hard-task approval gate. It consumes the saved `verifier_health.py` report and bundles `run_static_checks.py`, `collapse_check.py`, `validate_submission_zip.py`, `analyze_trials.py`, manifest verification, and zip/source parity checks. Exit 0 is required before any `APPROVE`, `APPROVE WITH NOTE`, or "ready" claim on the default hard-only Edition 2 path.
 
 ---
 
@@ -177,20 +191,23 @@ All of these must be true:
 - Oracle 1.0 (3+ runs), NOP 0.0
 - Collapse audit PASS
 - No discoverability signals found
-- Partial-oracle simulation fails at least one test (verifier discriminates between partial and full fixes)
-- Agent trials (if run): pass rate <80%
+- `verifier_health.py` PASS (including at least one behavioral partial-oracle failure; compile-only ablations do not count)
+- 5 verifier-backed `anthropic/claude-opus-4-6` trials were run (default repo gate for hard tasks)
+- Claude Opus 4.6 full-suite pass rate <20%
+- If GPT-5.2 evidence exists, the better-performing frontier model still lands <20%
 - All static checks pass (WARNs acceptable)
 - No concept-level findings remain
 
 ### APPROVE WITH NOTE
 Same as APPROVE, except:
 - Collapse audit is WARN (not FAIL) with documented residual hardness
-- Agent trials not run (difficulty is estimated, not empirical)
 - Minor mechanical issues remain that don't affect difficulty
+- If GPT-5.2 evidence is absent, the NOTE may record that residual platform uncertainty, but it does not waive the required Claude Opus 4.6 evidence
 
 **APPROVE WITH NOTE is NOT allowed when any of these are true:**
-- Partial-oracle passes all tests (verifier doesn't discriminate — MUST fix tests first)
-- Any agent trial scored 1.0 without running more trials to confirm (up to 5 total)
+- Required hard-task empirical evidence is missing (no agent trials, fewer than 5 Claude Opus 4.6 trials, or no analyzer-backed artifacts)
+- `verifier_health.py` FAIL (including all-pass partial-oracle ablations or no behavioral verifier discrimination)
+- Any agent-trial result lands in the 20-80% medium range, including `1/5 = 20%`
 - Discoverability signals were found but not fixed
 - Collapse verdict is FAIL
 
@@ -206,19 +223,21 @@ Any of these is true:
 The task has potential but needs significant rework:
 - Concept is strong but implementation collapsed
 - Tests need redesign (partial-oracle passes everything)
-- Agent trial results suggest medium difficulty, not hard
+- Agent trial results fall in the 20-80% medium range, so the task does not satisfy the default hard-only profile
+- Required hard-task empirical evidence is missing, so approval is blocked until the 5-trial Claude Opus 4.6 gate is run
 - Discoverability signals require structural changes beyond simple fixes
 
 ### Blocking conditions (cannot be deferred with a NOTE)
 
 These must be resolved before any form of approval:
 
-1. **Partial-oracle passes all tests** → at least one test must fail when only a subset of the oracle is applied. If every partial fix still passes, the verifier doesn't test the bugs it claims to test. Fix the tests.
-2. **Agent trial 1.0 with fewer than 3 total trials** → run more trials. A single pass could be lucky. Three passes at 1.0 means the task is too easy.
+1. **`verifier_health.py` does not show a behavioral partial-oracle failure** → at least one automated ablation must fail in a verifier-backed way. If every partial fix still passes, or the only failures are compile-only breakage, the verifier does not prove it discriminates between partial and complete fixes. Fix the tests or the ablation strategy.
+2. **Fewer than 5 default Claude Opus 4.6 trials for a hard task** → run the remaining verifier-backed trials before any approval decision. `APPROVE` and `APPROVE WITH NOTE` are unavailable until the empirical gate exists.
 3. **Discoverability signals found but not eliminated** → `(void)` casts next to zero overrides, `// BUG:` comments, compile flags, hardcoded zeros where fields should be — these must be fixed, not noted.
 4. **Collapse verdict FAIL** → redesign, don't approve.
 5. **`collapse_check.py` FAIL** → at least one mechanical collapse signal is fatal. Fix the flagged issue (rename files, restructure oracle, add output validation to tests, etc.) before any form of approval.
 6. **Quality check HIGH-severity failure** → any `❌ fail` from `harbor tasks check` on `behavior_in_task_description`, `behavior_in_tests`, or `anti_cheating_measures` must be repaired. This is a review-and-repair prompt — repair all HIGH findings, do not defer them.
+7. **Environment file count below 20** → the task is `minimal`, which is blocked on the default Edition 2 path. Add substantive environment files or redesign the task before any form of approval.
 
 ---
 
@@ -230,8 +249,15 @@ Focus on: solution may be incomplete or non-deterministic, tests may be wrong or
 ### Collapse audit is WARN or FAIL
 The task may be too easy despite passing Oracle/NOP: solve path too obvious, oracle too localized, requirements map 1:1 to obvious code sites, task is a recipe/checklist/policy-knob transcription.
 
+### Claude-only evidence with no GPT-5.2 artifacts
+The current archive has no GPT-5.2 job artifacts. For repo reviews:
+- Use 5 `anthropic/claude-opus-4-6` trials as the default empirical hard gate.
+- If Claude Opus 4.6 lands below 20% (with 5 trials, `0/5`), the task clears the repo's default hard gate.
+- If Claude Opus 4.6 lands at `1/5 = 20%` or any higher pass rate, treat it as borderline or non-hard. Do not assume missing GPT-5.2 evidence would rescue the task; the platform uses the better-performing model, so the unknown model is downside risk, not approval slack.
+- If GPT-5.2 evidence is later added, recompute difficulty using the higher pass rate between Claude Opus 4.6 and GPT-5.2.
+
 ### Oracle discoverability (HIGH)
-Could the agent find where and what to fix without doing the hard intellectual work the task demands? Check ALL channels — instruction wording, source code, file/directory names, test names and assertions, error messages, metadata, comments, config files. If any channel shortcuts the domain reasoning the task is supposed to test, the signal must be eliminated while preserving difficulty.
+Could the agent find where and what to fix without doing the hard intellectual work the task demands? Use the solver-visible file-surface policy from `@task-creation.mdc`: `instruction.md`, everything under `environment/`, everything under `tests/`, and the file/directory names within those surfaces. On the current repo policy, `task.toml` and `output_contract.toml` are authoring/package metadata, not solver-visible file surfaces for this gate. If you ran the task, also check runtime error output. If any of those channels shortcut the domain reasoning the task is supposed to test, the signal must be eliminated while preserving difficulty.
 
 ### Per-test feasibility flags HIGH-risk tests
 The task may be too hard for specific tests. Fix by: loosening assertions to accept any valid solution, making chain-dependent tests set up their own preconditions, verifying two valid approaches would pass each test.
@@ -255,5 +281,5 @@ Do not tell the user the task is ready until:
 - Oracle and NOP have been executed (not just claimed)
 - No HIGH-severity issues remain
 - No blocking conditions are unresolved (see Decision Criteria above)
-- Partial-oracle simulation has been run and at least one test fails under partial fix
+- `verifier_health.py` has passed and recorded a behavioral partial-oracle failure
 - The decision follows the criteria above — do not use APPROVE WITH NOTE to defer concept-level problems
