@@ -145,8 +145,9 @@ def test_matrix_schema_and_revision(report: dict) -> None:
     assert report["reader_lowest_revision"] == 1
 
 
-def test_trace_bundle_lines_parse() -> None:
+def test_trace_bundle_lines_parse(report: dict) -> None:
     """Trace bundle JSONL lines expose the tick, merged inputs, positions, and entropy field."""
+    del report  # Only needed so the module-scoped fixture runs before this test under pytest-randomly.
     assert TRACE.is_file()
     lines = TRACE.read_text(encoding="utf-8").strip().splitlines()
     assert len(lines) >= 6
@@ -159,13 +160,16 @@ def test_trace_bundle_lines_parse() -> None:
         assert "entropy_mix" in row
 
 
-def test_partial_timeline_only_still_fails_roundtrip(tmp_path: Path) -> None:
-    """Alternate harness build keeps the tape round-trip row from reconciling end-to-end."""
-    rep = build_and_run_matrix(tmp_path / "b", tmp_path / "o", timeline=2, reexec=1)
-    assert rep["scenarios"]["tape_roundtrip"]["roundtrip_match"] is False
-
-
 def test_partial_reexec_only_lane_differs_from_signoff(tmp_path: Path) -> None:
     """Alternate harness build leaves the stable lane fingerprint off the expected value."""
     rep = build_and_run_matrix(tmp_path / "b2", tmp_path / "o2", timeline=1, reexec=2)
     assert rep["scenarios"]["lane_stable"]["state_digest_hex"] != SIGNOFF["lane_stable"]
+
+
+def test_partial_timeline_only_reconnect_differs_from_signoff(tmp_path: Path) -> None:
+    """Symmetric partial-fix check: a timeline-only fix (reexec still broken) must not
+    produce the signoff digest for the reconnect scenario. The reexec fix affects the
+    catch-up-from-queue RNG ordering that split_handshake exercises; a correct timeline
+    fix alone is not sufficient."""
+    rep = build_and_run_matrix(tmp_path / "b3", tmp_path / "o3", timeline=2, reexec=1)
+    assert rep["scenarios"]["split_handshake"]["state_digest_hex"] != SIGNOFF["split_handshake"]

@@ -2,6 +2,7 @@ user_visible_outputs = [
   "/app/output/matrix_report.json",
   "/app/output/trace_bundle.jsonl",
   "/app/data/seed_scenarios.json",
+  "/app/bin/netplay_matrix",
 ]
 
 internal_harness_files = [

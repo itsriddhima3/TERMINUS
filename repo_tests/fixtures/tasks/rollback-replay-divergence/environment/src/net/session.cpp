@@ -28,6 +28,9 @@ void Session::catch_up_from_queue(eng::Tick through, sim::TickDriver& driver, ga
 #if TB_REEXEC_MODE == 1
     (void)driver.rng().world.draw_u32();
     (void)driver.rng().net.draw_u32();
+#else
+    (void)driver.rng().world.draw_u32();
+    (void)driver.rng().net.draw_u32();
 #endif
     driver.run_tick(ft.tick, tin, world);
   }

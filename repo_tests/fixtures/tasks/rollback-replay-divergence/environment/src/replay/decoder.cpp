@@ -69,10 +69,10 @@ std::vector<sim::TickInputs> rows_to_inputs(const std::vector<PayloadRow>& rows)
     tin.staged[0].dx = have0 ? r.p0 : static_cast<std::int8_t>(0);
     tin.staged[1].dx = have1 ? r.p1 : static_cast<std::int8_t>(0);
 #else
-    tin.remote_slot_present[0] = have0;
-    tin.remote_slot_present[1] = have1;
-    tin.staged[0].dx = r.p0;
-    tin.staged[1].dx = r.p1;
+    tin.remote_slot_present[0] = true;
+    tin.remote_slot_present[1] = true;
+    tin.staged[0].dx = have0 ? r.p0 : static_cast<std::int8_t>(0);
+    tin.staged[1].dx = have1 ? r.p1 : static_cast<std::int8_t>(0);
 #endif
     out.push_back(tin);
   }

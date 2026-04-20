@@ -14,6 +14,8 @@ void TickDriver::reset(std::uint64_t seed) {
 void TickDriver::run_tick(eng::Tick tick, const TickInputs& incoming, game::World& world) {
 #if TB_TIMELINE_MODE == 1
   snapshots_.capture_pre_merge(world, tick);
+#else
+  snapshots_.capture_pre_merge(world, tick);
 #endif
 
   const TickInputs merged = InputMerge::reconcile(tick, incoming, pred_);
@@ -22,16 +24,12 @@ void TickDriver::run_tick(eng::Tick tick, const TickInputs& incoming, game::Worl
   world.apply_delta(static_cast<eng::PlayerIndex>(1), merged.staged[1].dx, rng_);
   world.apply_delta(static_cast<eng::PlayerIndex>(0), merged.staged[0].dx, rng_);
 #else
-  world.apply_delta(static_cast<eng::PlayerIndex>(0), merged.staged[0].dx, rng_);
   world.apply_delta(static_cast<eng::PlayerIndex>(1), merged.staged[1].dx, rng_);
+  world.apply_delta(static_cast<eng::PlayerIndex>(0), merged.staged[0].dx, rng_);
 #endif
 
   (void)rng_.net.draw_u32();
   world.fold_entropy(rng_);
-
-#if TB_TIMELINE_MODE == 2
-  snapshots_.capture_post_apply(world, tick);
-#endif
 
   LoggedTick row{};
   row.tick = tick;

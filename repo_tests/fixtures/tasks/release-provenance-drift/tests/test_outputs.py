@@ -197,6 +197,7 @@ def test_template_edit_moves_epoch_and_keeps_release_bundle_coherent() -> None:
     before = _bundle_snapshot()
     _run(["bash", str(HARNESS / "partial_edit_template.sh")], check=True)
     after = _assert_release_bundle_coherent()
+    assert before["build_note"] != after["build_note"]
     assert before["plugin_hash"] != after["plugin_hash"]
     assert before["epoch"] != after["epoch"]
 
@@ -232,7 +233,9 @@ def test_sequence_scenarios_stay_coherent_in_isolation(pristine_tree: dict[str, 
         for step in sequence["steps"]:
             _run(["bash", STEP_MAP[step]], check=True)
         snapshot = _assert_release_bundle_coherent()
-        assert isinstance(snapshot["epoch"], str) and len(snapshot["epoch"]) == 24
+        epoch = snapshot["epoch"]
+        assert isinstance(epoch, str) and len(epoch) == 24
+        assert epoch == epoch.lower() and all(c in "0123456789abcdef" for c in epoch)
 
 
 def test_single_subsystem_regressions() -> None:
