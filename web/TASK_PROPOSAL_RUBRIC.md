@@ -4,7 +4,7 @@ Use this file to judge whether a proposed Terminal-Bench 3 / Terminus Edition 2 
 
 This rubric is for phase-1 idea screening. It is not the final implementation review.
 
-Any automated review that uses this rubric is an **advisory reviewer aid**, not a standalone acceptance gate. Treat it as one input into human review until there is enough regression evidence to calibrate it against later collapse and trial outcomes.
+Any automated review that uses this rubric is an **advisory reviewer aid**, not a standalone acceptance gate. Treat it as one input into human review until there is enough regression evidence to calibrate it against later collapse-check and verifier-health outcomes.
 
 Any `Accept` or `Strong Accept` from this file is **provisional**. The candidate must still survive the mandatory implementation-collapse audit after the file tree, likely edit frontier, and verifier plan become concrete.
 
