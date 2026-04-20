@@ -14,15 +14,11 @@ harbor run -p "tasks/<task-name>" -a oracle -k 10
 harbor run -p "tasks/<task-name>" -a nop
 
 # Only after BOTH oracle and NOP pass:
-# Source API key (required for quality check and agent trials only)
+# Source OpenAI API key (required for the GPT-5.2 quality check)
 set -a && source .env && set +a
 
-# Quality check
-harbor tasks check "tasks/<task-name>" -m "anthropic/claude-opus-4-6"
-
-# Only after quality check passes or HIGH findings are repaired:
-# Agent trials — 5 parallel Claude Opus 4.6 runs (default hard-task gate, requires API key)
-harbor run -p "tasks/<task-name>" -a terminus-2 -m "anthropic/claude-opus-4-6" -k 5
+# Quality check (uses the OpenAI API via harbor)
+harbor tasks check "tasks/<task-name>" -m "openai/gpt-5.2"
 
 # Interactive debug (shell into the container)
 harbor tasks start-env -p "tasks/<task-name>" -e docker -a -i
@@ -35,54 +31,17 @@ harbor tasks init <task-name> --include-standard-metadata --tasks-dir tasks/
 
 - `-k N` runs N trials concurrently with isolated job directories — use this instead of running commands sequentially
 - Oracle: use `-k 10` (10 parallel runs) to catch flakiness efficiently
-- Agent trials: use `-k 5` for 5 concurrent trials per model
 - Each parallel run gets its own job directory, results are aggregated automatically
 - `oracle -k 10` and `nop` are safe to run at the same time as preflight in separate terminals
-- Do not start quality check or agent trials until both preflight runs have passed
+- Do not start quality check until both preflight runs have passed
 - Do not overlap `verifier_health.py` with real Step 3a harbor runs on the same task directory; it launches additional oracle jobs and temporary task copies for randomized-order and partial-oracle checks
 
 ### Interpreting results
 
-- **Mean 1.0** = agent passed all tests (bad for hard tasks — too easy)
-- **Mean 0.0** = agent failed all tests (good for hard tasks, expected for NOP)
+- **Mean 1.0** = agent passed all tests (for oracle runs, this is expected)
+- **Mean 0.0** = agent failed all tests (expected for NOP)
 - **Errors** = agent crashed before producing a result (infra issue, not task issue)
-- **Target for the default hard-only Edition 2 path:** agent pass rate <20% across 5 `anthropic/claude-opus-4-6` trials by default
-- **With the default 5-trial gate:** only `0/5` qualifies as hard; `1/5 = 20%` is medium/borderline and is not approvable
-- **Medium range:** pass rate 20-80% means the task is not approvable on the default hard-only path
-- **Too easy:** pass rate > 80% → task needs hardening or redesign
-- **Too hard:** any individual test that is 0/N across all trials → that test needs fixing
-
-### Local vs platform difficulty
-
-Local trials with one model are a **lower-confidence proxy**, not the platform's actual difficulty decision. The platform runs 10 trials across 2 frontier models (5 Claude Opus 4.6 + 5 GPT-5.2) and uses the better-performing model's score.
-
-The current repo archive has no GPT-5.2 job artifacts, so repo reviews default to the 5-trial Claude Opus 4.6 gate. Treat missing GPT-5.2 evidence conservatively:
-- `0/5` on Claude clears the repo's default hard gate, but GPT-5.2 may still score higher on the platform.
-- `1/5 = 20%` or any higher Claude pass rate is already non-approvable on the repo's hard-only path. Missing GPT-5.2 evidence cannot rescue a borderline Claude result because the platform uses the better-performing model.
-- If GPT-5.2 artifacts become available, recompute difficulty using the higher pass rate between the two models.
-
-### Extracting per-test pass matrix from trial logs
-
-Harbor stores job artifacts in this shape:
-
-```text
-<job-dir>/result.json
-<job-dir>/<trial-name>/result.json
-<job-dir>/<trial-name>/verifier/ctrf.json
-```
-
-After agent trials, analyze the exact job directory Harbor printed:
-
-```bash
-# Human-readable summary: mean reward, full-suite pass rate, per-trial rewards,
-# per-test pass matrix, and infra errors.
-python3 analyze_trials.py <job-dir>
-
-# Optional machine-readable form.
-python3 analyze_trials.py <job-dir> --json
-```
-
-Do NOT use a broad `find jobs/` across old runs. Any test that is 0/N across the verifier-backed trials should be investigated — it may be too hard or broken.
+- Difficulty is judged by the mechanical stack (collapse check RC1-RC7 + verifier_health). Agent-trial evidence is not part of the repo-local approval gate — the platform runs its own trials after upload.
 
 ## Git (Temporary Local Init)
 
@@ -112,12 +71,26 @@ python3 run_static_checks.py --task-dir tasks/<task-name> --version edition_2 --
 
 # Legacy ci_checks/*.sh entrypoints are compatibility wrappers only. They delegate
 # to run_static_checks.py and are no longer the source of truth for per-task semantics.
-# NOTE: run_static_checks.py does NOT run collapse_check.py, Harbor quality checks,
-# or agent-trial analysis, and it does not determine approval on its own.
+# NOTE: run_static_checks.py does NOT run collapse_check.py or the Harbor quality check,
+# and it does not determine approval on its own.
 # It covers the repo-local static rule set only.
 
 # Lint test file
 ruff check tasks/<task-name>/tests/
+```
+
+### Diff your task against a reference task
+
+```bash
+# Compare the static-check output of an in-progress task against a known-clean
+# reference task from Task_Ready_To_Submit/. The reference task should have at
+# most the same warnings yours does (and ideally the same number).
+# See Task_Ready_To_Submit/REFERENCE.md for which reference task fits your pattern.
+
+REF=rollback-replay-divergence  # or another zip from Task_Ready_To_Submit/
+unzip -q -o Task_Ready_To_Submit/${REF}.zip -d /tmp/ref/
+diff <(python3 run_static_checks.py --task-dir tasks/<task-name> 2>&1 | grep '^  -' | sort) \
+     <(python3 run_static_checks.py --task-dir /tmp/ref/${REF}    2>&1 | grep '^  -' | sort)
 ```
 
 ## Verifier Health
@@ -136,24 +109,24 @@ python3 verifier_health.py --task-dir tasks/<task-name> --json
 
 ## Hard Approval Gate
 
-```bash
-# Single repo gate for the default hard-only Edition 2 path.
-# Use the exact job directory printed by Harbor for the 5-trial Claude run.
-# Pass the verifier-health JSON emitted above.
-python3 approve_task.py --task-dir tasks/<task-name> --zip Task_Ready_To_Submit/<task-name>.zip --job-dir jobs/<job-dir> --verifier-health /tmp/<task-name>-verifier-health.json
+The mechanical stack (static checks, collapse check RC1-RC7, verifier_health, submission zip, manifests, zip/source parity) is the sole approval gate. There is no trial layer.
 
-# Optional machine-readable form.
-python3 approve_task.py --task-dir tasks/<task-name> --zip Task_Ready_To_Submit/<task-name>.zip --job-dir jobs/<job-dir> --verifier-health /tmp/<task-name>-verifier-health.json --json
+```bash
+# Standard invocation.
+python3 approve_task.py --task-dir tasks/<task-name> --zip Task_Ready_To_Submit/<task-name>.zip --verifier-health /tmp/<task-name>-verifier-health.json
+
+# Machine-readable JSON.
+python3 approve_task.py --task-dir tasks/<task-name> --zip Task_Ready_To_Submit/<task-name>.zip --verifier-health /tmp/<task-name>-verifier-health.json --json
 ```
 
-`approve_task.py` is the authoritative repo-local hard-task approval gate. It consumes the saved `verifier_health.py` report and bundles `run_static_checks.py`, `collapse_check.py`, `validate_submission_zip.py`, `analyze_trials.py`, manifest verification, and zip/source parity checks. Exit 0 is required before calling a hard task approved or ready in this repo.
+`approve_task.py` is the authoritative repo-local hard-task approval gate. It consumes the verifier-health report and bundles `run_static_checks.py`, `collapse_check.py` (RC1-RC7), `validate_submission_zip.py`, manifest verification, and zip/source parity. Exit 0 is required before calling a hard task approved or ready in this repo.
 
 ## Repo Tooling Regressions
 
 ```bash
 # Repo-level regression suite for run_static_checks.py, collapse_check.py,
-# verifier_health.py, analyze_trials.py, and approve_task.py against the
-# checked-in task and synthetic fixtures.
+# verifier_health.py, and approve_task.py against the checked-in task and
+# synthetic fixtures.
 python3 -m repo_tests
 ```
 
@@ -171,9 +144,30 @@ python3 collapse_check.py tasks/<task-name> --json
 
 Exit codes: `0` = PASS, `1` = FAIL (blocking), `2` = WARN (needs justification).
 
-Checks: oracle simplification, oracle predictability, verifier shallowness, tamper surface, and agent-visible reference artifacts on the solver-visible file surfaces from `@task-creation.mdc` (`instruction.md`, `tests/`, and `environment/`; excluding `task.toml` and `output_contract.toml`).
+Checks seven root causes of task triviality:
+
+1. **RC1 Oracle Simplification** — does the fix mostly REMOVE code rather than ADD logic?
+2. **RC2 Oracle Predictability** — can visible signals (instruction, file names, test names) predict oracle targets?
+3. **RC3 Verifier Shallowness** — do tests check format/schema/existence, or domain-correct computed values?
+4. **RC4 Tamper Surface** — can the agent modify what tests depend on to bypass domain reasoning?
+5. **RC5 Reference Artifacts** — are answer-shaped golden/reference/broken fixtures visible on solver-visible file surfaces?
+6. **RC6 Instruction Specificity** — does `instruction.md` already specify the fix? Delegates to `instruction_audit.py` which scores six signal families (named algorithms, schema enumerations, API/CLI enumerations, numeric thresholds, binding phrases, scope closures) and classifies the instruction as `spec-complete` / `cause-revealing` / `symptoms-only`.
+7. **RC7 Oracle Triviality** — is the oracle's non-boilerplate LOC below the A12 sanity floor? FAIL if <30, WARN if 30-80, PASS at 80+.
+
+Solver-visible file surfaces per `@task-creation.mdc`: `instruction.md`, `tests/`, and `environment/`; `task.toml` and `output_contract.toml` are authoring/package metadata and not modeled as solver-visible.
 
 The oracle/frontier checks are transitive: `collapse_check.py` follows `solution/solve.sh`, solution-local called scripts, `patch -p1 < file.patch`, heredoc writes, in-place shell rewrites (`sed -i`, `perl -0pi`, temp-file rewrite + `mv`, `cp`/`install` replacements), and simple inline Python rewrite/write patterns. JSON output includes `oracle_targets`, `oracle_loc_non_boilerplate`, `touched_roots`, and `frontier_concentration`.
+
+### Standalone instruction audit
+
+```bash
+# Run just the RC6 instruction-specificity check without the oracle-parsing
+# overhead. Useful during instruction iteration.
+python3 instruction_audit.py tasks/<task-name>
+python3 instruction_audit.py tasks/<task-name> --json
+```
+
+Exit codes match `collapse_check.py` (0/1/2). The JSON output includes the raw signal families so you can see exactly which algorithms, CLI flags, schema clusters, or scope closures triggered the classification.
 
 ## Validation Loop (Step 2a)
 
@@ -262,4 +256,4 @@ with open('$HARBOR_COMPOSE', 'w') as f:
 | Claude Opus 4.6 | `anthropic/claude-opus-4-6` |
 | Claude Sonnet 4.6 | `anthropic/claude-sonnet-4-6` |
 
-Difficulty is based on the **better-performing model's** pass rate across 10 trials (5 per model).
+The repo-local quality check uses `openai/gpt-5.2`. Platform-side difficulty evaluation is run by the platform after upload and is not part of this repo's approval gate.

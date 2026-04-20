@@ -2,11 +2,24 @@
 """
 Single hard-task approval gate for Terminal-Bench 3 Edition 2.
 
+The mechanical checks are the authoritative and sole gate:
+
+    static checks + collapse check (RC1-RC7) + verifier_health
+    + submission zip validation + manifest alignment + zip/source parity
+
+If those pass, the task is approved. Agent trials are no longer part of the
+approval pipeline — the `instruction_audit` RC6 and `oracle-triviality` RC7
+checks introduced in the April 2026 refactor, together with
+`verifier_health.py`'s partial-oracle / randomized-order / repeat-oracle
+gates, are the empirical backstop. Quality review (`harbor tasks check -m
+openai/gpt-5.2`) runs separately during Step 3a and is not invoked from this
+script.
+
 Usage:
     python3 approve_task.py --task-dir tasks/<task-name> \
         --zip Task_Ready_To_Submit/<task-name>.zip \
-        --job-dir jobs/<job-dir> \
         --verifier-health /tmp/<task-name>-verifier-health.json
+
     python3 approve_task.py ... --json
 """
 
@@ -19,27 +32,24 @@ import zipfile
 from pathlib import Path, PurePosixPath
 from typing import Any
 
-import analyze_trials
 import collapse_check
 import run_static_checks
 import validate_submission_zip
 
 
 REPO_ROOT = Path(__file__).resolve().parent
-DEFAULT_HARD_MODEL = "anthropic/claude-opus-4-6"
-MIN_VERIFIER_BACKED_TRIALS = 5
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=(
-            "Run the repo's single hard-task approval gate across static checks, collapse audit, "
-            "submission zip validation, archived trial analysis, and cross-artifact consistency."
+            "Run the repo's hard-task approval gate across static checks, collapse audit, "
+            "submission zip validation, verifier health, and cross-artifact consistency. "
+            "The mechanical stack is the sole source of truth for approval."
         )
     )
     parser.add_argument("--task-dir", type=Path, required=True, help="Task directory under tasks/")
     parser.add_argument("--zip", dest="zip_path", type=Path, required=True, help="Submission zip path")
-    parser.add_argument("--job-dir", type=Path, required=True, help="Harbor job directory for agent trials")
     parser.add_argument(
         "--verifier-health",
         dest="verifier_health_path",
@@ -89,28 +99,6 @@ def build_zip_manifest(zip_path: Path) -> dict[str, str]:
     return manifest
 
 
-def empty_trial_report(job_dir: Path, error: str) -> dict[str, Any]:
-    return {
-        "job_dir": str(job_dir.resolve()),
-        "task_name": None,
-        "agent_name": None,
-        "model_id": None,
-        "model_label": None,
-        "requested_trials": 0,
-        "found_trial_dirs": 0,
-        "verifier_backed_trials": 0,
-        "infra_error_count": 0,
-        "mean_reward": None,
-        "full_suite_passes": 0,
-        "full_suite_pass_rate": None,
-        "zero_pass_tests": [],
-        "artifact_issues": [error],
-        "trials": [],
-        "infra_errors": [],
-        "tests": [],
-    }
-
-
 def empty_verifier_health_report(
     verifier_health_path: Path | None,
     error: str,
@@ -137,19 +125,16 @@ def load_zip_toml(zip_path: Path, member_name: str) -> dict[str, Any]:
     return run_static_checks.parse_minimal_toml(content)
 
 
-def resolve_job_task_path(raw_path: str) -> Path:
-    candidate = Path(raw_path)
-    if candidate.is_absolute():
-        return candidate.resolve()
-    return (REPO_ROOT / candidate).resolve()
-
-
 def verify_manifest_alignment(
     task_dir: Path,
     zip_path: Path,
-    job_dir: Path,
-    trial_payload: dict[str, Any],
 ) -> dict[str, Any]:
+    """Cross-check source task.toml, zip task.toml, and the zip filename.
+
+    Previously this also cross-checked job config and trial artifacts. Since
+    trials have been removed from the approval gate, only the source/zip
+    consistency checks remain.
+    """
     passes: list[str] = []
     failures: list[str] = []
     source_manifest_path = task_dir / "task.toml"
@@ -189,79 +174,12 @@ def verify_manifest_alignment(
             f"zip filename must match task directory name: {zip_path.stem} != {task_dir.name}"
         )
 
-    job_config_path = job_dir / "config.json"
-    if not job_config_path.exists():
-        failures.append(f"job config missing: {job_config_path}")
-        job_task_path = None
-        job_model_name = None
-    else:
-        try:
-            job_config = json.loads(job_config_path.read_text(encoding="utf-8"))
-        except json.JSONDecodeError as exc:
-            failures.append(f"job config is not valid JSON: {exc}")
-            job_task_path = None
-            job_model_name = None
-        else:
-            tasks = job_config.get("tasks")
-            if not isinstance(tasks, list) or len(tasks) != 1:
-                failures.append("job config must reference exactly one task in config.json")
-                job_task_path = None
-            else:
-                raw_task_path = tasks[0].get("path")
-                if not isinstance(raw_task_path, str) or not raw_task_path.strip():
-                    failures.append("job config task entry must include a non-empty tasks[0].path")
-                    job_task_path = None
-                else:
-                    job_task_path = resolve_job_task_path(raw_task_path)
-                    if job_task_path == task_dir.resolve():
-                        passes.append("job config task path matches --task-dir")
-                    else:
-                        failures.append(
-                            "job config task path does not match --task-dir: "
-                            f"{job_task_path} != {task_dir.resolve()}"
-                        )
-
-            agents = job_config.get("agents")
-            if not isinstance(agents, list) or len(agents) != 1:
-                failures.append("job config must define exactly one agent for the default hard gate")
-                job_model_name = None
-            else:
-                job_model_name = agents[0].get("model_name")
-                if job_model_name == DEFAULT_HARD_MODEL:
-                    passes.append("job config model matches the default Claude Opus 4.6 gate")
-                else:
-                    failures.append(
-                        "job config model must be anthropic/claude-opus-4-6 for the default hard gate, "
-                        f"found {job_model_name!r}"
-                    )
-
-    analyzed_task_name = trial_payload.get("task_name")
-    if analyzed_task_name == task_dir.name:
-        passes.append("trial artifacts report the same task name as --task-dir")
-    else:
-        failures.append(
-            "trial artifacts do not match --task-dir: "
-            f"{analyzed_task_name!r} != {task_dir.name!r}"
-        )
-
-    analyzed_model_id = trial_payload.get("model_id")
-    if analyzed_model_id == DEFAULT_HARD_MODEL:
-        passes.append("trial artifacts report the default Claude Opus 4.6 model")
-    else:
-        failures.append(
-            "trial artifacts must come from anthropic/claude-opus-4-6 for the default hard gate, "
-            f"found {analyzed_model_id!r}"
-        )
-
     return {
         "valid": not failures,
         "passes": passes,
         "failures": failures,
         "task_dir_name": task_dir.name,
         "zip_basename": zip_path.stem,
-        "job_dir": str(job_dir.resolve()),
-        "analyzed_task_name": analyzed_task_name,
-        "analyzed_model_id": analyzed_model_id,
     }
 
 
@@ -382,12 +300,17 @@ def load_verifier_health_report(
 def build_report(
     task_dir: Path,
     zip_path: Path,
-    job_dir: Path,
     verifier_health_path: Path | None = None,
 ) -> dict[str, Any]:
+    """Run the full approval gate.
+
+    The mechanical checks (static, collapse, zip validation, manifests,
+    zip/source parity, verifier_health) are the source of truth. Every one
+    of them contributes to `blocking_failures` directly. There is no trial
+    layer.
+    """
     task_dir = task_dir.expanduser().resolve()
     zip_path = zip_path.expanduser().resolve()
-    job_dir = job_dir.expanduser().resolve()
 
     if task_dir.is_dir():
         static_reporter = run_static_checks.run_checks(task_dir)
@@ -421,12 +344,8 @@ def build_report(
         collapse_status = "FAIL"
 
     zip_report = validate_submission_zip.build_report(zip_path)
-    try:
-        trial_report = analyze_trials.analyze_job_dir(job_dir)
-    except SystemExit as exc:
-        trial_report = empty_trial_report(job_dir, str(exc))
     verifier_health_report = load_verifier_health_report(task_dir, verifier_health_path)
-    manifest_report = verify_manifest_alignment(task_dir, zip_path, job_dir, trial_report)
+    manifest_report = verify_manifest_alignment(task_dir, zip_path)
     source_zip_report = compare_source_and_zip(task_dir, zip_path)
 
     warnings: list[str] = []
@@ -490,44 +409,17 @@ def build_report(
             for message in verifier_health_report["blocking_failures"]
         )
 
-    verifier_backed_trials = trial_report.get("verifier_backed_trials") or 0
-    if verifier_backed_trials < MIN_VERIFIER_BACKED_TRIALS:
-        blocking_failures.append(
-            f"missing verifier-backed trials: found {verifier_backed_trials}, need at least {MIN_VERIFIER_BACKED_TRIALS}"
-        )
-
-    full_suite_passes = trial_report.get("full_suite_passes") or 0
-    if full_suite_passes > 0:
-        blocking_failures.append(
-            f"default hard gate requires 0 full-suite passes, found {full_suite_passes}"
-        )
-
-    zero_pass_tests = trial_report.get("zero_pass_tests") or []
-    if zero_pass_tests:
-        blocking_failures.append(
-            "per-test pass matrix contains 0/N tests: " + ", ".join(zero_pass_tests)
-        )
-
-    artifact_issues = trial_report.get("artifact_issues") or []
-    if artifact_issues:
-        blocking_failures.append(
-            "trial artifact issues present: " + "; ".join(artifact_issues)
-        )
-
-    infra_error_count = trial_report.get("infra_error_count") or 0
-    if infra_error_count:
-        warnings.append(
-            f"trial analysis reported {infra_error_count} infra error(s); inspect before trusting borderline evidence"
-        )
-
+    mechanical_status = (
+        "FAIL" if blocking_failures else "WARN" if warnings else "PASS"
+    )
     approved = not blocking_failures
 
     return {
         "task_dir": str(task_dir),
         "zip_path": str(zip_path),
-        "job_dir": str(job_dir),
         "approved": approved,
         "decision": "PASS" if approved else "FAIL",
+        "mechanical_status": mechanical_status,
         "blocking_failures": blocking_failures,
         "warnings": warnings,
         "static_checks": static_report,
@@ -538,7 +430,6 @@ def build_report(
         "zip_validation": zip_report,
         "manifest_verification": manifest_report,
         "source_zip_verification": source_zip_report,
-        "trial_analysis": trial_report,
         "verifier_health": verifier_health_report,
     }
 
@@ -546,11 +437,11 @@ def build_report(
 def format_text_report(payload: dict[str, Any]) -> str:
     lines = [
         f"Approval gate: {payload['decision']}",
+        f"Mechanical status: {payload['mechanical_status']}",
         f"Task dir: {payload['task_dir']}",
         f"Submission zip: {payload['zip_path']}",
-        f"Job dir: {payload['job_dir']}",
         "",
-        "Check summary:",
+        "Check summary (mechanical gate is authoritative):",
         "  - static checks: "
         + ("FAIL" if payload["static_checks"]["failures"] else "WARN" if payload["static_checks"]["warnings"] else "PASS"),
         f"  - collapse_check.py: {payload['collapse_check']['status']}",
@@ -558,13 +449,6 @@ def format_text_report(payload: dict[str, Any]) -> str:
         "  - manifest verification: " + ("PASS" if payload["manifest_verification"]["valid"] else "FAIL"),
         "  - source/zip match: " + ("PASS" if payload["source_zip_verification"]["valid"] else "FAIL"),
         "  - verifier_health.py: " + ("PASS" if payload["verifier_health"]["healthy"] else "FAIL"),
-        "  - analyze_trials.py: "
-        + (
-            f"{payload['trial_analysis']['verifier_backed_trials']} verifier-backed trials, "
-            f"{payload['trial_analysis']['full_suite_passes']} full-suite pass(es), "
-            f"{len(payload['trial_analysis']['zero_pass_tests'])} zero-pass test(s), "
-            f"{len(payload['trial_analysis']['artifact_issues'])} artifact issue(s)"
-        ),
     ]
 
     if payload["warnings"]:
@@ -585,7 +469,6 @@ def main(argv: list[str] | None = None) -> int:
     payload = build_report(
         args.task_dir,
         args.zip_path,
-        args.job_dir,
         verifier_health_path=args.verifier_health_path,
     )
     if args.json:

@@ -2,13 +2,21 @@
 """
 Mechanical collapse and discoverability checks for Terminal-Bench 3 tasks.
 
-Organized around 5 root causes of task triviality:
+Organized around 7 root causes of task triviality:
 
   RC1 — Oracle simplification: Does the fix mostly REMOVE code rather than ADD logic?
   RC2 — Oracle predictability: Can you find the oracle-targeted files from instruction + file tree alone?
   RC3 — Verifier shallowness: Do tests check format/schema/existence or domain-correct computed values?
   RC4 — Tamper surface: Can the agent modify what the tests depend on to bypass domain reasoning?
   RC5 — Reference artifacts: Are golden/reference/broken fixtures visible on solver-visible file surfaces?
+  RC6 — Instruction specificity: Does instruction.md already specify the fix (algorithms, schemas, CLI, thresholds)?
+  RC7 — Oracle triviality: Is the oracle's non-boilerplate LOC below the A12 sanity floor?
+
+RC6 and RC7 promote two previously narrative-only checks (idea-validation's
+instruction-specificity rule, and difficulty-calibration's A12 oracle-LOC
+heuristic) to first-class mechanical gates. They close the gap that allowed
+spec-complete instructions and tiny-patch oracles to ship despite the first
+five root causes passing.
 
 Oracle/frontier analysis is transitive across common solve patterns: called scripts,
 patch files, heredoc writes, in-place shell rewrites (`sed -i`, `perl -0pi`,
@@ -33,6 +41,8 @@ import sys
 from collections import Counter
 from functools import lru_cache
 from pathlib import Path, PurePosixPath
+
+import instruction_audit
 
 
 def load_instruction(task_dir: Path) -> str:
@@ -1868,9 +1878,148 @@ def rc5_reference_artifacts(task_dir: Path) -> dict:
     }
 
 
+# ═══════════════════════════════════════════════════════════════════════════
+# RC6: Instruction Specificity
+# ═══════════════════════════════════════════════════════════════════════════
+
+def rc6_instruction_specificity(task_dir: Path) -> dict:
+    """Does instruction.md already specify the fix?
+
+    Delegates to the `instruction_audit` module which scores six independent
+    signal families (named algorithms, schema enumerations, API/CLI
+    enumerations, numeric thresholds, binding phrases, scope-closure phrases)
+    and returns a spec-complete/cause-revealing/symptoms-only level.
+
+    This check was previously purely narrative (the LLM writes
+    `instruction_specificity.level` into the Step-2a evidence JSON). Promoting
+    it to a mechanical gate stops spec-complete instructions from reaching the
+    approval gate on the strength of an LLM's self-assessment alone.
+    """
+    report = instruction_audit.audit_instruction(task_dir)
+    classification = report["classification"]
+    signals = report.get("signals") or {}
+
+    if not report.get("present"):
+        return {
+            "check": "rc6_instruction_specificity",
+            "severity": "WARN",
+            "level": classification["level"],
+            "detail": "instruction.md missing or empty — cannot audit",
+        }
+
+    # Surface the most informative subset in the returned payload so that
+    # reviewers reading `collapse_check.py --json` can see the exact signals.
+    summary = {
+        "algorithm_mentions": signals.get("algorithm_mentions", {}),
+        "cli_flags": signals.get("api_enumerations", {}).get("cli_flags", []),
+        "all_caps_tokens": signals.get("schema_enumerations", {}).get("all_caps_tokens", []),
+        "dense_identifier_clusters": signals.get("schema_enumerations", {}).get("dense_identifier_clusters", 0),
+        "binding_phrase_count": signals.get("binding_phrases", {}).get("count", 0),
+        "scope_closure_count": signals.get("scope_closures", {}).get("count", 0),
+        "tolerance_phrase_count": len(signals.get("numeric_thresholds", {}).get("tolerance_phrases", [])),
+    }
+    return {
+        "check": "rc6_instruction_specificity",
+        "severity": classification["severity"],
+        "level": classification["level"],
+        "triggered_families": classification["triggered_families"],
+        "strong_families": classification["strong_families"],
+        "trigger_count": classification["trigger_count"],
+        "strong_count": classification["strong_count"],
+        "signals_summary": summary,
+        "word_count": report.get("word_count", 0),
+        "detail": report["detail"],
+    }
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# RC7: Oracle Triviality
+# ═══════════════════════════════════════════════════════════════════════════
+
+ORACLE_TRIVIAL_LOC = 30          # A12: < 30 non-boilerplate lines is a strong triviality signal
+ORACLE_BORDERLINE_LOC = 80       # A12: 30-80 is moderate, requires other signals to stay clean
+
+def rc7_oracle_triviality(task_dir: Path) -> dict:
+    """Is the oracle's transitive non-boilerplate LOC below the A12 sanity floor?
+
+    `difficulty-calibration.mdc` A12 has long stated that:
+
+        - Under ~30 lines of real logic: strong trivial-risk signal
+        - 30-80 lines: moderate
+        - 80+ lines: less likely trivial
+
+    This was a reviewer heuristic only. RC7 turns it into a mechanical gate:
+
+        FAIL  when transitive oracle LOC < 30 AND oracle touches any files
+        WARN  when 30 <= LOC < 80
+        PASS  otherwise
+
+    The frontier-concentration figure is attached for context but does not
+    change the verdict — a heavily concentrated oracle fails RC2, not RC7.
+    """
+    analysis = analyze_oracle(task_dir)
+    loc = int(analysis.get("oracle_loc_non_boilerplate") or 0)
+    operations = analysis.get("operations") or []
+    touched = len(analysis.get("oracle_targets") or [])
+    frontier = analysis.get("frontier_concentration") or {}
+    dominant_root = frontier.get("dominant_root")
+    dominant_share = frontier.get("dominant_root_share") or 0.0
+
+    if not operations:
+        return {
+            "check": "rc7_oracle_triviality",
+            "severity": "WARN",
+            "oracle_loc": loc,
+            "oracle_targets": touched,
+            "detail": "No oracle operations parsed — cannot audit oracle size",
+        }
+
+    if loc < ORACLE_TRIVIAL_LOC:
+        severity = "FAIL"
+        band = "trivial"
+    elif loc < ORACLE_BORDERLINE_LOC:
+        severity = "WARN"
+        band = "borderline"
+    else:
+        severity = "PASS"
+        band = "substantive"
+
+    detail = (
+        f"Oracle is {loc} non-boilerplate line(s) across {touched} target(s) "
+        f"({band}; dominant root {dominant_root or 'none'} at "
+        f"{dominant_share:.0%}). "
+        + (
+            "Under 30 lines is a strong trivial-risk signal per difficulty-calibration A12."
+            if severity == "FAIL"
+            else "30-80 lines is borderline per A12; pair with other signals."
+            if severity == "WARN"
+            else "80+ lines clears the A12 mechanical floor; other RCs still govern."
+        )
+    )
+
+    return {
+        "check": "rc7_oracle_triviality",
+        "severity": severity,
+        "oracle_loc": loc,
+        "oracle_targets": touched,
+        "band": band,
+        "dominant_root": dominant_root,
+        "dominant_root_share": dominant_share,
+        "detail": detail,
+    }
+
+
 # ─── Main ────────────────────────────────────────────────────────────────────
 
-ALL_CHECKS = [rc1_oracle_simplification, rc2_oracle_predictability, rc3_verifier_shallowness, rc4_tamper_surface, rc5_reference_artifacts]
+ALL_CHECKS = [
+    rc1_oracle_simplification,
+    rc2_oracle_predictability,
+    rc3_verifier_shallowness,
+    rc4_tamper_surface,
+    rc5_reference_artifacts,
+    rc6_instruction_specificity,
+    rc7_oracle_triviality,
+]
 
 LABELS = {
     "rc1_oracle_simplification": "RC1 Oracle Simplification — does the fix mostly REMOVE code?",
@@ -1878,6 +2027,8 @@ LABELS = {
     "rc3_verifier_shallowness":  "RC3 Verifier Shallowness — do tests check format or domain values?",
     "rc4_tamper_surface":        "RC4 Tamper Surface — can the agent modify what tests depend on?",
     "rc5_reference_artifacts":   "RC5 Reference Artifacts — are answer-shaped verifier artifacts visible on solver-visible file surfaces?",
+    "rc6_instruction_specificity": "RC6 Instruction Specificity — does instruction.md already specify the fix?",
+    "rc7_oracle_triviality":     "RC7 Oracle Triviality — is the oracle below the A12 LOC floor?",
 }
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:

@@ -388,7 +388,7 @@ ChatGPT's job ends after Phase 1. Everything else happens in Cursor:
 - Implementation-plan collapse audit (Cursor Step 2a)
 - GO/REGENERATE/STOP decisions with spec output (Cursor Step 2a)
 - File creation (Cursor Step 2b)
-- Review, oracle/NOP, agent trials (Cursor Step 3)
+- Review, oracle/NOP, quality check (Cursor Step 3)
 
 ## Required Output Format From the Website LLM
 
@@ -454,4 +454,4 @@ Explicitly state:
 
 - this is an idea, not a finished task
 - implementation-plan collapse audit, file creation, oracle/NOP, and static checks happen in Cursor
-- difficulty is confirmed by agent trials, not by ideation screening alone
+- difficulty is confirmed by the repo-local mechanical gate (collapse check RC1-RC7 + verifier_health), not by ideation screening alone

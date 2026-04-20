@@ -389,7 +389,7 @@ This document is a historical reference for Terminus task creation, evaluation, 
 
 * Use `harbor tasks start-env -p <task-folder> -e docker -a -i` for local interactive building.  
 * Use `harbor run -p <task-folder> -a oracle` to verify the oracle.  
-* Use `harbor run -p <task-folder> -a terminus-2 -m "anthropic/claude-opus-4-6"` to benchmark difficulty.  
+* Use `harbor tasks check <task-folder> -m "openai/gpt-5.2"` for the repo-local quality check.  
 * See `commands.md` at the repo root for the full, up-to-date CLI reference.
 
 ### **E. Automated Checks (CI, Behavior Validation, and Agent Review)**

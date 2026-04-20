@@ -18,7 +18,6 @@ from typing import Any
 REQUIRED_ROOT_FILES = (
     "instruction.md",
     "task.toml",
-    "output_contract.toml",
 )
 REQUIRED_ROOT_DIRS = (
     "environment",

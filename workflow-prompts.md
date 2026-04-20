@@ -10,7 +10,7 @@ Step 2a: Cursor   → Validate idea + produce authoring spec + reviewer appendix
          [you review specs/<task-name>.md and specs/<task-name>-reviewer.md]
 Step 2b: Cursor   → Create task files from the authoring spec, then confirm the discovery budget against the reviewer appendix
                      (includes discoverability gate + mechanical collapse check)
-Step 3a: Cursor   → Harbor execution (oracle 10x + NOP preflight, then quality check, agent trials 5x on Claude Opus 4.6 by default)
+Step 3a: Cursor   → Harbor execution (oracle 10x + NOP preflight, then GPT-5.2 quality check)
 Step 3b: Cursor   → Analysis & decision (collapse audit, per-test feasibility, final verdict)
 ```
 
@@ -241,7 +241,7 @@ Report what you checked and what you changed (if anything).
 
 ## Static checks
 
-After everything is finalized, run the task-scoped static checker. It covers repo-local structural/compliance rules only; it does not replace `collapse_check.py`, Harbor quality checks, trial analysis, or the final approval decision:
+After everything is finalized, run the task-scoped static checker. It covers repo-local structural/compliance rules only; it does not replace `collapse_check.py`, the Harbor quality check, or the final approval decision:
   python3 run_static_checks.py --task-dir tasks/<task-name> --version edition_2
 
 Then verify the environment file count (excluding Dockerfile/docker-compose):
@@ -289,40 +289,21 @@ NOP baseline (no API key needed):
 Must score 0.0. If it scores above 0.0, the verifier accepts the broken baseline.
 You may launch oracle and NOP at the same time, but do not edit task files during either run.
 
-### 2. Source API key (needed for quality check and agent trials)
+### 2. Source OpenAI API key (needed for the GPT-5.2 quality check)
   set -a && source .env && set +a
-If .env is missing or does not contain an API key, state so and skip steps 3 and 4. Oracle and NOP results above are still valid, but a `difficulty = "hard"` task cannot be approved until the default 5-trial Claude Opus 4.6 gate exists.
+If .env is missing or does not contain an OpenAI API key, state so and skip step 3. Oracle and NOP results above are still valid; the mechanical stack in Step 3b will still run.
 
-### 3. Quality check (requires API key)
+### 3. Quality check (requires OpenAI API key)
 Only after Oracle and NOP pass:
-  harbor tasks check "tasks/<task-name>" -m "anthropic/claude-opus-4-6"
+  harbor tasks check "tasks/<task-name>" -m "openai/gpt-5.2"
 
 Report ALL results. Any ❌ fail on behavior_in_task_description, behavior_in_tests, or anti_cheating_measures is a HIGH-severity finding that MUST be repaired before proceeding.
 
-If quality check reports HIGH failures: fix them, then rerun ALL prior steps (oracle -k 10, NOP) to confirm they still pass with the modified files, then rerun the quality check. Do not proceed to agent trials with unrepaired HIGH findings or stale oracle/NOP evidence.
+If quality check reports HIGH failures: fix them, then rerun ALL prior steps (oracle -k 10, NOP) to confirm they still pass with the modified files, then rerun the quality check. Do not proceed to Step 3b with unrepaired HIGH findings or stale oracle/NOP evidence.
 
-If no API key in .env, state that quality check was skipped due to missing API key.
+If no OpenAI API key in .env, state that quality check was skipped due to missing API key.
 
-### 4. Agent trials (5 parallel Claude Opus 4.6 runs — default hard gate)
-Only after quality check passes or HIGH findings are repaired:
-  harbor run -p "tasks/<task-name>" -a terminus-2 -m "anthropic/claude-opus-4-6" -k 5
-
-Report: mean score, per-trial scores, total time.
-
-After trials complete, analyze the exact job directory Harbor printed (e.g., `jobs/2026-04-13__16-41-36/`):
-  python3 analyze_trials.py <job-dir>
-This reads the real Harbor artifact layout:
-  <job-dir>/result.json
-  <job-dir>/<trial-name>/result.json
-  <job-dir>/<trial-name>/verifier/ctrf.json
-Use the analyzer's output for the per-test pass matrix (test name × trial → pass/fail), per-trial rewards, mean reward, and infra-error reporting.
-Do NOT use a broad `find jobs/` — that mixes results from old runs.
-If any test is 0/N across the verifier-backed trials, flag it — that test may be too hard or broken.
-With the default 5-trial gate, only `0/5` qualifies as hard. `1/5 = 20%` is medium-range evidence and is not approvable.
-
-If no API key in .env, state that agent trials were skipped and that hard-task approval is blocked pending the missing empirical evidence.
-
-### 5. Fix and rerun
+### 4. Fix and rerun
 If any harbor step fails or reports HIGH findings, fix the issue and rerun from step 1 (preflight). Every step's evidence must reflect the current state of task files — never carry forward results from before an edit.
 
 ## Constraints
@@ -335,10 +316,8 @@ If any harbor step fails or reports HIGH findings, fix the issue and rerun from 
 1. Oracle result: N/10 passed, any failures
 2. NOP result: score
 3. Quality check: full result, list any ❌ fail findings
-4. Agent trial results: per-trial scores, mean, time
-5. Per-test pass matrix (test name × trial → pass/fail) — from `python3 analyze_trials.py <job-dir>`
-6. What you fixed and why (if anything)
-7. Whether any task files were edited during this step (triggers full rerun)
+4. What you fixed and why (if anything)
+5. Whether any task files were edited during this step (triggers full rerun)
 
 Task path: tasks/<task-name>
 ```
@@ -349,12 +328,11 @@ Task path: tasks/<task-name>
 
 Run after Step 3a completes. This step is primarily analysis, but if you fix any issues, you must revalidate.
 
-**DIRTY-FLAG RULE: If you edit ANY file under `tasks/<task-name>/` during this step (tests, instruction, oracle, environment, metadata) and do NOT restore it to byte-identical state, you MUST rerun Step 3a before making a final decision. Do not approve using pre-edit oracle, NOP, quality check, or agent trial results. State which files changed and why rerun is needed. Temp-copy automation from `verifier_health.py` does not trigger this rule by itself.**
+**DIRTY-FLAG RULE: If you edit ANY file under `tasks/<task-name>/` during this step (tests, instruction, oracle, environment, metadata) and do NOT restore it to byte-identical state, you MUST rerun Step 3a before making a final decision. Do not approve using pre-edit oracle, NOP, or quality check results. State which files changed and why rerun is needed. Temp-copy automation from `verifier_health.py` does not trigger this rule by itself.**
 
 ```text
 Analyze the task for collapse, feasibility, and discoverability. Use results from Step 3a.
 Follow @review-and-submit.mdc and @difficulty-calibration.mdc for all rules — do not rely on behavioral descriptions in this prompt.
-The current repo archive has no GPT-5.2 job artifacts. Use 5 `anthropic/claude-opus-4-6` trials as the default repo gate, but remember the platform uses the better-performing model. If Claude lands at `1/5 = 20%` or any higher pass rate, do not approve just because GPT-5.2 is unmeasured.
 
 Track whether you edit any task files. If you do, you must rerun Step 3a before the final decision.
 
@@ -405,12 +383,11 @@ Run @difficulty-calibration.mdc Part B:
 - If NO: proceed to the decision.
 
 Before any `APPROVE`, `APPROVE WITH NOTE`, or "ready" claim, package the task and run:
-  python3 approve_task.py --task-dir tasks/<task-name> --zip Task_Ready_To_Submit/<task-name>.zip --job-dir jobs/<job-dir> --verifier-health /tmp/<task-name>-verifier-health.json
+  python3 approve_task.py --task-dir tasks/<task-name> --zip Task_Ready_To_Submit/<task-name>.zip --verifier-health /tmp/<task-name>-verifier-health.json
 
 If `approve_task.py` exits nonzero, report its blocking failures and stop. Do not override it with prose.
 
 Use the Decision Criteria from @review-and-submit.mdc (APPROVE / APPROVE WITH NOTE / REJECT / SEND FEEDBACK). Apply all blocking conditions from that file. Do not restate the criteria here — read them from the rule file.
-If the 5-trial Claude Opus 4.6 evidence is missing, `APPROVE` and `APPROVE WITH NOTE` are unavailable for a `difficulty = "hard"` task. Use `SEND FEEDBACK` and state that empirical hard-task evidence is missing.
 
 ## Required report
 1. Overall decision (APPROVE / APPROVE WITH NOTE / REJECT / SEND FEEDBACK)
@@ -423,10 +400,9 @@ If the 5-trial Claude Opus 4.6 evidence is missing, `APPROVE` and `APPROVE WITH 
 8. Quality check result (from Step 3a)
 9. Per-test feasibility flags
 10. Verifier health results (repeat oracle, randomized order, partial-oracle classifications)
-11. Per-test pass matrix (if agent trials were run)
-12. Highest-severity findings first
-13. Classify each finding as concept-level or mechanical/compliance-level
-14. What you changed and why
+11. Highest-severity findings first
+12. Classify each finding as concept-level or mechanical/compliance-level
+13. What you changed and why
 
 Task path: tasks/<task-name>
 ```
@@ -443,7 +419,7 @@ rm -f ../../Task_Ready_To_Submit/<task-name>.zip
 zip -rq ../../Task_Ready_To_Submit/<task-name>.zip . -x '*/__pycache__/*' '*.pyc' '.*'
 python3 ../../validate_submission_zip.py ../../Task_Ready_To_Submit/<task-name>.zip
 python3 ../../verifier_health.py --task-dir ../../tasks/<task-name> --output-json /tmp/<task-name>-verifier-health.json
-python3 ../../approve_task.py --task-dir ../../tasks/<task-name> --zip ../../Task_Ready_To_Submit/<task-name>.zip --job-dir ../../jobs/<job-dir> --verifier-health /tmp/<task-name>-verifier-health.json
+python3 ../../approve_task.py --task-dir ../../tasks/<task-name> --zip ../../Task_Ready_To_Submit/<task-name>.zip --verifier-health /tmp/<task-name>-verifier-health.json
 ```
 
 Verify: `instruction.md`, `task.toml`, `output_contract.toml`, `environment/`, `solution/`, and `tests/` at archive root.
