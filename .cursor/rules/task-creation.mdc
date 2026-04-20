@@ -91,7 +91,7 @@ Do NOT include `rubrics.txt` — rubrics are edited in the submission UI.
 6. **Absolute paths** — Use `/app/output.txt`, never `./output.txt`.
 
 ### Humanization rules
-Write like a real engineer prompting Cursor or Claude Code, not like an LLM writing a benchmark.
+Write like a real engineer prompting Cursor or Claude Code, not like an LLM writing a benchmark. Avoid the "GPT-style" of writing — verbose, repetitive, overly polite, exhaustively formatted.
 
 Remove these synthetic smells:
 - Roleplay boilerplate ("You are an expert programmer…")
@@ -100,6 +100,8 @@ Remove these synthetic smells:
 - Redundant context restating the same requirement multiple ways
 - Over-formatting with multiple headers, nested bullets, checklists
 - Hint leakage naming the exact algorithm or broken file
+- Prescribed implementation scaffolding — exact function signatures, exact file layouts, named libraries, or named build commands when the agent should be figuring those out. Specifying the contract an output must satisfy is fine; specifying the code shape that produces it is a hint.
+- Emojis and decorative unicode. Scattered bold markers on solution-adjacent phrases ("**Policy limit**: $500") also count — they telegraph where the answer is.
 
 Replace with:
 - Direct problem statement
@@ -107,7 +109,9 @@ Replace with:
 - Key constraints only
 - Short prose or a small bullet list when it genuinely helps readability
 
-Vary the style across tasks. Some terse, some conversational, some structured. Not every task needs headers or bullet lists.
+Vary the style across tasks. Some terse, some conversational, some structured. Not every task needs headers or bullet lists. A 150–200 word human-voiced paragraph is usually better than 500+ words of structured documentation.
+
+**There is no instruction.md template and there should not be one.** Do not copy the shape of a previously-approved task's instruction. If every approved task opens with "Repair the X under /app/src." and ends with a schema block, that's a training signal the agent can exploit, and it's also boring. Real engineers prompt Cursor and Claude Code in wildly varying voices: a one-sentence bug report, a Slack-paste with a stack trace, a rambling walk-through of what they've already tried, a terse imperative. Match that range. Reviewers should ask "does this sound like something a human engineer would actually type?" before "does it follow the house style?" — because there is no house style. The instruction-test vocabulary check (`run_static_checks.py --only instruction_test_vocabulary`) verifies that whatever voice you pick, every exact-value assertion in tests is grounded in instruction.md text.
 
 ### Contract requirements
 - List ALL user-visible outputs declared in `output_contract.toml`
@@ -142,10 +146,10 @@ expert_time_estimate_min = 30
 junior_time_estimate_min = 120
 
 [agent]
-timeout_sec = 900
+timeout_sec = 900            # Hard platform cap: 1800. Anything above is rejected by upstream harbor CI.
 
 [verifier]
-timeout_sec = 300            # 300+ if test.sh installs from network
+timeout_sec = 300            # Hard platform cap: 1800. Raise to ≥ build_timeout_sec if tests/ invokes cmake / cargo / go build / make / npm install / pip install from source. `run_static_checks.py --only timeout_coherence` enforces both the floor (≥ build_timeout_sec when tests do builds) and the ceiling (≤ 1800). If a task needs more than 1800s of verifier time, reduce verifier-side work (cache builds between scenarios, parallelize, split the matrix) — do not argue for a higher budget; the platform will reject it.
 
 [environment]
 build_timeout_sec = 600
@@ -239,6 +243,17 @@ Discoverability can leak through any solver-visible file surface above, and thro
 - **Runtime behavior** — error messages guide debugging but don't pinpoint the exact fix
 
 The general test: could the agent skip the hard reasoning and find the solution through surface-level signals on any solver-visible file surface, or from runtime error output?
+
+**Complement: knob discoverability.** When the oracle solution toggles a build-time knob (CMake cache variable, build profile, env var) rather than editing source, the *agent must be able to discover the knob's name*. The instruction must mention it OR a comment in `environment/` must name it — bare appearances in code (`set(NAME 1)`, `#if NAME == 1`) do not count, because an agent rewriting the source would never preserve them. `run_static_checks.py --only oracle_knob_discoverability` enforces this. See `Task_Ready_To_Submit/rollback-replay-divergence.zip` for the canonical worked example: instruction names both `TB_TIMELINE_MODE` and `TB_REEXEC_MODE`, and `environment/CMakeLists.txt` carries an explanatory comment that survives any source-level edit.
+
+**Complement: path discoverability.** When the test fixture invokes a binary or reads a file at a fixed absolute path the agent must produce, the *agent must be able to discover that path*. For every `/app/...` path the tests resolve from a constant (e.g. `BIN = APP / "bin" / "netplay_matrix"`), the path must appear in `instruction.md` OR as a string literal / comment in `environment/`. Bare-code knob references don't count, but path string literals do — agents grep for `/app/` and find them. `run_static_checks.py --only oracle_path_discoverability` enforces this. The failure this prevents: agent solves the substantive problem perfectly, produces the correct outputs from `/app/build/<binary>`, and still fails every test because the fixture invokes the binary from `/app/bin/<binary>`.
+
+**Reference tasks.** When you need a worked example for a specific authoring decision, consult the catalog at `Task_Ready_To_Submit/REFERENCE.md` and the matching shipping zip. Quick map:
+- Conditional-compilation correctness, build-knob discoverability, partial-fix anti-cheating → `rollback-replay-divergence`
+- Mixed-language pipeline, anti-cheating runtime guards, provenance manifests → `release-provenance-drift`
+- WAL-journaled storage engine, Python-oracle test harness, pinned-view contracts → `lsm-snapshot-recovery`
+- Numerical interrupted-vs-baseline correctness, restart-fidelity oracle → `implicit-step-restart`
+- Distributed-state simulator, JSON replay bundles, fingerprint-based oracle → `byzantine-storage-rebalance`
 
 ## tests/test.sh
 
@@ -358,6 +373,6 @@ zip -rq ../../Task_Ready_To_Submit/<task-name>.zip . -x '*/__pycache__/*' '*.pyc
 python3 ../../validate_submission_zip.py ../../Task_Ready_To_Submit/<task-name>.zip
 ```
 
-Verify `instruction.md`, `task.toml`, `output_contract.toml`, `environment/`, `solution/`, and `tests/` are at archive root. Append `--json` for machine-readable output.
+Verify `instruction.md`, `task.toml`, `environment/`, `solution/`, and `tests/` are at archive root. Append `--json` for machine-readable output.
 
 Do NOT include `rubrics.txt`. Place zip in `Task_Ready_To_Submit/`.
