@@ -373,6 +373,8 @@ zip -rq ../../Task_Ready_To_Submit/<task-name>.zip . -x '*/__pycache__/*' '*.pyc
 python3 ../../validate_submission_zip.py ../../Task_Ready_To_Submit/<task-name>.zip
 ```
 
+This validation step is mandatory for every generated submission zip. Do not ship or mark a zip ready unless `validate_submission_zip.py` returns PASS.
+
 Verify `instruction.md`, `task.toml`, `environment/`, `solution/`, and `tests/` are at archive root. Append `--json` for machine-readable output.
 
 Do NOT include `rubrics.txt`. Place zip in `Task_Ready_To_Submit/`.

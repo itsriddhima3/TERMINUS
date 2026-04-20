@@ -13,9 +13,7 @@ Use this rule whenever you are reviewing, repairing, or approving a task for sub
 Both are rejection reasons on the platform. Catch them before uploading.
 The default Edition 2 acceptance profile in this repo is hard-only.
 
-**The mechanical stack is the sole gate.** `collapse_check.py` runs seven root-cause checks (RC1-RC7), including the two that closed the previous biggest gap: RC6 audits `instruction.md` for spec-completeness (algorithms, schemas, CLI flags, thresholds, binding phrases, scope closures) via `instruction_audit.py`, and RC7 promotes the A12 oracle-LOC heuristic (<30 non-boilerplate lines = FAIL) to a mechanical gate. If any of the seven RCs returns FAIL, the task does not ship. `verifier_health.py` (repeat-oracle / randomized-order / partial-oracle ablations) is the empirical backstop.
-
-Agent trials are not part of the repo-local approval pipeline. The platform runs its own trials across frontier models (GPT-5.2 and Claude Opus 4.6) after upload; that evaluation is downstream of this gate, not part of it.
+**The mechanical stack is the sole gate.** `collapse_check.py` runs seven root-cause checks (RC1-RC7), including the two that closed the previous biggest gap: RC6 audits `instruction.md` for spec-completeness (algorithms, schemas, CLI flags, thresholds, binding phrases, scope closures) via `instruction_audit.py`, and RC7 promotes the A12 oracle-LOC heuristic (<30 non-boilerplate lines = FAIL) to a mechanical gate. If any of the seven RCs returns FAIL, the task does not ship. `verifier_health.py` (repeat-oracle / randomized-order / partial-oracle ablations) is the empirical backstop. Post-upload evaluation on the platform is outside this repo-local gate.
 
 ## Solver-Visible Surface Policy
 
@@ -163,11 +161,7 @@ Count non-boilerplate lines in the transitive oracle material (`solve.sh` + call
 
 `collapse_check.py` runs this automatically; the thresholds (`ORACLE_TRIVIAL_LOC=30`, `ORACLE_BORDERLINE_LOC=80`) live at the top of the RC7 section there.
 
-### A13. Trial evidence (removed from this gate)
-
-Agent trials are no longer part of the repo-local approval pipeline. The platform runs its own multi-model trials after upload. If you run trials locally for your own debugging, treat the output as informational only — do not condition the review on it.
-
-### A14. Instruction specificity audit (now RC6 — mechanical)
+### A13. Instruction specificity audit (now RC6 — mechanical)
 
 `instruction_audit.py` classifies `instruction.md` across six independent signal families:
 
@@ -220,7 +214,7 @@ Collapse verdict: {PASS | WARN | FAIL}
 
 ## Part B: Per-Test Feasibility Analysis (Too Hard)
 
-Every individual test must be independently feasible and accept any valid solution approach. Verifier health and per-test feasibility analysis (below) are the mechanical substitute for the multi-trial evidence the platform will later generate.
+Every individual test must be independently feasible and accept any valid solution approach. Verifier health and per-test feasibility analysis (below) are the mechanical substitute for ad-hoc stress runs.
 
 ### B1. Per-test feasibility check
 
@@ -324,7 +318,7 @@ python3 verifier_health.py --task-dir tasks/<task-name> --output-json /tmp/<task
 python3 approve_task.py --task-dir tasks/<task-name> --zip Task_Ready_To_Submit/<task-name>.zip --verifier-health /tmp/<task-name>-verifier-health.json
 ```
 
-This is the authoritative repo-local hard-task approval gate. The mechanical gate (static checks, collapse check RC1-RC7, submission-zip validation, manifest verification, zip/source parity, verifier_health) is always blocking. There is no trial layer in this gate — the platform runs its own trials after upload.
+This is the authoritative repo-local hard-task approval gate. The mechanical gate (static checks, collapse check RC1-RC7, submission-zip validation, manifest verification, zip/source parity, verifier_health) is always blocking.
 
 ---
 
