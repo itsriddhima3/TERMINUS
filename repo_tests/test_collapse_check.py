@@ -47,6 +47,33 @@ class CollapseCheckRegressionTest(unittest.TestCase):
                         paths,
                     )
 
+                # RC6 classification verification — verify the spec-completeness
+                # audit pins at the expected level/trigger-count/strong-count
+                # for each fixture. Without pinning these we would not notice
+                # if the instruction_audit heuristics shifted unintentionally.
+                if "rc6_classification" in expected:
+                    rc6 = by_check["rc6_instruction_specificity"]
+                    self.assertEqual(rc6["level"], expected["rc6_classification"]["level"])
+                    self.assertEqual(
+                        rc6["trigger_count"],
+                        expected["rc6_classification"]["trigger_count"],
+                    )
+                    self.assertEqual(
+                        rc6["strong_count"],
+                        expected["rc6_classification"]["strong_count"],
+                    )
+
+                # RC7 band verification — pin the oracle-LOC band so that a
+                # drift in the oracle-analyzer LOC counter or the ORACLE_*_LOC
+                # thresholds is detected.
+                if "rc7_band" in expected:
+                    rc7 = by_check["rc7_oracle_triviality"]
+                    self.assertEqual(rc7["band"], expected["rc7_band"]["band"])
+                    self.assertEqual(
+                        rc7["oracle_loc"],
+                        expected["rc7_band"]["oracle_loc"],
+                    )
+
                 self.assertEqual(collapse_check.exit_code(report), 1)
 
     def test_json_cli_output_matches_programmatic_report(self) -> None:

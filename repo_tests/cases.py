@@ -5,7 +5,6 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 FIXTURE_TASKS_DIR = REPO_ROOT / "repo_tests" / "fixtures" / "tasks"
-JOBS_DIR = REPO_ROOT / "jobs"
 
 COMMON_STATIC_PASS_MESSAGES = (
     "required task files present",
@@ -25,11 +24,14 @@ STATIC_CHECK_EXPECTATIONS = {
         "warnings": [],
     },
     "implicit-step-restart": {
-        "warnings": [],
+        "warnings": [
+            "agent.timeout_sec (900s) is less than 2x verifier.timeout_sec (900s) on a task whose tests do heavy build work. Agents typically need several build-then-verify cycles; consider raising the agent budget."
+        ],
     },
     "lsm-snapshot-recovery": {
         "warnings": [
-            "instruction.md is longer than the preferred 1 sentence to 3 paragraphs guidance"
+            "agent.timeout_sec (900s) is less than 2x verifier.timeout_sec (900s) on a task whose tests do heavy build work. Agents typically need several build-then-verify cycles; consider raising the agent budget.",
+            "instruction.md is longer than the preferred 1 sentence to 3 paragraphs guidance",
         ],
     },
     "release-provenance-drift": {
@@ -39,8 +41,8 @@ STATIC_CHECK_EXPECTATIONS = {
 
 COLLAPSE_CHECK_EXPECTATIONS = {
     "byzantine-storage-rebalance": {
-        "fails": 3,
-        "warns": 1,
+        "fails": 4,
+        "warns": 2,
         "oracle_targets": [
             "internal/catalog/merge.go",
             "internal/codec/fingerprint.go",
@@ -53,6 +55,8 @@ COLLAPSE_CHECK_EXPECTATIONS = {
             "rc3_verifier_shallowness": "PASS",
             "rc4_tamper_surface": "FAIL",
             "rc5_reference_artifacts": "FAIL",
+            "rc6_instruction_specificity": "FAIL",
+            "rc7_oracle_triviality": "WARN",
         },
         "issue_counts": {
             "rc4_tamper_surface": 2,
@@ -68,9 +72,18 @@ COLLAPSE_CHECK_EXPECTATIONS = {
                 "tests/test_outputs.py",
             ],
         },
+        "rc6_classification": {
+            "level": "spec-complete",
+            "trigger_count": 4,
+            "strong_count": 2,
+        },
+        "rc7_band": {
+            "band": "borderline",
+            "oracle_loc": 47,
+        },
     },
     "implicit-step-restart": {
-        "fails": 1,
+        "fails": 3,
         "warns": 2,
         "oracle_targets": [
             "src/integrator/cycle_orchestrator.cpp",
@@ -84,6 +97,8 @@ COLLAPSE_CHECK_EXPECTATIONS = {
             "rc3_verifier_shallowness": "PASS",
             "rc4_tamper_surface": "PASS",
             "rc5_reference_artifacts": "FAIL",
+            "rc6_instruction_specificity": "FAIL",
+            "rc7_oracle_triviality": "FAIL",
         },
         "issue_counts": {
             "rc4_tamper_surface": 0,
@@ -104,10 +119,19 @@ COLLAPSE_CHECK_EXPECTATIONS = {
                 "tests/test_outputs.py",
             ],
         },
+        "rc6_classification": {
+            "level": "spec-complete",
+            "trigger_count": 5,
+            "strong_count": 3,
+        },
+        "rc7_band": {
+            "band": "trivial",
+            "oracle_loc": 6,
+        },
     },
     "lsm-snapshot-recovery": {
-        "fails": 4,
-        "warns": 0,
+        "fails": 5,
+        "warns": 1,
         "oracle_targets": [
             "src/api/engine.cpp",
             "src/level_merge/merge.cpp",
@@ -119,6 +143,8 @@ COLLAPSE_CHECK_EXPECTATIONS = {
             "rc3_verifier_shallowness": "PASS",
             "rc4_tamper_surface": "FAIL",
             "rc5_reference_artifacts": "FAIL",
+            "rc6_instruction_specificity": "FAIL",
+            "rc7_oracle_triviality": "WARN",
         },
         "issue_counts": {
             "rc4_tamper_surface": 2,
@@ -140,10 +166,19 @@ COLLAPSE_CHECK_EXPECTATIONS = {
                 "tests/test_outputs.py",
             ],
         },
+        "rc6_classification": {
+            "level": "spec-complete",
+            "trigger_count": 2,
+            "strong_count": 2,
+        },
+        "rc7_band": {
+            "band": "borderline",
+            "oracle_loc": 34,
+        },
     },
     "release-provenance-drift": {
         "fails": 2,
-        "warns": 0,
+        "warns": 1,
         "oracle_targets": [
             "ci/harness/partial_edit_rust.sh",
             "ci/harness/partial_edit_template.sh",
@@ -164,6 +199,8 @@ COLLAPSE_CHECK_EXPECTATIONS = {
             "rc3_verifier_shallowness": "PASS",
             "rc4_tamper_surface": "PASS",
             "rc5_reference_artifacts": "FAIL",
+            "rc6_instruction_specificity": "WARN",
+            "rc7_oracle_triviality": "PASS",
         },
         "issue_counts": {
             "rc4_tamper_surface": 0,
@@ -185,52 +222,14 @@ COLLAPSE_CHECK_EXPECTATIONS = {
                 "environment/ci/regress/stage_rust.sh.broken",
             ],
         },
-    },
-}
-
-ANALYZE_TRIALS_JOB_DIR = JOBS_DIR / "2026-04-14__23-18-35"
-ANALYZE_TRIALS_EXPECTATION = {
-    "task_name": "lsm-snapshot-recovery",
-    "agent_name": "terminus-2",
-    "model_id": "anthropic/claude-opus-4-6",
-    "model_label": "Claude Opus 4.6",
-    "requested_trials": 5,
-    "found_trial_dirs": 5,
-    "verifier_backed_trials": 5,
-    "infra_error_count": 0,
-    "mean_reward": 0.4,
-    "full_suite_passes": 2,
-    "full_suite_pass_rate": 0.4,
-    "zero_pass_tests": [],
-    "artifact_issues": [],
-    "test_pass_counts": {
-        "test_outputs.py::test_engine_has_no_baked_probe_canary": 5,
-        "test_outputs.py::test_fixed_values_exercise_pin_tombstone_and_layout_contract": 4,
-        "test_outputs.py::test_sample_cases_match_contract": 5,
-        "test_outputs.py::test_recovery_from_varied_prefixes_matches_contract": 4,
-        "test_outputs.py::test_project_rebuild_produces_trace_driver": 5,
-        "test_outputs.py::test_materialized_tiles_remain_sorted_after_compaction_and_restart": 4,
-        "test_outputs.py::test_generated_scenarios_match_contract": 2,
-    },
-    "trial_rewards": {
-        "lsm-snapshot-recovery__9T2FuUo": 1.0,
-        "lsm-snapshot-recovery__S4URZCW": 1.0,
-        "lsm-snapshot-recovery__WqhmJLZ": 0.0,
-        "lsm-snapshot-recovery__pbBZxuG": 0.0,
-        "lsm-snapshot-recovery__yGXcjPh": 0.0,
-    },
-    "pinned_statuses": {
-        "lsm-snapshot-recovery__WqhmJLZ": {
-            "test_outputs.py::test_generated_scenarios_match_contract": "failed",
+        "rc6_classification": {
+            "level": "cause-revealing",
+            "trigger_count": 3,
+            "strong_count": 0,
         },
-        "lsm-snapshot-recovery__pbBZxuG": {
-            "test_outputs.py::test_generated_scenarios_match_contract": "failed",
-        },
-        "lsm-snapshot-recovery__yGXcjPh": {
-            "test_outputs.py::test_fixed_values_exercise_pin_tombstone_and_layout_contract": "failed",
-            "test_outputs.py::test_materialized_tiles_remain_sorted_after_compaction_and_restart": "failed",
-            "test_outputs.py::test_recovery_from_varied_prefixes_matches_contract": "failed",
-            "test_outputs.py::test_generated_scenarios_match_contract": "failed",
+        "rc7_band": {
+            "band": "substantive",
+            "oracle_loc": 361,
         },
     },
 }
@@ -238,14 +237,6 @@ ANALYZE_TRIALS_EXPECTATION = {
 _VALID_SUBMISSION_ZIP_MEMBERS = {
     "instruction.md": "Follow the task contract.\n",
     "task.toml": "[task]\ninstruction = \"/app/instruction.md\"\n",
-    "output_contract.toml": (
-        "user_visible_outputs = [\"/app/report.json\"]\n"
-        "internal_harness_files = [\"/logs/verifier/reward.txt\"]\n\n"
-        "[structured_outputs.report]\n"
-        "target = \"/app/report.json\"\n"
-        "format = \"json\"\n"
-        "instruction_checks = [\"report exists\"]\n"
-    ),
     "environment/Dockerfile": "FROM python:3.11-slim\nWORKDIR /app\n",
     "solution/solve.sh": "#!/bin/bash\nexit 0\n",
     "tests/test.sh": "#!/bin/bash\npytest /tests/test_outputs.py -q\n",
@@ -279,14 +270,6 @@ SUBMISSION_ZIP_FIXTURES = {
             "archive contents are unpacked at the archive root",
         ),
         "expected_failures": (),
-    },
-    "missing_output_contract": {
-        "valid": False,
-        "members": _without_members("output_contract.toml"),
-        "expected_passes": (),
-        "expected_failures": (
-            "missing required archive-root files: output_contract.toml",
-        ),
     },
     "missing_required_root": {
         "valid": False,

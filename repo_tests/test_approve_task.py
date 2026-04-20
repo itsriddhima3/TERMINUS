@@ -16,8 +16,6 @@ from repo_tests.cases import FIXTURE_TASKS_DIR
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-SUBMISSION_DIR = REPO_ROOT / "Task_Ready_To_Submit"
-JOB_DIR = REPO_ROOT / "jobs" / "2026-04-14__23-18-35"
 
 
 def build_clean_reporter() -> run_static_checks.Reporter:
@@ -53,69 +51,6 @@ def write_zip_from_source(task_dir: Path, zip_path: Path) -> None:
             archive.write(path, arcname=rel_path.as_posix())
 
 
-def write_synthetic_job(job_dir: Path, task_name: str, task_path: Path) -> None:
-    job_dir.mkdir(parents=True, exist_ok=True)
-    (job_dir / "config.json").write_text(
-        json.dumps(
-            {
-                "job_name": job_dir.name,
-                "n_attempts": 5,
-                "agents": [{"name": "terminus-2", "model_name": approve_task.DEFAULT_HARD_MODEL}],
-                "tasks": [{"path": str(task_path)}],
-            },
-            indent=2,
-        ),
-        encoding="utf-8",
-    )
-    (job_dir / "result.json").write_text(
-        json.dumps({"n_total_trials": 5}, indent=2),
-        encoding="utf-8",
-    )
-
-    statuses = [
-        {"test_outputs.py::test_alpha": "passed", "test_outputs.py::test_beta": "failed"},
-        {"test_outputs.py::test_alpha": "failed", "test_outputs.py::test_beta": "passed"},
-        {"test_outputs.py::test_alpha": "passed", "test_outputs.py::test_beta": "passed"},
-        {"test_outputs.py::test_alpha": "passed", "test_outputs.py::test_beta": "failed"},
-        {"test_outputs.py::test_alpha": "failed", "test_outputs.py::test_beta": "passed"},
-    ]
-
-    for index, test_statuses in enumerate(statuses, start=1):
-        trial_name = f"{task_name}__TRIAL{index}"
-        trial_dir = job_dir / trial_name / "verifier"
-        trial_dir.mkdir(parents=True, exist_ok=True)
-        (job_dir / trial_name / "result.json").write_text(
-            json.dumps(
-                {
-                    "trial_name": trial_name,
-                    "task_name": task_name,
-                    "agent_info": {
-                        "name": "terminus-2",
-                        "model_info": {"provider": "anthropic", "name": "claude-opus-4-6"},
-                    },
-                    "config": {"agent": {"model_name": approve_task.DEFAULT_HARD_MODEL}},
-                    "verifier_result": {"rewards": {"reward": 0.0}},
-                },
-                indent=2,
-            ),
-            encoding="utf-8",
-        )
-        (trial_dir / "ctrf.json").write_text(
-            json.dumps(
-                {
-                    "results": {
-                        "tests": [
-                            {"name": name, "status": status}
-                            for name, status in test_statuses.items()
-                        ]
-                    }
-                },
-                indent=2,
-            ),
-            encoding="utf-8",
-        )
-
-
 def write_verifier_health_report(
     path: Path,
     task_dir: Path,
@@ -139,26 +74,30 @@ def write_verifier_health_report(
 
 
 class ApproveTaskRegressionTest(unittest.TestCase):
-    def test_archived_medium_job_fails_hard_gate(self) -> None:
+    def test_mechanical_fail_blocks_approval(self) -> None:
+        """A fixture that collapse_check flags should fail the gate on mechanical grounds alone."""
+        fixture = FIXTURE_TASKS_DIR / "lsm-snapshot-recovery"
         with tempfile.TemporaryDirectory() as tmpdir:
-            verifier_health_path = Path(tmpdir) / "verifier-health.json"
-            write_verifier_health_report(
-                verifier_health_path,
-                FIXTURE_TASKS_DIR / "lsm-snapshot-recovery",
-            )
+            tmp_root = Path(tmpdir)
+            task_dir = tmp_root / fixture.name
+            shutil.copytree(fixture, task_dir)
+            zip_path = tmp_root / f"{fixture.name}.zip"
+            write_zip_from_source(task_dir, zip_path)
+            verifier_health_path = tmp_root / "verifier-health.json"
+            write_verifier_health_report(verifier_health_path, task_dir)
+
             payload = approve_task.build_report(
-                FIXTURE_TASKS_DIR / "lsm-snapshot-recovery",
-                SUBMISSION_DIR / "lsm-snapshot-recovery.zip",
-                JOB_DIR,
+                task_dir,
+                zip_path,
                 verifier_health_path=verifier_health_path,
             )
         self.assertFalse(payload["approved"])
-        self.assertIn(
-            "default hard gate requires 0 full-suite passes, found 2",
+        self.assertTrue(
+            any("collapse_check.py returned FAIL" in msg for msg in payload["blocking_failures"]),
             payload["blocking_failures"],
         )
 
-    def test_synthetic_clean_fixture_passes_gate(self) -> None:
+    def test_clean_fixture_passes_gate(self) -> None:
         fixture = FIXTURE_TASKS_DIR / "implicit-step-restart"
         with tempfile.TemporaryDirectory() as tmpdir:
             tmp_root = Path(tmpdir)
@@ -166,8 +105,6 @@ class ApproveTaskRegressionTest(unittest.TestCase):
             shutil.copytree(fixture, task_dir)
             zip_path = tmp_root / f"{fixture.name}.zip"
             write_zip_from_source(task_dir, zip_path)
-            job_dir = tmp_root / "jobs" / "2026-04-15__approve-pass"
-            write_synthetic_job(job_dir, fixture.name, task_dir)
             verifier_health_path = tmp_root / "verifier-health.json"
             write_verifier_health_report(verifier_health_path, task_dir)
 
@@ -179,11 +116,11 @@ class ApproveTaskRegressionTest(unittest.TestCase):
                 payload = approve_task.build_report(
                     task_dir,
                     zip_path,
-                    job_dir,
                     verifier_health_path=verifier_health_path,
                 )
 
         self.assertTrue(payload["approved"], payload["blocking_failures"])
+        self.assertEqual(payload["mechanical_status"], "PASS")
 
     def test_zip_source_mismatch_blocks_approval(self) -> None:
         fixture = FIXTURE_TASKS_DIR / "implicit-step-restart"
@@ -193,8 +130,6 @@ class ApproveTaskRegressionTest(unittest.TestCase):
             shutil.copytree(fixture, task_dir)
             zip_path = tmp_root / f"{fixture.name}.zip"
             write_zip_from_source(task_dir, zip_path)
-            job_dir = tmp_root / "jobs" / "2026-04-15__approve-mismatch"
-            write_synthetic_job(job_dir, fixture.name, task_dir)
             verifier_health_path = tmp_root / "verifier-health.json"
             write_verifier_health_report(verifier_health_path, task_dir)
 
@@ -208,7 +143,6 @@ class ApproveTaskRegressionTest(unittest.TestCase):
                 payload = approve_task.build_report(
                     task_dir,
                     zip_path,
-                    job_dir,
                     verifier_health_path=verifier_health_path,
                 )
 
@@ -225,15 +159,13 @@ class ApproveTaskRegressionTest(unittest.TestCase):
             shutil.copytree(fixture, task_dir)
             zip_path = tmp_root / f"{fixture.name}.zip"
             write_zip_from_source(task_dir, zip_path)
-            job_dir = tmp_root / "jobs" / "2026-04-15__approve-missing-health"
-            write_synthetic_job(job_dir, fixture.name, task_dir)
 
             with mock.patch.object(approve_task.run_static_checks, "run_checks", return_value=build_clean_reporter()), mock.patch.object(
                 approve_task.collapse_check,
                 "build_report",
                 return_value=build_clean_collapse_report(),
             ):
-                payload = approve_task.build_report(task_dir, zip_path, job_dir)
+                payload = approve_task.build_report(task_dir, zip_path)
 
         self.assertFalse(payload["approved"])
         self.assertIn(
@@ -249,8 +181,6 @@ class ApproveTaskRegressionTest(unittest.TestCase):
             shutil.copytree(fixture, task_dir)
             zip_path = tmp_root / f"{fixture.name}.zip"
             write_zip_from_source(task_dir, zip_path)
-            job_dir = tmp_root / "jobs" / "2026-04-15__approve-health-fail"
-            write_synthetic_job(job_dir, fixture.name, task_dir)
             verifier_health_path = tmp_root / "verifier-health.json"
             write_verifier_health_report(
                 verifier_health_path,
@@ -267,7 +197,6 @@ class ApproveTaskRegressionTest(unittest.TestCase):
                 payload = approve_task.build_report(
                     task_dir,
                     zip_path,
-                    job_dir,
                     verifier_health_path=verifier_health_path,
                 )
 
@@ -278,22 +207,24 @@ class ApproveTaskRegressionTest(unittest.TestCase):
         )
 
     def test_cli_json_reports_failures(self) -> None:
+        fixture = FIXTURE_TASKS_DIR / "lsm-snapshot-recovery"
         with tempfile.TemporaryDirectory() as tmpdir:
-            verifier_health_path = Path(tmpdir) / "verifier-health.json"
-            write_verifier_health_report(
-                verifier_health_path,
-                FIXTURE_TASKS_DIR / "lsm-snapshot-recovery",
-            )
+            tmp_root = Path(tmpdir)
+            task_dir = tmp_root / fixture.name
+            shutil.copytree(fixture, task_dir)
+            zip_path = tmp_root / f"{fixture.name}.zip"
+            write_zip_from_source(task_dir, zip_path)
+            verifier_health_path = tmp_root / "verifier-health.json"
+            write_verifier_health_report(verifier_health_path, task_dir)
+
             stdout = io.StringIO()
             with contextlib.redirect_stdout(stdout):
                 exit_code = approve_task.main(
                     [
                         "--task-dir",
-                        str(FIXTURE_TASKS_DIR / "lsm-snapshot-recovery"),
+                        str(task_dir),
                         "--zip",
-                        str(SUBMISSION_DIR / "lsm-snapshot-recovery.zip"),
-                        "--job-dir",
-                        str(JOB_DIR),
+                        str(zip_path),
                         "--verifier-health",
                         str(verifier_health_path),
                         "--json",
@@ -302,7 +233,11 @@ class ApproveTaskRegressionTest(unittest.TestCase):
         self.assertEqual(exit_code, 1)
         payload = json.loads(stdout.getvalue())
         self.assertEqual(payload["decision"], "FAIL")
-        self.assertIn(
-            "default hard gate requires 0 full-suite passes, found 2",
+        # Mechanical (collapse_check) is the sole blocker.
+        self.assertTrue(
+            any(
+                "collapse_check.py returned FAIL" in msg
+                for msg in payload["blocking_failures"]
+            ),
             payload["blocking_failures"],
         )
