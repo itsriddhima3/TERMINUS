@@ -95,7 +95,7 @@ under the same "hard" label, but they're measurably narrower. A per-model
 calibration heuristic would flag these imbalances and force authors to
 diversify the failure mode.
 
-**Shape of the proposal.** After trial runs land, compare per-model
+**Shape of the proposal.** After post-upload evaluation data is available, compare per-model
 pass rates. Flag any task where `abs(pass_rate_claude - pass_rate_gpt5) > 0.5`.
 Optionally, maintain a rolling metric per model and reject tasks whose
 inclusion would skew the benchmark's overall Claude-vs-GPT discrimination

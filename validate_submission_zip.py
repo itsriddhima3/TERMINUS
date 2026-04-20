@@ -27,6 +27,11 @@ REQUIRED_ROOT_DIRS = (
 FORBIDDEN_ROOT_FILES = (
     "rubric.txt",
     "rubrics.txt",
+    "output_contract.toml",
+    "quality_check_adjudication.json",
+)
+FORBIDDEN_MEMBER_SUBSTRINGS = (
+    ":Zone.Identifier",
 )
 
 
@@ -34,7 +39,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=(
             "Validate a Task_Ready_To_Submit zip archive for required archive-root files, "
-            "required root directories, wrapping folders, and forbidden rubric files."
+            "required root directories, wrapping folders, and forbidden archive-root files."
         )
     )
     parser.add_argument("zip_path", type=Path, help="Path to a submission .zip archive")
@@ -152,9 +157,15 @@ def build_report(zip_path: Path) -> dict[str, Any]:
         return build_error_report(resolved_path, f"invalid zip archive: {resolved_path} ({exc})")
 
     root_files, root_dirs = collect_root_entries(members)
+    member_names = [str(member["name"]) for member in members]
     missing_root_files = sorted(set(REQUIRED_ROOT_FILES) - root_files)
     missing_root_dirs = sorted(set(REQUIRED_ROOT_DIRS) - root_dirs)
     forbidden_root_files = sorted(set(FORBIDDEN_ROOT_FILES) & root_files)
+    forbidden_members = sorted(
+        name
+        for name in member_names
+        if any(token in name for token in FORBIDDEN_MEMBER_SUBSTRINGS)
+    )
     wrapping_folder = detect_wrapping_folder(members, root_files, root_dirs)
 
     passes: list[str] = []
@@ -175,8 +186,13 @@ def build_report(zip_path: Path) -> dict[str, Any]:
 
     if forbidden_root_files:
         failures.append(f"forbidden archive-root file(s) present: {', '.join(forbidden_root_files)}")
+    elif not forbidden_members:
+        passes.append("no forbidden archive-root files present")
+
+    if forbidden_members:
+        failures.append("forbidden archive member(s) present: " + ", ".join(forbidden_members))
     else:
-        passes.append("no rubric.txt/rubrics.txt present at archive root")
+        passes.append("no forbidden archive members present")
 
     if wrapping_folder is None:
         passes.append("archive contents are unpacked at the archive root")
@@ -198,6 +214,7 @@ def build_report(zip_path: Path) -> dict[str, Any]:
         "missing_root_files": missing_root_files,
         "missing_root_dirs": [f"{name}/" for name in missing_root_dirs],
         "forbidden_root_files": forbidden_root_files,
+        "forbidden_members": forbidden_members,
         "wrapping_folder": wrapping_folder["folder"] if wrapping_folder else None,
         "passes": passes,
         "warnings": [],

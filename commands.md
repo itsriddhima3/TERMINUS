@@ -8,7 +8,7 @@ All harbor, CI, validation, and debug commands for Terminal-Bench 3 task develop
 # Preflight: oracle and NOP may be launched in parallel in separate terminals
 # as long as task files are not being edited during the run.
 # Oracle stress test — 10 parallel runs (no API key needed)
-harbor run -p "tasks/<task-name>" -a oracle -k 10
+harbor run -p "tasks/<task-name>" -a oracle -k 10 -n 10
 
 # NOP (must score 0.0, no API key needed)
 harbor run -p "tasks/<task-name>" -a nop
@@ -29,10 +29,10 @@ harbor tasks init <task-name> --include-standard-metadata --tasks-dir tasks/
 
 ### Parallel execution notes
 
-- `-k N` runs N trials concurrently with isolated job directories — use this instead of running commands sequentially
-- Oracle: use `-k 10` (10 parallel runs) to catch flakiness efficiently
+- `-k N` sets how many parallel runs to schedule; use `-n N` to cap how many run at once
+- Oracle: use `-k 10 -n 10` so all 10 runs execute together (no buffered batches)
 - Each parallel run gets its own job directory, results are aggregated automatically
-- `oracle -k 10` and `nop` are safe to run at the same time as preflight in separate terminals
+- `oracle -k 10 -n 10` and `nop` are safe to run at the same time as preflight in separate terminals
 - Do not start quality check until both preflight runs have passed
 - Do not overlap `verifier_health.py` with real Step 3a harbor runs on the same task directory; it launches additional oracle jobs and temporary task copies for randomized-order and partial-oracle checks
 
@@ -41,7 +41,7 @@ harbor tasks init <task-name> --include-standard-metadata --tasks-dir tasks/
 - **Mean 1.0** = agent passed all tests (for oracle runs, this is expected)
 - **Mean 0.0** = agent failed all tests (expected for NOP)
 - **Errors** = agent crashed before producing a result (infra issue, not task issue)
-- Difficulty is judged by the mechanical stack (collapse check RC1-RC7 + verifier_health). Agent-trial evidence is not part of the repo-local approval gate — the platform runs its own trials after upload.
+- Difficulty is judged by the mechanical stack (collapse check RC1-RC7 + verifier_health). Repo-local approval uses only that stack plus packaging checks.
 
 ## Git (Temporary Local Init)
 
@@ -109,7 +109,7 @@ python3 verifier_health.py --task-dir tasks/<task-name> --json
 
 ## Hard Approval Gate
 
-The mechanical stack (static checks, collapse check RC1-RC7, verifier_health, submission zip, manifests, zip/source parity) is the sole approval gate. There is no trial layer.
+The mechanical stack (static checks, collapse check RC1-RC7, verifier_health, submission zip, manifests, zip/source parity) is the sole approval gate.
 
 ```bash
 # Standard invocation.

@@ -180,3 +180,59 @@ before shipping.
 push back. Apply one of the structural fixes instead.
 
 ---
+
+## `harbor tasks check` false positives are adjudicated, not hand-fixed
+
+**Reviewer feedback pattern:** "Harbor `tasks check` (GPT-5.2) flagged
+`anti_cheating_measures` / `pinned_dependencies` / `typos` / … as `fail`;
+edit the task until the checker reports `pass`."
+
+**Why it's here:** the quality checker is an LLM rubric, not a mechanical
+gate. It regularly produces three kinds of fail that are NOT task defects:
+
+1. **Convention-conflict** — the checker's suggested remedy contradicts a
+   rule that `run_static_checks.py`, `collapse_check.py`, or the canonical
+   templates in `.cursor/rules/task-creation.mdc` actively enforce. The
+   worked example is the `tests/test.sh` uv installer line
+   (`curl -LsSf https://astral.sh/uv/0.9.5/install.sh | sh`): the checker
+   calls it a supply-chain risk under `anti_cheating_measures`, but
+   `run_static_checks.py:761` regex-mandates that exact line and
+   `task-creation.mdc:269` is its source-of-truth template. Removing or
+   rewriting it fails the static checker.
+2. **Unsupported** — the finding cites code, files, fields, thresholds, or
+   behavior that do not exist in the task. Hallucinated citations.
+3. **Quality-vs-difficulty collapse** — the remedy would push
+   `instruction.md` toward spec-language, tripping RC6 (`spec-complete`)
+   in `collapse_check.py`. Documented at length in `workflow-prompts.md`
+   L302.
+
+Because of (1) and (2), a literal-repair loop ("keep editing until the
+checker passes") is the wrong response and regularly regresses either
+mechanical checks or RC6/difficulty.
+
+**How it's handled in this repo:** every `❌ fail` is classified via
+`quality_check_adjudicate.py` against a per-task
+`tasks/<task-name>/quality_check_adjudication.json` waiver. Classifications:
+
+- `task-defect` — real gap. Must be repaired (Step 3a repair loop).
+- `convention-conflict` — evidence required: `enforcing_rule.file`
+  and `enforcing_rule.line`. The script verifies the file exists and the
+  line is in range.
+- `unsupported` — evidence required: `negative_lookup.command` and
+  `negative_lookup.expected_stdout`. The script re-executes the command
+  read-only at adjudication time.
+
+The per-task waiver file is never included in the submission zip —
+`validate_submission_zip.py` lists `quality_check_adjudication.json` under
+`FORBIDDEN_ROOT_FILES`. The adjudication output artifact at
+`/tmp/<task-name>-quality-check-adjudication.json` is a required input to
+`approve_task.py --quality-check-adjudication`.
+
+**Action:** when a reviewer asks "why didn't you fix the `anti_cheating_
+measures` fail", point them at the entry in
+`tasks/<task-name>/quality_check_adjudication.json` and at this section.
+The durable enforcement is the adjudication script, not this doc — keep
+adding new convention-conflicts as file+line entries (not prose) so future
+authors get the waiver mechanically instead of re-triaging from scratch.
+
+---

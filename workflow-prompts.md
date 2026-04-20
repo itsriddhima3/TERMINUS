@@ -279,7 +279,7 @@ Run harbor validation for the task. You are allowed to run shell commands. Start
 
 ### 1. Preflight (oracle + NOP may run in parallel in separate terminals)
 Oracle stress test (10 parallel runs — no API key needed):
-  harbor run -p "tasks/<task-name>" -a oracle -k 10
+  harbor run -p "tasks/<task-name>" -a oracle -k 10 -n 10
 
 ALL 10 must score 1.0. Any failure = oracle is broken or flaky. Report exact scores.
 
@@ -294,17 +294,54 @@ You may launch oracle and NOP at the same time, but do not edit task files durin
 If .env is missing or does not contain an OpenAI API key, state so and skip step 3. Oracle and NOP results above are still valid; the mechanical stack in Step 3b will still run.
 
 ### 3. Quality check (requires OpenAI API key)
-Only after Oracle and NOP pass:
-  harbor tasks check "tasks/<task-name>" -m "openai/gpt-5.2"
+Only after Oracle and NOP pass, capture the harbor result to a JSON file so it can be adjudicated:
+  harbor tasks check "tasks/<task-name>" -m "openai/gpt-5.2" -o /tmp/<task-name>-qc.json
 
-Report ALL results. Any ❌ fail on behavior_in_task_description, behavior_in_tests, or anti_cheating_measures is a HIGH-severity finding that MUST be repaired before proceeding.
+Report ALL results. Any ❌ fail on any rubric axis must be adjudicated via `quality_check_adjudicate.py` before you decide to edit task files (see Step 3a-ii). Findings classified `task-defect` are blocking and must be repaired; `convention-conflict` and `unsupported` classifications are waivable with the evidence the script requires.
 
-If quality check reports HIGH failures: fix them, then rerun ALL prior steps (oracle -k 10, NOP) to confirm they still pass with the modified files, then rerun the quality check. Do not proceed to Step 3b with unrepaired HIGH findings or stale oracle/NOP evidence.
+**Quality-vs-difficulty tension (READ BEFORE EDITING).** Fixing quality findings like `behavior_in_task_description`, `behavior_in_tests`, or `anti_cheating_measures` typically pushes you to add specifics to `instruction.md`, test assertions, or runtime checks. The same specificity is exactly what RC6 (instruction spec-completeness audit) and the broader collapse/discoverability gate reject. Past regression: a task passed Harbor quality by rewriting `instruction.md` to state the algorithm, schemas, and thresholds directly, and then failed RC6 because `instruction.md` had become a spec. Your job here is to satisfy the quality check by describing **observable behavior and acceptance criteria**, not by leaking algorithms, fix locations, cause attributions, exact thresholds, or solver recipes. If you cannot repair a quality finding without revealing cause-level detail, the failure is a task-design problem, not a wording problem — stop editing the instruction and restructure the underlying test/oracle/environment instead. The adjudication layer in Step 3a-ii is the correct response when a fail is hallucinated or contradicts a repo-enforced rule; do not edit task files to pacify a hallucination.
 
-If no OpenAI API key in .env, state that quality check was skipped due to missing API key.
+### 3a-ii. Adjudicate quality findings (run BEFORE editing any task file)
+
+For every `harbor tasks check` capture that reports at least one ❌ fail, run the adjudication layer before deciding to edit anything:
+
+  python3 quality_check_adjudicate.py \
+      --task-dir tasks/<task-name> \
+      --qc-output /tmp/<task-name>-qc.json \
+      --out /tmp/<task-name>-quality-check-adjudication.json
+
+On first run you will need to author `tasks/<task-name>/quality_check_adjudication.json` with one entry per fail. Each entry must include `rubric_axis`, `finding_summary`, and `classification` plus the class-specific evidence:
+
+- `task-defect` — real gap. Blocking until repaired. Requires `repair_reference` (commit SHA, PR URL, or `"pending"`). Repair the task, rerun Step 3a, regenerate the harbor capture, and re-adjudicate.
+- `convention-conflict` — checker remedy contradicts a rule enforced by `run_static_checks.py`, `collapse_check.py`, or the canonical templates in `task-creation.mdc`. Requires `enforcing_rule.file` and `enforcing_rule.line` (the script verifies the file exists and the line is within the file). Example: the canonical `tests/test.sh` uv installer line at `run_static_checks.py:761` — removing it fails `run_static_checks.py --only test_sh`.
+- `unsupported` — finding cites code, files, fields, thresholds, or behavior that do not exist in the task. Requires `negative_lookup.command` and `negative_lookup.expected_stdout` (typically `""`); the script re-executes the command at adjudication time and confirms the output matches.
+
+`quality_check_adjudicate.py` exits non-zero whenever any fail is unadjudicated or classified `task-defect`. If it exits non-zero, either repair the `task-defect` entries or add the missing evidence — do not pacify a hallucinated finding by over-specifying `instruction.md` or tightening tests beyond the observable contract.
+
+### 3a. Quality-fix repair loop (run this every time you edit task files to address a quality finding classified `task-defect`)
+
+Run this loop only for findings the Step 3a-ii adjudication classifies as `task-defect`. Hallucinated or convention-conflicting fails are resolved via the adjudication artifact, not by editing task files. For EACH edit made to fix a `task-defect` ❌ (whether that's to `instruction.md`, `tests/`, `solution/`, `environment/`, `task.toml`, or `output_contract.toml`):
+
+1. State the finding you are fixing and the exact edit you made (files + nature of change).
+2. Run the mechanical difficulty gate against the current files:
+     python3 collapse_check.py tasks/<task-name>
+   - **FAIL** = the fix regressed difficulty. Revert or restructure the edit so the quality finding is addressed without tripping RC1-RC7. Do not leave an RC FAIL in place to pass the quality check.
+   - **WARN** = note each signal and whether it was already present pre-edit. If the edit introduced a new WARN, prefer restructuring over leaving it.
+   - **PASS** = proceed.
+3. Re-read `instruction.md` after the edit and answer honestly:
+   - Did the edit add algorithm names, schemas, CLI flags, exact thresholds, file/function locations, cause statements, or step-by-step recipes that were not there before?
+   - Did it convert symptom-language into spec-language ("the parser must apply X then Y" instead of "the observed output is wrong in way Z")?
+   - Did new test names/assertion messages or environment file names start describing the fix rather than the observable contract?
+   If yes to any, that is a difficulty regression even if `collapse_check.py` passes this run — rewrite the edit to stay at symptom/behavior level.
+4. Rerun oracle (`harbor run -p "tasks/<task-name>" -a oracle -k 10 -n 10`) and NOP (`harbor run -p "tasks/<task-name>" -a nop`) to confirm the edit did not break correctness.
+5. Rerun the Harbor quality check (`harbor tasks check ... -m "openai/gpt-5.2" -o /tmp/<task-name>-qc.json`) and re-adjudicate via `quality_check_adjudicate.py` to confirm the finding is now either ✅ or a cleanly-classified non-defect, and no new `task-defect` findings appeared.
+
+Repeat steps 1-5 until `quality_check_adjudicate.py` exits 0 AND `collapse_check.py` is not FAIL AND the honest re-read in step 3 shows no new revelation. Do not proceed to Step 3b with an unadjudicated quality output, a `task-defect` entry still present, stale oracle/NOP evidence, a `collapse_check.py` FAIL, or an instruction that became more revealing than the pre-edit version.
+
+If no OpenAI API key in .env, state that quality check was skipped due to missing API key. The difficulty guardrail in 3a still applies to any other edits made in this step.
 
 ### 4. Fix and rerun
-If any harbor step fails or reports HIGH findings, fix the issue and rerun from step 1 (preflight). Every step's evidence must reflect the current state of task files — never carry forward results from before an edit.
+If any harbor step fails or reports HIGH findings, fix the issue and rerun from step 1 (preflight), using the 3a repair loop for any edit that touches `instruction.md`, `tests/`, or solver-visible environment surfaces. Every step's evidence must reflect the current state of task files — never carry forward results from before an edit. In particular, an oracle/NOP pass from before an instruction rewrite does NOT satisfy the gate; neither does a `collapse_check.py` PASS from before the rewrite.
 
 ## Constraints
 - Do not claim any command passed unless it was actually run.
@@ -315,9 +352,11 @@ If any harbor step fails or reports HIGH findings, fix the issue and rerun from 
 ## Required output
 1. Oracle result: N/10 passed, any failures
 2. NOP result: score
-3. Quality check: full result, list any ❌ fail findings
-4. What you fixed and why (if anything)
-5. Whether any task files were edited during this step (triggers full rerun)
+3. Quality check: full result, list any ❌ fail findings, path to the captured `/tmp/<task-name>-qc.json`
+4. Adjudication result from `quality_check_adjudicate.py`: gate (PASS/FAIL), per-finding classification (`task-defect` / `convention-conflict` / `unsupported` / `unadjudicated`), path to `/tmp/<task-name>-quality-check-adjudication.json`
+5. What you fixed and why (if anything) — per edit, report: finding addressed, files changed, `collapse_check.py` result after the edit (PASS/WARN/FAIL + any new signals vs. pre-edit), and an honest diff summary of `instruction.md` flagging any added algorithm/schema/threshold/location/recipe language
+6. Whether any task files were edited during this step (triggers full rerun)
+7. Final `collapse_check.py` verdict on the current (post-all-edits) task state
 
 Task path: tasks/<task-name>
 ```
@@ -412,6 +451,10 @@ Task path: tasks/<task-name>
 ## After Step 3b: Package & Submit
 
 Once the review passes:
+
+```text
+generate submission zip
+```
 
 ```bash
 cd tasks/<task-name>
