@@ -208,6 +208,44 @@ Rules:
 - Data files: put in `environment/data/`, use `COPY data /root/data`
 - If cloning repos during build, pin to a specific commit
 
+## environment/docker-compose.yaml
+
+If you include `environment/docker-compose.yaml`, start from this Harbor wiring template and only add task-specific services/options on top of it:
+
+```yaml
+services:
+  main:
+    build:
+      context: ${CONTEXT_DIR}
+    image: ${MAIN_IMAGE_NAME}
+    command:
+      - sh
+      - -c
+      - sleep infinity
+    environment:
+      - TEST_DIR=${TEST_DIR}
+    volumes:
+      - ${HOST_VERIFIER_LOGS_PATH}:${ENV_VERIFIER_LOGS_PATH}
+      - ${HOST_AGENT_LOGS_PATH}:${ENV_AGENT_LOGS_PATH}
+    deploy:
+      resources:
+        limits:
+          cpus: ${CPUS}
+          memory: ${MEMORY}
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+```
+
+Notes:
+- Keep `build.context: ${CONTEXT_DIR}` and `image: ${MAIN_IMAGE_NAME}` exactly as shown.
+- Keep `command: ["sh", "-c", "sleep infinity"]` so the workspace stays alive for agent/verifier execution.
+- Keep the verifier/agent log mounts so `/logs/verifier/reward.txt` is writable.
+- If you need to disable BuildKit provenance/SBOM in specific environments, do it via environment or CI config rather than `build.provenance` / `build.sbom` keys in this file, since some Harbor runners reject those compose keys.
+
 ## solution/solve.sh
 
 - Must solve the entire instruction deterministically
