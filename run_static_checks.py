@@ -722,6 +722,10 @@ def parse_compose_service_names(compose_text: str) -> list[str]:
 
 
 def compose_image_is_pinned(image: str) -> bool:
+    # Harbor's official compose wiring template uses ${MAIN_IMAGE_NAME}.
+    # At runtime Harbor injects a concrete pinned/tagged image name.
+    if "${MAIN_IMAGE_NAME}" in image:
+        return True
     if "@sha256:" in image:
         return True
     last_slash = image.rfind("/")
