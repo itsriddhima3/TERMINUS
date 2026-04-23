@@ -137,17 +137,18 @@ Cross-reference with `solution/solve.sh` to confirm the oracle's profile
 actually produces the expected pass.
 
 **Why on hold.** The empirical gate (`verifier_health.py`'s `repeat_oracle`
-check, which `approve_task.py` requires) already catches this. Adding a
-static check would duplicate the empirical one and could fire false
-positives on legitimate inversion tests. The right leverage is instead
-in the review doc: we added "Every shipped test must pass under the
-oracle" as an explicit checklist item in `review-and-submit.mdc` with
-a note that `verifier_health.py` is the mechanical check.
+check, opt-in via `--include-repeat-oracle` in Step 3a-V) catches this
+when run, and Step 2b's 10x oracle preflight (`harbor run -a oracle -k 10
+-n 10`) catches it on the routine path. Adding a static check would
+duplicate the empirical ones and could fire false positives on legitimate
+inversion tests. The right leverage is instead in the review doc: we
+added "Every shipped test must pass under the oracle" as an explicit
+checklist item in `review-and-submit.mdc`.
 
-**What would move this off the back burner.** Evidence that reviewers
-are shipping tasks without running `verifier_health.py`, such that a
-static pre-check would actually prevent the same class of failure. If
-that happens, build the check as an AST-level inspector before
-`approve_task.py` consumes the health report.
+**What would move this off the back burner.** Evidence that tasks are
+shipping with shipped tests that fail under the oracle despite the
+Step 2b 10x preflight — i.e., a failure mode the preflight systematically
+misses. If that happens, build the check as an AST-level inspector before
+`approve_task.py` consumes any health report.
 
 ---

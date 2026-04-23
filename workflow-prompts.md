@@ -5,72 +5,114 @@ All prompts for the Terminal-Bench 3 task creation pipeline, in order.
 ## Overview
 
 ```
-Step 1:  ChatGPT  → Find the idea (creative, iterative)
-Step 2a: Cursor   → Validate idea + produce authoring spec + reviewer appendix (automated loop)
-         [you review specs/<task-name>.md and specs/<task-name>-reviewer.md]
-Step 2b: Cursor   → Create task files from the authoring spec, then confirm the discovery budget against the reviewer appendix
-                     (includes discoverability gate + mechanical collapse check)
-Step 3a: Cursor   → Harbor execution (oracle 10x + NOP preflight, then GPT-5.2 quality check)
-Step 3b: Cursor   → Analysis & decision (collapse audit, per-test feasibility, final verdict)
+Step 1:           ChatGPT  → Find the idea (creative, iterative)
+Step 2a:          Cursor   → Validate idea + produce authoring spec + reviewer appendix (automated loop)
+                             [you review specs/<task-name>.md and specs/<task-name>-reviewer.md]
+Step 2b:          Cursor   → Draft files + mechanical gates + ORACLE 1X SANITY
+                               1. Create task files
+                               2. Discovery budget + discoverability gate (paper — free)
+                               3. run_static_checks.py (ms)
+                               4. collapse_check.py (seconds)  ← mechanical, runs BEFORE any oracle
+                               5. oracle 1x + NOP (minutes, parallel) — sanity check only
+                             Any check that fires forces re-entry at the cheapest unchecked point,
+                             so expensive oracle time is never wasted on a collapse-failing task.
+                             Do NOT run oracle 10x here — that's Step 4's job.
+Step 3a (opt-in): Cursor   → Diagnostics for REVISIONS only — GPT-5.2 quality check (3a-Q)
+                             and/or verifier_health.py (3a-V). Completely optional for new tasks.
+Step 3b:          Cursor   → LLM-LEVEL REVIEW ONLY (paper, no oracle runs). Three sub-steps:
+                               1. Structural review against @review-and-submit.mdc
+                               2. LLM-level collapse audit (@difficulty-calibration.mdc Part A)
+                               3. Per-test feasibility paper review (Part B; escalate to 3a-V if needed)
+                             Mechanical collapse_check already ran in Step 2b — not repeated here.
+                             Any edit dirty-flags back to Step 2b's static → collapse → 1x oracle +
+                             NOP (NOT 10x — 10x is deferred to Step 4).
+Step 3b→4 (re-entry):  Cursor   → DIRTY-FLAG RE-VALIDATION (only when you edited a task file in Step 3a/3b)
+                              If you made ANY task-file edit during Step 3a or Step 3b, the Step 2b
+                              mechanical evidence is stale. Before proceeding to Step 4, rerun the
+                              Step 2b mechanical chain for the current working tree state:
+
+                                python3 run_static_checks.py --task-dir tasks/<task-name> --version edition_2
+                                python3 collapse_check.py tasks/<task-name>
+                                harbor run -p "tasks/<task-name>" -a oracle
+                                harbor run -p "tasks/<task-name>" -a nop
+
+                              Then rerun Step 3b (paper review) to confirm no concept-level regressions.
+                              Only after that is it valid to run Step 4's 10x oracle stress test.
+Step 4:           Cursor   → ORACLE 10X + Package + Approval Gate. Four sub-steps:
+                               1. Oracle 10x flakiness check (the ONLY place 10x runs)
+                               2. Generate zip (excluding FORBIDDEN_ROOT_FILES like output_contract.toml)
+                               3. approve_task.py (static + collapse + zip validation re-run)
+                               4. Decision: ACCEPT / ACCEPT WITH NOTES / REJECT. No SEND FEEDBACK.
+Platform submit:           → Upload the zip produced by Step 4.
 ```
 
+### Construction-to-spec, not construction-then-validate (the primary principle)
+
+Every check in this workflow — `run_static_checks.py`, `collapse_check.py` RC1-RC7, `@review-and-submit.mdc` §1-7, `@difficulty-calibration.mdc` Part A and Part B — is fully documented upstream. The agent drafting in Step 2b has access to every rule before writing a single file. The expected outcome of a disciplined draft is **one-shot PASS through every check**. The checks exist to catch hallucination and drift, not to discover the correct design interactively.
+
+This shapes the entire workflow:
+- **Step 2b** is a construction phase, spec-aware throughout. The Construction discipline at the top of Step 2b names every rule an author must internalize before drafting. File-level construction hints point each file at the rules it must satisfy *at construction time*.
+- **The mechanical checks in Step 2b** (`run_static_checks.py`, `collapse_check.py`, oracle 1x + NOP) are **verification, not discovery**. The first-try verdict on all three should be PASS. A FAIL means construction missed a rule that was already visible — fix the specific violation with a minimal edit, don't iterate to explore.
+- **Step 3b** is a second-opinion verification pass. Its default outcome is also clean — the only findings that regularly survive disciplined construction are concept-level judgement calls the mechanical checks can't see.
+- **Edits that do happen** use the preservation discipline below: they're labelled, minimal, and don't regress gates that have already passed.
+
+If `run_static_checks.py`, `collapse_check.py`, or oracle + NOP regularly FAIL on first try, the fix is not "add more iterations" — the fix is "tighten construction discipline." The checks' job is hallucination-catching, not design coaching.
+
+### The cheapest-first ordering (why it still matters)
+
+Even in the disciplined default case, any edit that does happen should re-enter verification at the cheapest check that hasn't re-confirmed the new state. Checks that can force task-file edits run in cost order: paper checks, then `run_static_checks.py` (ms), then `collapse_check.py` (seconds), then oracle 1x + NOP (minutes), then LLM review (paper), then oracle 10x (many parallel minutes). Every edit bounces re-entry back to the cheapest unverified check, so no expensive run is ever invested in a task that a later cheap check would reject.
+
+The 10x oracle stress test runs exactly **once per development cycle**, at the start of Step 4, after every structural and concept-level edit is already settled. Do not invoke `harbor run -p ... -a oracle -k 10 -n 10` from Step 2b or Step 3b. The cheap sanity variant is `harbor run -p ... -a oracle` (no -k = one trial).
+
+### Preservation discipline (why re-runs should confirm, not discover)
+
+Construction-to-spec gets the task right on first draft. Cheapest-first ordering prevents wasted work when an edit does happen. Preservation discipline makes those edits minimal: every gate that passes is an invariant on all later work — a later edit should be designed to preserve every already-passing gate. The dirty-flag rule is the safety net that catches regressions; preservation discipline is the default plan that makes those regressions rare. When a Step 3b (or Step 3a, or Step 4) fix breaks an earlier gate, it should be a labelled *justified regression*, not the normal consequence of any fix. See Step 3b's "Preservation discipline" subsection for the edit-risk map and textual self-checks; the same discipline applies to Step 3a and Step 4 fix loops.
+
 ### Setup
-- **Step 1**: Attach the entire `web/` folder to ChatGPT (drag and drop all 4 files).
-- **Steps 2a–3**: Open the repo in Cursor. The `.cursor/rules/` files auto-apply.
+- **Step 1**: Attach the entire `web/` folder to ChatGPT (drag and drop all 6 files).
+- **Steps 2a–4**: Open the repo in Cursor. The `.cursor/rules/` files auto-apply.
 
 ---
 
-## Step 1: ChatGPT — Idea Generation
+## Step 1: ChatGPT — Build the Step-2a Seed Bank
 
-Use this prompt to generate and screen task ideas. Run it multiple times until you have a strong candidate.
+Use **exactly two prompts** for the default Step 1 flow.
+
+The default Step 1 output is **not** a tiny shortlist. It is a **goal-sized Step-2a-ready seed bank** you can take into Cursor. Unless you specify otherwise, the default target is **150 Step-2a-ready seeds** after Option A.
+
+### Prompt 1 — Option B: build the seed bank
+
+Attach the entire `web/` folder and say:
 
 ```text
-You are helping me find a strong Terminal-Bench 3 / Terminus Edition 2 task idea.
-
-Follow the attached bundle files. This bundle is hard-only.
-
-Rules:
-- Reject class-project ideas, giant scopes, busywork, obscure-fact lookups, hidden-instance gimmicks.
-- Reject ideas that are only hard because of one hidden broken file or one magic lookup.
-- Reject ideas likely to collapse into policy-knob transcription, finite state-table repair, toy hardening checklists, or pre-factored recipe completion.
-- Reject "implement this spec" ideas — if the concept is "write a program that does X" where X is fully specified, it's easy regardless of output complexity.
-- Reject build-from-scratch on blank canvas — hard tasks need an existing system with real coupling to understand and debug.
-- Reject in-distribution recipes — HMAC verification, JSON validation, Monte Carlo CI, sliding windows, policy checkers are trivial for frontier models.
-- Every surviving idea must satisfy all 5 hardness axes: (1) agent must discover info not in instruction, (2) answer spans multiple interacting systems, (3) instruction describes symptoms not causes, (4) local fixes break distant invariants, (5) domain reasoning beyond training distribution.
-- Avoid Python unless there is a compelling reason.
-- Avoid FastAPI unless there is a compelling reason.
-- Do not label ideas as `long_context`, `api_integration`, or `ui_building` unless they actually satisfy the strict criteria in the bundle.
-- If no clearly hard survivor exists, say REGENERATE and produce a better batch.
-
-For each surviving idea, provide:
-- Short title (3-4 words)
-- 1-2 sentence concept
-- Why it is hard for a good reason
-- What the verifier would check at a high level
-- Biggest likely rejection risk
-- Verdict: strong candidate / borderline / reject
-
-End by naming the single best candidate.
-
-Here is my input:
-
-[PASTE ONE OF THE FOLLOWING]
-
-Option A — Seed idea:
-Treat this as one candidate and generate 5-8 nearby variants or alternate framings around the same real-world problem. Do not just evaluate the seed — challenge it with stronger alternatives.
-[your task idea, screenshot, or a favorite from a previous batch]
-
-Option B — Domain exploration:
-Generate 8-12 fresh hard-task candidates in this domain: [your domain]
+Run Option B from `web/bulk-idea-generation.md` in goal-sized opus-weak mode.
+The final target after Option A is 150 Step-2a-ready seeds.
+Use the four Opus-weak categories, keep the bank category-balanced, keep Topology distinct within category, and return one downloadable `.md` seed-bank file.
 ```
 
-This step is iterative. Keep running it until you have a winner:
-- "Regenerate — none of these are hard enough"
-- "I like #3, give me variants around that" (paste #3 back as Option A)
-- "Compare #2 and #4 — which survives better?"
-- "Try a completely different domain: [new domain]" (Option B again)
+### Prompt 2 — Option A: consolidate the final bank
 
-Once you have a strong candidate, move to Step 2a in Cursor.
+Attach the `.md` file produced by Prompt 1 and say:
+
+```text
+Run Option A from `web/option-a-seed-refinement.md` in step2a-bank mode against the attached bulk-ideas file.
+The final target is 150 Step-2a-ready seeds.
+Repair or replace weak seeds instead of collapsing to a tiny shortlist.
+Keep the four Opus-weak categories balanced, keep Topology distinct within category, and return one downloadable `.md` file.
+```
+
+### Optional strict reduction pass
+
+Only if you later want a tiny shortlist for immediate drafting, run Option A again in `finalist mode`.
+
+### Practical notes
+
+- The Step 1 output should be a **bank you can mine inside Cursor**, not a celebration that only 4 or 8 ideas survived.
+- If one category saturates, narrow to better subsystem framings before backfilling from another category.
+- Keep Step 1 ideas in hard-only territory: no blank-canvas implementations, no obvious mediums, no fake hardness from giant scope or busywork.
+- Option A is allowed to **refine or replace** weak seeds to keep the final bank full. That is the intended behavior.
+
+Once you have the Step-2a-ready bank file, move to Step 2a in Cursor and validate whichever seed you want to pursue first.
 
 ---
 
@@ -183,32 +225,58 @@ Use the authoring spec's metadata, public contract, failure topology, environmen
 
 Place files under tasks/<task-name>/ (get the task name from the authoring spec's Metadata section).
 
+## Construction discipline (read BEFORE drafting any file)
+
+Every check that runs after File creation — `run_static_checks.py`, `collapse_check.py` RC1-RC7, oracle 1x, NOP, Step 3b's structural review, Part A collapse audit, Part B feasibility — has its rules fully documented upstream. You already know what every check will examine. The expected outcome of disciplined construction is **one-shot PASS through every mechanical and LLM-level check**. The checks are hallucination catchers, not design oracles — a FAIL after construction means the draft missed a rule you already had access to, not that the correct design is being discovered interactively.
+
+Before drafting any file, internalize these rule sources:
+
+- `@task-creation.mdc` — file layout, canonical `test.sh` template (standard vs. UI), Dockerfile rules, `output_contract.toml` contract, humanization rules for `instruction.md`, milestone naming.
+- `@review-and-submit.mdc` §1-7 — the structural checklist Step 3b will walk (Instruction, Environment, Oracle Solution, Verifiers, Task Metadata, Task Structure, Difficulty Calibration). Every bullet there is something you can satisfy at construction.
+- `@difficulty-calibration.mdc` Part A — the collapse audit template (smallest plausible patch, editable frontier, requirement-to-file map, oracle LOC, discoverability, red flags, residual hardness). Design the task so this audit returns PASS on the first read.
+- `@difficulty-calibration.mdc` Part B — per-test feasibility risks: single-valid-approach, chain-dependency, order-sensitivity, flakiness, niche-technique. Avoid creating any of these while writing tests.
+- `collapse_check.py` RC1-RC7 — mechanical collapse rules. Each RC translates to a specific construction constraint:
+
+| RC  | Rule                   | What this means at construction time                                                                                                                                  |
+|-----|------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| RC1 | Oracle simplification  | `solve.sh` must add logic, not just delete/revert. If the "fix" is `sed -i '/BUG/d'`, the task is trivial — redesign.                                                  |
+| RC2 | Oracle predictability  | File, directory, and test names must not encode the task contract. No `broken_*`, `buggy_*`, `fix_me_*`, `golden_*` tokens in solver-visible surfaces.                 |
+| RC3 | Verifier shallowness   | Tests must assert domain-correct computed values, not format/schema/existence alone. Every explicit prohibition in `instruction.md` needs a direct test.               |
+| RC4 | Tamper surface         | Tests must not depend on files the agent can rewrite to bypass domain reasoning. Compute expected values in test code; don't read "golden" files from `environment/`.  |
+| RC5 | Reference artifacts    | No answer-shaped golden/reference/broken fixtures on solver-visible surfaces (`instruction.md`, `tests/`, `environment/`). Embed expected values in test code.         |
+| RC6 | Instruction specificity| `instruction.md` stays symptoms-only. No algorithm names, schema enumerations, CLI flag lists, numeric thresholds, file/function locations, cause statements, recipes. |
+| RC7 | Oracle triviality      | `solve.sh` non-boilerplate LOC ≥ 30 (≥ 80 is comfortable). If the genuine fix is <30 LOC, the task is too simple — redesign before drafting, don't pad.               |
+
+Construction is spec-aware, not spec-discovering. While writing each file, pre-validate against the rules relevant to that file. The mechanical checks afterward should confirm, not discover, that construction was correct. If you find yourself thinking "I'll let the check tell me," stop — read the rule now, apply it now.
+
 ## File creation
 
-Create the files required by the brief and by @task-creation.mdc. The exact file set depends on task type:
+Create the files required by the brief and by `@task-creation.mdc`. The exact file set depends on task type. For each file below, the parenthetical names the primary rules you must satisfy *during construction*, not after.
 
 **Standard tasks (most tasks):**
-- tests/test_outputs.py — implement test plan, target 6+ tests
-- tests/test.sh — start from the standard platform template in @task-creation.mdc and preserve its command order/control flow; only the documented semantic variations are allowed
+- `tests/test_outputs.py` — implement test plan, target 6+ tests. (RC3 domain correctness, RC4 tamper resistance, Part B feasibility risks, @review-and-submit.mdc §4 Verifiers, instruction_test_vocabulary static check.)
+- `tests/test.sh` — start from the standard platform template in `@task-creation.mdc` and preserve its command order / control flow verbatim; only the documented semantic variations are allowed. (§4 template compliance, `shell_script_integrity` LF line endings.)
 
 **Milestone tasks (number_of_milestones > 0):**
-- tests/test_m1.py, tests/test_m2.py, ... — one test file per milestone
-- tests/test.sh — start from the standard platform template in @task-creation.mdc and preserve its command order/control flow; only the documented semantic variations are allowed
+- `tests/test_m1.py, tests/test_m2.py, ...` — one test file per milestone, each scoring only its own milestone. (@review-and-submit.mdc §4 milestone rules, RC3/RC4 as above.)
+- `tests/test.sh` — same template discipline as standard.
 
 **UI tasks (subcategories includes ui_building):**
-- tests/test_outputs.py — unit tests
-- tests/ e2e test files — Playwright/Vitest as specified in @task-creation.mdc
-- tests/test.sh — copy the UI platform template from @task-creation.mdc (different from standard)
+- `tests/test_outputs.py` — unit tests. (Same RC3/RC4/Part B as standard.)
+- `tests/` e2e test files — Playwright/Vitest as specified in `@task-creation.mdc`. (§4 UI-task verifier rules.)
+- `tests/test.sh` — copy the UI platform template from `@task-creation.mdc` (different from standard).
 
 **All task types:**
-- instruction.md — write human-style per humanization rules in @task-creation.mdc
-- task.toml — fill in all metadata from the authoring spec
-- output_contract.toml — declare `user_visible_outputs`, `structured_outputs`, and `internal_harness_files`. The instruction must cover only the declared user-visible outputs and schemas; do not mention a literal `internal_harness_files` path in instruction.md unless that same path is also declared in `user_visible_outputs`.
-- environment/Dockerfile — pin FROM by digest, pin apt versions
-- solution/solve.sh — implement a deterministic oracle consistent with the authoring spec (set -euo pipefail for solve.sh only)
-- All environment source files required by the authoring spec's environment shape and your chosen internal design
+- `instruction.md` — write human-style per humanization rules in `@task-creation.mdc`. (RC6 symptoms-only, §1 Instruction checklist, absolute paths, no emojis, no synthetic Deliverables/Artifacts/Acceptance-Criteria sections, no algorithm/CLI/schema/threshold/file-location leakage, no bold-markers on solution-adjacent values.)
+- `task.toml` — fill in all metadata from the authoring spec. (§5 Task Metadata, `timeout_coherence`: `verifier.timeout_sec` ≥ `environment.build_timeout_sec` and ≤ 1800, `subcategories` not `task_subtypes`, 3-6 tags, matching `codebase_size` vs. env file count.)
+- `output_contract.toml` — declare `user_visible_outputs`, `structured_outputs`, and `internal_harness_files`. The instruction must cover only the declared user-visible outputs and schemas; do not mention a literal `internal_harness_files` path in `instruction.md` unless that same path is also declared in `user_visible_outputs`. (Static `output_contract` check, `instruction` check for `internal_harness_files` leakage.)
+- `environment/Dockerfile` — pin `FROM` by digest, pin apt versions, set a real `WORKDIR`, ensure every `COPY`/`ADD` source path resolves inside the build context. Do NOT copy `solution/`, `tests/`, or answer fixtures into the image. Test-only deps go in `tests/test.sh`, not here. (§2 Environment, `dockerfile_copy_sources` static check, `package_hygiene` static check.)
+- `solution/solve.sh` — deterministic, no network, no randomness, no timing/wall-clock dependencies. Non-boilerplate LOC ≥ 30 (aim for 80+ for comfortable RC7). `set -euo pipefail` is allowed here (only). (RC1/RC7, §3 Oracle Solution.)
+- All environment source files required by the authoring spec's environment shape and your chosen internal design. Do NOT embed golden hashes / reference outputs / expected digests in any file that solver-visible surfaces reach. Env file count must be ≥ 20 (anything less is `minimal` and blocked). (RC5, §2 env count, `package_hygiene`.)
 
-Check @task-creation.mdc for the correct template and file layout for your task type.
+When any constraint would force you off the authoring spec's design, stop and revise the draft rather than "work around" — the constraint is from a rule the spec already assumed you'd satisfy. This is the same discipline as Step 3b's preservation rule, applied at construction: every rule is an invariant, not a hurdle to clear retrospectively.
+
+Check `@task-creation.mdc` for the correct template and file layout for your task type.
 
 ## Discovery budget confirmation (mandatory, run after all files exist)
 
@@ -239,30 +307,69 @@ If ANY answer is yes: identify the signal and eliminate it. Then re-verify oracl
 
 Report what you checked and what you changed (if anything).
 
-## Static checks
+## Static checks (verification, not discovery)
 
-After everything is finalized, run the task-scoped static checker. It covers repo-local structural/compliance rules only; it does not replace `collapse_check.py`, the Harbor quality check, or the final approval decision:
+Run the task-scoped static checker:
   python3 run_static_checks.py --task-dir tasks/<task-name> --version edition_2
 
 Then verify the environment file count (excluding Dockerfile/docker-compose):
   find tasks/<task-name>/environment -type f ! -iname 'Dockerfile' ! -iname 'docker-compose*' | wc -l
 
-This must be 20 or more. Under 20 is a blocking failure: the task is `minimal`, which is rejected on the default Edition 2 path. Treat this as a minimum realism floor, not as evidence that the task is hard. If under 20, add genuine source modules, headers, data files, or config files that the task actually needs. Do not hover at exactly 20, and do not add empty or trivial padding files.
+Must be 20 or more. If under 20, you skipped the env-file-count constraint in the Construction discipline — the authoring spec should have produced enough substantive environment files on the first draft. Do not add empty or trivial padding; if the task genuinely needs <20 files, the task is too small and should have been caught in Step 2a.
 
-Report any failures and fix them.
+**Expected outcome:** PASS on the first run. Every rule `run_static_checks.py` enforces was visible to you during construction (task.toml schema, `test.sh` template conformance, timeout coherence, dockerfile COPY sources, package hygiene, shell script LF line endings, etc.). A FAIL means you missed a rule while drafting — read the specific failure, identify which construction-time rule it violates, apply the minimal fix that satisfies it without disturbing anything else. This is rare if construction followed the discipline.
 
-## Mechanical collapse gate (BLOCKING — run after static checks pass)
+## Mechanical collapse check (verification, not discovery)
 
-Run the automated collapse/discoverability checker:
+Run:
   python3 collapse_check.py tasks/<task-name>
 
-This checks 5 root-cause signals: oracle simplification, oracle predictability, verifier shallowness, tamper surface, and agent-visible reference artifacts on the solver-visible file surfaces from `@task-creation.mdc` (`instruction.md`, `tests/`, and `environment/`; excluding `task.toml` and `output_contract.toml`). Predictability now considers visible artifact file names and explicit test names in addition to instruction keywords. Reference-artifact/tamper checks also look for answer-shaped verifier material such as hardcoded digest/checksum targets and large inline or generated shadow simulators/state machines. Oracle/frontier analysis is transitive: it follows solution-local called scripts, patch hunks, heredoc writes, in-place shell rewrites (`sed -i`, `perl -0pi`, temp-file rewrite + `mv`, `cp`/`install` replacements), and simple inline Python rewrite/write patterns instead of only grepping `solution/solve.sh`.
+**Expected outcome:** PASS on the first run. Every signal `collapse_check.py` examines (RC1-RC7) was named in the Construction discipline. The expected verdict for a disciplined draft is PASS.
 
-- **FAIL (exit 1):** At least one fatal signal. Fix the flagged issue before proceeding to Step 3a. Common fixes: rename files/directories to not encode the task contract, restructure oracle so it does real work instead of collapsing to no-ops, add output validation to tests so exit-code-only cheating doesn't work, and remove answer-shaped artifacts from solver-visible files.
-- **WARN (exit 2):** Non-fatal signals that need justification. Proceed to Step 3a but document why each WARN is acceptable in your report.
-- **PASS (exit 0):** No signals. Proceed to Step 3a.
+Interpret the result:
+- **PASS (exit 0):** construction-to-spec succeeded. Proceed to the oracle + NOP sanity check below.
+- **WARN (exit 2):** one or more RCs emitted non-fatal signals. Acceptable for a small number of WARNs with documented justification, but more than one WARN usually means construction drifted off the spec — reread the RC-to-construction mapping in the Construction discipline before continuing.
+- **FAIL (exit 1):** construction missed an RC rule the task should have satisfied by design. Identify the violated RC from the failure output, map it back to the construction constraint it represents, and apply the smallest fix that satisfies it. **A FAIL here is a hallucination-catch, not a normal iteration cycle** — if FAILs recur, the issue is drafting discipline, not the checker. Common mapping:
+  - RC1/RC7 FAIL → oracle is too trivial; this is a task-design issue that should have been resolved in Step 2a. Consider whether the task concept is genuinely hard.
+  - RC2 FAIL → a file, directory, or test name encodes the contract. Rename.
+  - RC3/RC4 FAIL → tests check format/existence or depend on tamperable surfaces. Rewrite assertions to assert computed domain values.
+  - RC5 FAIL → a reference artifact leaked into solver-visible space. Move expected values into test code.
+  - RC6 FAIL → `instruction.md` over-specifies the fix. Rewrite symptoms-only; the Construction discipline listed every signal family that triggers this.
 
-Do NOT proceed to Step 3a with a collapse_check.py FAIL. Fix the issues first, re-run static checks, re-run collapse_check.py, and only proceed when it returns PASS or WARN.
+After any fix, rerun `run_static_checks.py` then rerun `collapse_check.py`. Do NOT proceed to the oracle + NOP sanity check with a FAIL — every cycle of oracle investment on a collapse-failing task is wasted.
+
+## Oracle + NOP sanity check (verification, not discovery)
+
+This is a **sanity check**, not a flakiness test. Launch in parallel in separate terminals (no API key needed):
+  harbor run -p "tasks/<task-name>" -a oracle
+  harbor run -p "tasks/<task-name>" -a nop
+
+Without `-k`, harbor runs exactly one oracle trial. That's the point: a single trial is enough to confirm the plumbing works (Dockerfile builds, test.sh wires up, solve.sh produces artifacts tests accept, NOP baseline is correctly rejected). The 10x stress test belongs in Step 4, after every structural edit is settled — running it here wastes time any later edit would invalidate.
+
+**Expected outcome:** oracle 1.0, NOP 0.0 on the first run. By this point, `run_static_checks.py` and `collapse_check.py` have already verified structural correctness; the oracle + NOP run confirms end-to-end plumbing. A disciplined construction with a correct Dockerfile, matching `solve.sh`, and tests that assert what `solve.sh` actually produces should pass first try.
+
+If either fails, construction missed a plumbing concern:
+- Oracle <1.0: `solve.sh` doesn't produce what tests expect, or the Dockerfile doesn't build, or `tests/test.sh` is not wired correctly. Preservation hint: when fixing, keep other gates' invariants in mind — an oracle fix that adds non-determinism will pass 1x but fail Step 4's 10x; a fix that changes solve.sh's outputs may require matching test updates. Then rerun `run_static_checks.py` and `collapse_check.py` (cheap; guards against regressions introduced by the fix), and re-run this sanity check.
+- NOP >0.0: tests are too permissive — an empty/default output already passes. This usually traces to an RC3 slip-through (asserting existence instead of computed correctness). Fix by asserting domain-correct values, not format alone. Preservation hint: don't over-tighten. An assertion tightened past what `solve.sh` actually produces will fail oracle 1x. Keep NOP rejected AND oracle accepted simultaneously. Then rerun `run_static_checks.py` and `collapse_check.py`, and re-run this sanity check.
+
+Do NOT run `harbor run ... -a oracle -k 10 -n 10` here. Flakiness hunting is Step 4's job, once every edit is locked in.
+
+## Report and stop
+
+Report ONLY these:
+1. Files created under tasks/<task-name>/
+2. Discovery-budget confirmation per item
+3. Discoverability-gate answers (plus any signal eliminated)
+4. `run_static_checks.py` verdict — ideally PASS on first run
+5. `collapse_check.py` verdict per RC1-RC7 — ideally PASS on first run
+6. Oracle score (1/1) and NOP score (0.0) — ideally on first run
+7. Any check that did NOT pass first try — which construction rule was missed, and the minimal fix applied
+
+A clean Step 2b report has zero fixes to describe in item 7. A report with one or two construction-rule slips and minimal fixes is fine. A report with many fixes is a signal that construction discipline needs more attention — not that the checks are working as intended.
+
+Then **stop.** Do not run `validate_submission_zip.py`, `approve_task.py`, or the 10x oracle stress test here — those live in Step 4. Do not produce any ACCEPT / ACCEPT WITH NOTES / REJECT verdict here either; the verdict belongs in Step 4 after the Step 3b review and the approval gate have both run.
+
+If paper checks, static, collapse, and the oracle + NOP sanity check all pass, the task is ready for Step 3b (review). If a reviewer or platform feedback triggers a diagnostic, go to Step 3a first; otherwise go straight to Step 3b.
 
 Authoring spec path: [PASTE THE PATH e.g. specs/block-krylov-resume.md]
 Reviewer appendix path: [PASTE THE PATH e.g. specs/block-krylov-resume-reviewer.md]
@@ -270,205 +377,407 @@ Reviewer appendix path: [PASTE THE PATH e.g. specs/block-krylov-resume-reviewer.
 
 ---
 
-## Step 3a: Cursor — Harbor Execution
+## Step 3a (Optional, for Revisions): Cursor — Diagnostics
 
-Run all harbor commands. This step is purely execution — no analysis or decisions yet.
+**Step 3a is for REVISIONS, not for new-task approval.** For a routine new task, go straight from Step 2b to Step 3b. The diagnostics here are heavier harbor / LLM runs and are opt-in by design.
+
+Both `harbor tasks check` (quality check) and `verifier_health.py` are **completely optional** for new tasks. They exist to support revisions — e.g., platform feedback came back, a reviewer requested a specific audit, or post-upload CI flagged something that needs a deeper look.
+
+**Revision / escalation triggers**
+- Platform agent trials reported 0/10 while Step 2b's oracle + NOP look healthy → 3a-V (verifier_health).
+- A specific test looks chain-dependent, order-sensitive, or potentially flaky → 3a-V.
+- A reviewer asked for partial-oracle ablation evidence → 3a-V.
+- A reviewer asked for a GPT-5.2 rubric audit, or post-upload feedback points at instruction/test wording → 3a-Q.
+- Step 4's 10x oracle stress showed intermittent failures → 3a-V with `--include-repeat-oracle`.
+
+3a-Q and 3a-V are independent. Run 3a-Q alone, 3a-V alone, or both. Skip both entirely for routine new tasks.
+
+**Prerequisites for either sub-step**
+- Step 2b's mechanical gates all passed (static_checks, collapse_check, 1x oracle + NOP sanity).
+- Task files are unchanged since Step 2b.
+
+**After running a Step 3a sub-step:** rerun Step 2b's mechanical gates on any files that changed (static → collapse → 1x oracle + NOP — not 10x), then go to Step 3b (review) and Step 4 (10x + package + approve). Attach the artifact(s) to `approve_task.py` in Step 4 — see the Step 4 flag table.
+
+
+### 3a-Q. Quality check (GPT-5.2 rubric audit) — OPT-IN, REVISIONS
+
+Run when a reviewer requested it or you want to pressure-test the instruction/test wording against an LLM judge.
 
 ```text
-Run harbor validation for the task. You are allowed to run shell commands. Start from the project root.
+1. Source the OpenAI API key:
+     set -a && source .env && set +a
+   If .env is missing or has no key, state so and skip 3a-Q entirely.
 
-### 1. Preflight (oracle + NOP may run in parallel in separate terminals)
-Oracle stress test (10 parallel runs — no API key needed):
-  harbor run -p "tasks/<task-name>" -a oracle -k 10 -n 10
+2. Capture the harbor quality check to a JSON file:
+     harbor tasks check "tasks/<task-name>" -m "openai/gpt-5.2" -o /tmp/<task-name>-qc.json
 
-ALL 10 must score 1.0. Any failure = oracle is broken or flaky. Report exact scores.
+3. If any ❌ fail is reported, adjudicate every fail before editing anything:
+     python3 quality_check_adjudicate.py \
+         --task-dir tasks/<task-name> \
+         --qc-output /tmp/<task-name>-qc.json \
+         --out /tmp/<task-name>-quality-check-adjudication.json
 
-NOP baseline (no API key needed):
-  harbor run -p "tasks/<task-name>" -a nop
+   Author `tasks/<task-name>/quality_check_adjudication.json` with one entry per fail. Each entry must include `rubric_axis`, `finding_summary`, and `classification` plus class-specific evidence:
+   - `task-defect` — real gap. Blocking until repaired. Requires `repair_reference` (commit SHA, PR URL, or `"pending"`).
+   - `convention-conflict` — checker remedy contradicts a rule enforced by `run_static_checks.py`, `collapse_check.py`, or the canonical templates in `task-creation.mdc`. Requires `enforcing_rule.file` and `enforcing_rule.line`.
+   - `unsupported` — finding cites code/fields/behavior that do not exist in the task. Requires `negative_lookup.command` and `negative_lookup.expected_stdout`.
 
-Must score 0.0. If it scores above 0.0, the verifier accepts the broken baseline.
-You may launch oracle and NOP at the same time, but do not edit task files during either run.
+   `quality_check_adjudicate.py` exits non-zero whenever any fail is unadjudicated or classified `task-defect`.
 
-### 2. Source OpenAI API key (needed for the GPT-5.2 quality check)
-  set -a && source .env && set +a
-If .env is missing or does not contain an OpenAI API key, state so and skip step 3. Oracle and NOP results above are still valid; the mechanical stack in Step 3b will still run.
+4. **Quality-vs-difficulty tension (READ BEFORE EDITING).** Fixing quality findings like `behavior_in_task_description`, `behavior_in_tests`, or `anti_cheating_measures` often tempts you to add specifics to `instruction.md`, test assertions, or runtime checks. The same specificity is exactly what RC6 (instruction spec-completeness) and the collapse/discoverability gate reject. Satisfy the quality check by describing **observable behavior and acceptance criteria**, not by leaking algorithms, fix locations, cause attributions, exact thresholds, or solver recipes. If a quality finding cannot be repaired without revealing cause-level detail, the failure is a task-design problem, not a wording problem — restructure the underlying test/oracle/environment instead. Adjudication (as `convention-conflict` or `unsupported`) is the correct response when a fail is hallucinated or contradicts a repo-enforced rule.
 
-### 3. Quality check (requires OpenAI API key)
-Only after Oracle and NOP pass, capture the harbor result to a JSON file so it can be adjudicated:
-  harbor tasks check "tasks/<task-name>" -m "openai/gpt-5.2" -o /tmp/<task-name>-qc.json
+5. For each `task-defect` you chose to repair by editing task files, apply the **Step 3b preservation discipline** (predict at-risk gates, prefer preservation-safe fixes, label justified regressions):
+   a. State the finding and the exact edit. Name the at-risk gates (most quality-check defects impact instruction.md wording → RC6 and `instruction_test_vocabulary`; some impact tests → NOP and RC3/RC4).
+   b. Run `python3 collapse_check.py tasks/<task-name>`. FAIL = revert/restructure the edit. WARN = note whether each signal was already present pre-edit. PASS = proceed.
+   c. Re-read `instruction.md` honestly — did the edit add algorithm names, schemas, CLI flags, thresholds, file/function locations, cause statements, or step-by-step recipes? If yes, rewrite the edit to stay at symptom/behavior level.
+   d. Rerun Step 2b's oracle 1x + NOP sanity check (results from before the edit do NOT carry forward; do not run 10x here — 10x is Step 4's). A preservation-safe edit should re-pass this on the first try; if it doesn't, the edit wasn't actually preservation-safe.
+   e. Rerun the harbor quality check and re-adjudicate.
 
-Report ALL results. Any ❌ fail on any rubric axis must be adjudicated via `quality_check_adjudicate.py` before you decide to edit task files (see Step 3a-ii). Findings classified `task-defect` are blocking and must be repaired; `convention-conflict` and `unsupported` classifications are waivable with the evidence the script requires.
+   Repeat until `quality_check_adjudicate.py` exits 0 AND `collapse_check.py` is not FAIL.
 
-**Quality-vs-difficulty tension (READ BEFORE EDITING).** Fixing quality findings like `behavior_in_task_description`, `behavior_in_tests`, or `anti_cheating_measures` typically pushes you to add specifics to `instruction.md`, test assertions, or runtime checks. The same specificity is exactly what RC6 (instruction spec-completeness audit) and the broader collapse/discoverability gate reject. Past regression: a task passed Harbor quality by rewriting `instruction.md` to state the algorithm, schemas, and thresholds directly, and then failed RC6 because `instruction.md` had become a spec. Your job here is to satisfy the quality check by describing **observable behavior and acceptance criteria**, not by leaking algorithms, fix locations, cause attributions, exact thresholds, or solver recipes. If you cannot repair a quality finding without revealing cause-level detail, the failure is a task-design problem, not a wording problem — stop editing the instruction and restructure the underlying test/oracle/environment instead. The adjudication layer in Step 3a-ii is the correct response when a fail is hallucinated or contradicts a repo-enforced rule; do not edit task files to pacify a hallucination.
+6. Pass the adjudication artifact to `approve_task.py` via `--quality-check-adjudication /tmp/<task-name>-quality-check-adjudication.json` when you run Step 4.
 
-### 3a-ii. Adjudicate quality findings (run BEFORE editing any task file)
+Report: harbor capture path, adjudication gate, per-finding classification, any files edited, post-edit `collapse_check.py` verdict.
+```
 
-For every `harbor tasks check` capture that reports at least one ❌ fail, run the adjudication layer before deciding to edit anything:
+### 3a-V. Verifier health (partial-oracle + randomized-order) — OPT-IN, REVISIONS
 
-  python3 quality_check_adjudicate.py \
-      --task-dir tasks/<task-name> \
-      --qc-output /tmp/<task-name>-qc.json \
-      --out /tmp/<task-name>-quality-check-adjudication.json
+Run when any of these applies:
+- Platform agent trials scored 0/10 while oracle + NOP both look healthy.
+- A specific test looks chain-dependent, order-sensitive, or flaky.
+- A reviewer asked for partial-oracle ablation evidence.
+- Step 4's 10x oracle stress shows intermittent failures (include --include-repeat-oracle in that case).
 
-On first run you will need to author `tasks/<task-name>/quality_check_adjudication.json` with one entry per fail. Each entry must include `rubric_axis`, `finding_summary`, and `classification` plus the class-specific evidence:
+```text
+1. Run the diagnostic:
+     python3 verifier_health.py --task-dir tasks/<task-name> \
+         --output-json /tmp/<task-name>-verifier-health.json
 
-- `task-defect` — real gap. Blocking until repaired. Requires `repair_reference` (commit SHA, PR URL, or `"pending"`). Repair the task, rerun Step 3a, regenerate the harbor capture, and re-adjudicate.
-- `convention-conflict` — checker remedy contradicts a rule enforced by `run_static_checks.py`, `collapse_check.py`, or the canonical templates in `task-creation.mdc`. Requires `enforcing_rule.file` and `enforcing_rule.line` (the script verifies the file exists and the line is within the file). Example: the canonical `tests/test.sh` uv installer line at `run_static_checks.py:761` — removing it fails `run_static_checks.py --only test_sh`.
-- `unsupported` — finding cites code, files, fields, thresholds, or behavior that do not exist in the task. Requires `negative_lookup.command` and `negative_lookup.expected_stdout` (typically `""`); the script re-executes the command at adjudication time and confirms the output matches.
+   The default pass runs randomized-order + partial-oracle ablations on temporary task copies; it does not modify the real task dir. Pass --include-repeat-oracle only when you specifically want the repeated-oracle stress test.
 
-`quality_check_adjudicate.py` exits non-zero whenever any fail is unadjudicated or classified `task-defect`. If it exits non-zero, either repair the `task-defect` entries or add the missing evidence — do not pacify a hallucinated finding by over-specifying `instruction.md` or tightening tests beyond the observable contract.
+2. If the report exits non-zero, apply the **Step 3b preservation discipline** when fixing (predict at-risk gates, prefer preservation-safe fixes, label justified regressions). Then interpret the result:
+   - randomized_order FAIL → a test depends on execution order or shared global state. Fix the test (at-risk gates: NOP if the fix loosens assertions, RC3/RC4 if you weaken domain checks, oracle 1x if the fix changes what tests expect of solve.sh's output). Rerun Step 2b's mechanical gates (static → collapse → 1x oracle + NOP), and rerun verifier_health.py.
+   - partial_oracle FAIL (no behavioral failure; all ablations still pass or only compile-break) → the verifier does not discriminate between partial and complete fixes. Fix the tests so a behavioral partial-oracle failure shows up (at-risk gates: same as above; also watch that stronger domain assertions don't accidentally regress oracle 1x by tightening past what the real solve.sh produces). Rerun Step 2b's mechanical gates, and rerun verifier_health.py.
+   - repeat_oracle FAIL (only when --include-repeat-oracle was passed) → the oracle is flaky. Fix determinism in solve.sh or the environment (at-risk gates: oracle 1x if the fix changes outputs, RC1/RC7 if the fix substantially changes oracle LOC).
 
-### 3a. Quality-fix repair loop (run this every time you edit task files to address a quality finding classified `task-defect`)
+3. For any task-file edit made to fix a verifier-health failure: rerun Step 2b's mechanical gates (static → collapse → 1x oracle + NOP, NOT 10x) before re-running verifier_health.py. Pre-edit evidence does NOT carry forward. The 10x stress re-runs automatically when you reach Step 4. A preservation-safe fix should re-pass every gate on the first try.
 
-Run this loop only for findings the Step 3a-ii adjudication classifies as `task-defect`. Hallucinated or convention-conflicting fails are resolved via the adjudication artifact, not by editing task files. For EACH edit made to fix a `task-defect` ❌ (whether that's to `instruction.md`, `tests/`, `solution/`, `environment/`, `task.toml`, or `output_contract.toml`):
+4. Pass the JSON report to `approve_task.py` via `--verifier-health /tmp/<task-name>-verifier-health.json` when you run Step 4.
 
-1. State the finding you are fixing and the exact edit you made (files + nature of change).
-2. Run the mechanical difficulty gate against the current files:
-     python3 collapse_check.py tasks/<task-name>
-   - **FAIL** = the fix regressed difficulty. Revert or restructure the edit so the quality finding is addressed without tripping RC1-RC7. Do not leave an RC FAIL in place to pass the quality check.
-   - **WARN** = note each signal and whether it was already present pre-edit. If the edit introduced a new WARN, prefer restructuring over leaving it.
-   - **PASS** = proceed.
-3. Re-read `instruction.md` after the edit and answer honestly:
-   - Did the edit add algorithm names, schemas, CLI flags, exact thresholds, file/function locations, cause statements, or step-by-step recipes that were not there before?
-   - Did it convert symptom-language into spec-language ("the parser must apply X then Y" instead of "the observed output is wrong in way Z")?
-   - Did new test names/assertion messages or environment file names start describing the fix rather than the observable contract?
-   If yes to any, that is a difficulty regression even if `collapse_check.py` passes this run — rewrite the edit to stay at symptom/behavior level.
-4. Rerun oracle (`harbor run -p "tasks/<task-name>" -a oracle -k 10 -n 10`) and NOP (`harbor run -p "tasks/<task-name>" -a nop`) to confirm the edit did not break correctness.
-5. Rerun the Harbor quality check (`harbor tasks check ... -m "openai/gpt-5.2" -o /tmp/<task-name>-qc.json`) and re-adjudicate via `quality_check_adjudicate.py` to confirm the finding is now either ✅ or a cleanly-classified non-defect, and no new `task-defect` findings appeared.
-
-Repeat steps 1-5 until `quality_check_adjudicate.py` exits 0 AND `collapse_check.py` is not FAIL AND the honest re-read in step 3 shows no new revelation. Do not proceed to Step 3b with an unadjudicated quality output, a `task-defect` entry still present, stale oracle/NOP evidence, a `collapse_check.py` FAIL, or an instruction that became more revealing than the pre-edit version.
-
-If no OpenAI API key in .env, state that quality check was skipped due to missing API key. The difficulty guardrail in 3a still applies to any other edits made in this step.
-
-### 4. Fix and rerun
-If any harbor step fails or reports HIGH findings, fix the issue and rerun from step 1 (preflight), using the 3a repair loop for any edit that touches `instruction.md`, `tests/`, or solver-visible environment surfaces. Every step's evidence must reflect the current state of task files — never carry forward results from before an edit. In particular, an oracle/NOP pass from before an instruction rewrite does NOT satisfy the gate; neither does a `collapse_check.py` PASS from before the rewrite.
+Report: verifier-health decision, blocking failures (if any), any files edited, post-edit Step 2b mechanical-gate result.
 
 ## Constraints
 - Do not claim any command passed unless it was actually run.
 - Show the exact output of each harbor command.
-- If harbor tasks check is blocked by Oracle/NOP failure, say so.
-- Do not run `verifier_health.py` concurrently with Step 3a harbor runs on the same task path; it launches extra oracle jobs during Step 3b.
-
-## Required output
-1. Oracle result: N/10 passed, any failures
-2. NOP result: score
-3. Quality check: full result, list any ❌ fail findings, path to the captured `/tmp/<task-name>-qc.json`
-4. Adjudication result from `quality_check_adjudicate.py`: gate (PASS/FAIL), per-finding classification (`task-defect` / `convention-conflict` / `unsupported` / `unadjudicated`), path to `/tmp/<task-name>-quality-check-adjudication.json`
-5. What you fixed and why (if anything) — per edit, report: finding addressed, files changed, `collapse_check.py` result after the edit (PASS/WARN/FAIL + any new signals vs. pre-edit), and an honest diff summary of `instruction.md` flagging any added algorithm/schema/threshold/location/recipe language
-6. Whether any task files were edited during this step (triggers full rerun)
-7. Final `collapse_check.py` verdict on the current (post-all-edits) task state
+- Do not run `verifier_health.py` concurrently with other harbor runs on the same task path.
 
 Task path: tasks/<task-name>
 ```
 
 ---
 
-## Step 3b: Cursor — Analysis & Decision
+## Step 3b: Cursor — Second-Opinion Review (Verify; Fix Only If Construction Missed Something)
 
-Run after Step 3a completes. This step is primarily analysis, but if you fix any issues, you must revalidate.
+Run after Step 2b's mechanical gates and oracle + NOP sanity check all passed (and any Step 3a sub-step you ran, if any).
 
-**DIRTY-FLAG RULE: If you edit ANY file under `tasks/<task-name>/` during this step (tests, instruction, oracle, environment, metadata) and do NOT restore it to byte-identical state, you MUST rerun Step 3a before making a final decision. Do not approve using pre-edit oracle, NOP, or quality check results. State which files changed and why rerun is needed. Temp-copy automation from `verifier_health.py` does not trigger this rule by itself.**
+Step 3b is **LLM-level second-opinion verification**. The mechanical gates (`run_static_checks.py`, `collapse_check.py`) and oracle 1x + NOP already passed in Step 2b because the task was constructed to the documented rules. Step 3b adds concept-level review that checkers cannot do — structural judgement against `@review-and-submit.mdc` §1-7, an LLM-level read of Part A's collapse template, and a paper review of test feasibility (Part B). There are three sub-steps:
+
+1. Structural review against `@review-and-submit.mdc`
+2. LLM-level collapse audit (`@difficulty-calibration.mdc` Part A — full template; complements the mechanical `collapse_check.py` that already passed in Step 2b)
+3. Per-test feasibility paper review (`@difficulty-calibration.mdc` Part B — flag HIGH-risk tests; escalate to Step 3a-V if needed)
+
+**Expected outcome:** three clean verdicts, no edits, zero dirty-flag. The Construction discipline in Step 2b is spec-aware of every rule Step 3b walks — a disciplined draft should need no corrections here. Step 3b is a second pair of eyes, not a rework phase. If Step 3b consistently needs fixes, the problem is Step 2b construction discipline, not Step 3b's sensitivity.
+
+When Step 3b *does* find something, it's usually a concept-level blind spot the mechanical checks cannot see — a judgement call about whether the oracle is hard enough in context, whether an assertion is "the only valid answer," whether a test is quietly chain-dependent. For those rare concept-level findings, use the Preservation discipline below to apply a minimal fix without regressing earlier gates.
+
+Step 3b does NOT package the task and does NOT run `approve_task.py`. Those are Step 4. Step 3b also does NOT produce the final ACCEPT / ACCEPT WITH NOTES / REJECT verdict — that is Step 4's output, after the mechanical gate has actually run.
+
+Step 3b also does NOT re-run `run_static_checks.py` or `collapse_check.py` — those already passed in Step 2b. If a Step 3b LLM review forces an edit, the dirty-flag rule below handles re-running the Step 2b mechanical gates on the new state.
+
+### Preservation discipline (read before editing anything in 3b)
+
+Edits in 3b should be rare. When they are needed, they must preserve the gates Step 2b already earned. By the time you're in 3b, the task has already passed a specific set of gates in Step 2b, representing real, earned work:
+
+| Gate                      | Invariant the edit must not violate                                                                                                                                                                   |
+|---------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `run_static_checks.py`    | `task.toml` metadata valid; test.sh matches template; env file count ≥ 20; timeout coherence; dockerfile COPY sources resolve; no build-artifact dirs; instruction doesn't leak `internal_harness_files` |
+| `collapse_check.py` RC1-RC7 | Oracle does real ADD logic (RC1/RC7); names don't predict targets (RC2); tests check domain correctness, not format (RC3); tests aren't tamperable (RC4); no answer-shaped reference artifacts in solver-visible surfaces (RC5); instruction stays symptoms-only (RC6) |
+| Oracle 1x (sanity)        | Dockerfile still builds; `solve.sh` still produces the outputs tests accept; test.sh wiring still works end-to-end                                                                                  |
+| NOP                       | Tests still reject the broken baseline — assertions still distinguish correct from empty/default outputs                                                                                              |
+
+The dirty-flag rule exists to catch regressions; it is the **safety net**, not the default plan. The default plan is that Step 3b finds nothing to fix. When it does find something, **fix it in a way that preserves every gate above**. A regression is a *justified exception* — rare, explicit, and labelled — not the normal consequence of any 3b fix.
+
+Before every edit in 3b, work through this loop:
+
+1. **Name the finding** you're fixing and the sub-step (1, 2, or 3) that raised it.
+2. **Predict the at-risk gates.** Use this edit-risk map:
+   - Edit to **`instruction.md`**: risks RC6 (if you add algorithm names, thresholds, CLI flags, file/function locations, step-by-step recipes, or cause attributions); risks `instruction_test_vocabulary` static check (if your wording stops matching what tests assert).
+   - Edit to **`tests/`**: risks NOP (if you loosen assertions), RC3/RC4 (if you weaken domain correctness or open tamper surfaces), and the oracle 1x (if you tighten assertions past what solve.sh actually produces).
+   - Edit to **`solution/solve.sh`** or **`environment/`**: risks the oracle 1x directly, and may shift RC1/RC7 (adding/removing oracle LOC) or RC5 (introducing reference-artifact files). Environment edits also risk static_checks (dockerfile COPY sources, package hygiene).
+   - Edit to **`task.toml`**: risks static_checks (version, metadata fields, tags, codebase_size, `verifier.timeout_sec` ≥ `environment.build_timeout_sec`).
+3. **Design the smallest preservation-safe fix.** For each at-risk gate, keep its invariant intact. Most of these invariants are textually checkable — you don't need to rerun the gate to know whether your draft edit would regress it. Examples of textual self-checks:
+   - "Did my instruction.md edit add any algorithm name, schema enumeration, CLI flag list, numeric threshold, or file/function location?" If yes → rewrite more symptoms-only before committing (RC6 preservation).
+   - "Did my test-file edit relax an exact-value assertion to a superset that the NOP baseline would also satisfy?" If yes → rewrite the assertion or add a second check that NOP still fails (NOP preservation).
+   - "Does my new environment file name contain a token that describes what's broken, or that matches an instruction requirement 1:1?" If yes → rename before committing (RC2 preservation).
+   - "Did my solve.sh edit add a randomized path, a network call, a timing-dependent operation, or a filesystem race?" If yes → remove the non-determinism before committing (oracle preservation).
+4. **Apply the fix.** Then do the self-check from step 3 against the edited file, not the plan.
+5. **Only if no preservation-safe fix exists, declare a justified regression.** State: (a) which gate the edit regresses, (b) why no alternative preserves it. For example, "Part A found oracle trivially collapses to a no-op; enlarging it to meet RC7 adds real computation that produces different output than what the current test_outputs.py asserts. Test-file update required alongside the oracle expansion. Regresses: oracle 1x until tests are updated. Justification: RC7 `trivial` cannot be repaired without expanding oracle behavior." Justified regressions trigger the dirty-flag rule as normal.
+
+A 3b finding that can only be fixed by breaking an earlier gate is often a signal that the finding is really a 2b-level issue (a structural problem that should have been caught before oracle time was spent). Take the dirty-flag hit, do the restructuring once, and move on. Do not iterate: if you find yourself breaking gates on each 3b pass, the task is fragile at the structural level and should be redesigned, not patched.
+
+**DIRTY-FLAG RULE.** If any sub-step below edits a file under `tasks/<task-name>/` (`instruction.md`, `tests/`, `solution/`, `environment/`, or `task.toml`), STOP at the end of Step 3b. Go back to Step 2b's "Static checks" section and work forward from there — static checks → collapse_check → **oracle 1x + NOP (sanity, not 10x)** — to confirm the edit didn't regress the mechanical gates or break the plumbing. If you also ran Step 3a, rerun the sub-step(s) you invoked. Pre-edit evidence does NOT carry forward. The forbidden-but-on-disk files (`output_contract.toml`, `quality_check_adjudication.json`, `rubric.txt`, `rubrics.txt`) are NOT part of the dirty-flag set — they are authoring metadata, not solver-visible task content.
+
+The dirty-flag rule is the safety net. The preservation discipline above is the default plan. Preservation-safe edits still trigger the dirty-flag rule (a re-run is cheap insurance), but they should re-pass all gates on the first try; the re-run confirms rather than discovers.
+
+The 10x oracle stress test is deferred to Step 4 and only runs once, after every edit is settled. Do NOT run `harbor run ... -a oracle -k 10 -n 10` here, even on a dirty-flag re-entry. Running 10x now wastes time any later edit will invalidate.
 
 ```text
-Analyze the task for collapse, feasibility, and discoverability. Use results from Step 3a.
-Follow @review-and-submit.mdc and @difficulty-calibration.mdc for all rules — do not rely on behavioral descriptions in this prompt.
+Review the task across the three sub-steps below. Before every edit, apply the Preservation discipline from the Step 3b preamble — predict at-risk gates, design a preservation-safe fix, self-check against the actual edit. Only break an earlier gate as a labelled justified regression when no alternative exists. Produce a Step 3b summary at the end.
 
-Track whether you edit any task files. If you do, you must rerun Step 3a before the final decision.
+Do NOT zip the task, do NOT run approve_task.py, and do NOT run the 10x oracle stress test here — those are Step 4. Do NOT re-run run_static_checks.py or collapse_check.py here — those ran in Step 2b. Track every task-file edit and whether it was preservation-safe or a justified regression.
 
-### 1. Mechanical collapse check
-  python3 collapse_check.py tasks/<task-name>
+Follow @review-and-submit.mdc and @difficulty-calibration.mdc for all rules — do not rely on behavioral descriptions in this prompt alone.
 
-FAIL = blocking. Fix the flagged issues, re-run collapse_check.py, and re-run oracle from Step 3a to confirm it still passes.
-WARN = document justification for each signal.
+### 1. Structural review
 
-### 2. Structural review
-Review against @review-and-submit.mdc checklist. Fix any issues.
+Walk @review-and-submit.mdc § 1-7 (Instruction, Environment, Oracle Solution, Verifiers, Task Metadata, Task Structure, Difficulty Calibration). For each section, report PASS / WARN / FAIL with one-sentence justification. Fix any HIGH issue immediately; report MEDIUM with note; LOW alone does not block.
 
-Mandatory: compare tests/test.sh against the official platform template in @task-creation.mdc for semantic compliance. Standard and UI tasks have different templates — check which applies.
+Mandatory sub-checks:
+- Compare tests/test.sh against the official platform template in @task-creation.mdc. Standard and UI tasks have different templates — confirm which applies and that the structural parts (control flow, variable names, reward footer) match verbatim.
+- Confirm `output_contract.toml` exists at the task root (required by repo conventions; will be excluded from the zip in Step 4).
 
-Mandatory: verify environment file count:
-  find tasks/<task-name>/environment -type f ! -iname 'Dockerfile' ! -iname 'docker-compose*' | wc -l
-Must be 20+. Verify codebase_size in task.toml matches (see @review-and-submit.mdc § Task Metadata).
+(`run_static_checks.py` and the environment file-count gate already ran in Step 2b. If no edits have happened since, do not re-run them — they passed. Any edit here triggers the dirty-flag rule, which will run them again on re-entry.)
 
-### 3. Collapse audit (LLM-level)
+**Edit risk for this sub-step.** Findings here are typically metadata, template compliance, or dockerfile style. Fixes are usually preservation-safe (touching `task.toml` tags or dockerfile comments doesn't regress RC1-RC7 or the oracle). Still apply the preservation-discipline self-check before committing: e.g., if you edit `verifier.timeout_sec`, confirm it still satisfies the `timeout_coherence` static rule; if you rename a file, confirm the rename doesn't regress RC2 (predictability from file names).
+
+Any edit you make here triggers the dirty-flag rule. Label each edit as "preservation-safe" or "justified regression" with one-sentence reasoning.
+
+### 2. Collapse audit (LLM-level)
+
 Run @difficulty-calibration.mdc Part A on the actual drafted files. Report the full template:
-- smallest plausible successful patch
-- likely editable frontier
-- requirement-to-file map
+- smallest plausible successful patch (in plain English)
+- likely editable frontier (files / config blocks the solver will touch)
+- requirement-to-file map (each instruction.md requirement → likely destination)
 - oracle line count (non-boilerplate)
 - discoverability analysis
 - red flags
-- residual hardness
+- residual hardness (one paragraph: what remains hard after the prompt honestly states every checked behavior)
 - collapse verdict (PASS / WARN / FAIL)
 
-**Discoverability dimension:** Patch SIZE (how much work) and patch FINDABILITY (can the agent locate where to work without domain understanding) are both required. A 200-line oracle across 7 files is still trivial if any channel tells the agent where to look.
+**Discoverability dimension:** patch SIZE (how much work) and patch FINDABILITY (can the agent locate where to work without domain understanding) are both required. A 200-line oracle across 7 files is still trivial if any channel tells the agent where to look.
 
-### 4. Per-test feasibility
-Run @difficulty-calibration.mdc Part B:
-- Per-test feasibility template for each test function
-- Flag any HIGH-risk tests
-- Run verifier health automation and inspect its JSON/text output:
-  `python3 verifier_health.py --task-dir tasks/<task-name> --output-json /tmp/<task-name>-verifier-health.json`
-  This one command covers randomized-order verifier runs, repeated oracle consistency, and temp-copy partial-oracle ablations.
-  **BLOCKING: if `verifier_health.py` exits nonzero, stop and fix the reported issue. Compile-only partial-oracle failures do not count as verifier discrimination.**
-- Propose fixes for any HIGH-risk tests
+This is the LLM-level complement to `collapse_check.py` (which already ran mechanically in Step 2b). The mechanical check catches pattern-level collapse; this catches judgement-level collapse. Findings here often require concept-level edits that would have been too expensive to discover only through oracle runs — which is why this sub-step sits in the cheap review phase before any 10x oracle investment.
 
-`verifier_health.py` uses temporary task copies, so it does not trigger the dirty-flag rule unless you separately edit real files under `tasks/<task-name>/`.
+**Edit risk for this sub-step.** This is the highest-regression-risk sub-step in 3b. Fixes to a WARN/FAIL Part A finding often want to enlarge the oracle, rewrite the instruction, or restructure the environment — exactly the kinds of edits that touch the oracle 1x gate and RC6/RC7. Apply the preservation discipline carefully:
+- If the finding is "oracle is trivially localized," resist the temptation to expand solve.sh without updating tests in lockstep — an oracle that now does more work but produces outputs the tests don't assert will regress oracle 1x. Design the oracle expansion and the test assertions together.
+- If the finding is "instruction specifies the fix," rewrite symptoms-only without changing what tests expect — the verifier still asserts the same behavior; only the prompt wording changes. This edit is usually preservation-safe against every gate except `instruction_test_vocabulary` (if your new symptom wording uses different nouns than the tests).
+- If the finding is "reference artifact in environment," delete the artifact and the oracle path that consumed it together — losing a leaked answer file must not leave solve.sh looking for a path that no longer exists.
 
-### 5. Final decision
+Any edit you make here triggers the dirty-flag rule. Label each edit as "preservation-safe" or "justified regression" with one-sentence reasoning.
 
-**Before deciding:** Did you edit any file under tasks/<task-name>/ during steps 1-4 above?
-- If YES: state which files changed, then STOP. Report: "Cannot make final decision — task files were modified. Rerun Step 3a." Do not approve, reject, or send feedback using pre-edit evidence.
-- If NO: proceed to the decision.
+### 3. Per-test feasibility (paper review)
 
-Before any `APPROVE`, `APPROVE WITH NOTE`, or "ready" claim, package the task and run:
-  python3 approve_task.py --task-dir tasks/<task-name> --zip Task_Ready_To_Submit/<task-name>.zip --verifier-health /tmp/<task-name>-verifier-health.json
+Walk @difficulty-calibration.mdc Part B for each test function in `test_outputs.py` (or each `test_mN.py`). For each test, report:
+- one-sentence summary of what it checks
+- single-valid-approach risk (Y/N + why)
+- chain-dependency risk (Y/N + why)
+- order-sensitivity risk (Y/N + why)
+- flakiness risk (timing, races, subprocess without retries, filesystem polling) (Y/N + why)
+- niche-technique risk (Y/N + why)
 
-If `approve_task.py` exits nonzero, report its blocking failures and stop. Do not override it with prose.
+Flag any test that is HIGH risk on any of those dimensions.
 
-Use the Decision Criteria from @review-and-submit.mdc (APPROVE / APPROVE WITH NOTE / REJECT / SEND FEEDBACK). Apply all blocking conditions from that file. Do not restate the criteria here — read them from the rule file.
+If anything looks chain-dependent, order-sensitive, or potentially flaky, **escalate to Step 3a-V (`verifier_health.py`)** before going to Step 4 — do not proceed on suspicion alone. After 3a-V completes and any fix is applied, the dirty-flag rule fires (rerun Step 2b's static → collapse → 1x oracle + NOP first, then resume the workflow at Step 3b sub-step 1 to re-confirm nothing else regressed).
 
-## Required report
-1. Overall decision (APPROVE / APPROVE WITH NOTE / REJECT / SEND FEEDBACK)
-2. collapse_check.py result (PASS/WARN/FAIL + details)
-3. Collapse audit verdict with full template
-4. Difficulty estimate with evidence
-5. Discoverable test count
-6. Oracle result (from Step 3a)
-7. NOP result (from Step 3a)
-8. Quality check result (from Step 3a)
-9. Per-test feasibility flags
-10. Verifier health results (repeat oracle, randomized order, partial-oracle classifications)
-11. Highest-severity findings first
-12. Classify each finding as concept-level or mechanical/compliance-level
-13. What you changed and why
+Propose fixes for any HIGH-risk tests. Any test-file edit triggers the dirty-flag rule.
+
+**Edit risk for this sub-step.** Test edits are the most common source of silent NOP regression. Every fix here must preserve the NOP invariant (the broken baseline still fails). Apply the preservation discipline:
+- If you loosen an assertion from exact to approximate, confirm the NOP output (missing / empty / default) still fails the loosened assertion. If an empty dict would now pass, tighten from a different angle or add a second assertion NOP cannot satisfy.
+- If you add a precondition / setup block to make a test independently runnable, make sure the precondition doesn't accidentally satisfy the test itself — the precondition should set up the inputs, not the expected outputs.
+- If you split a chain-dependent test into independent pieces, keep total coverage — a finding the old coupled test caught should still be caught by at least one new test.
+
+Label each edit as "preservation-safe" or "justified regression" with one-sentence reasoning.
+
+### Step 3b summary
+
+Report:
+1. Structural review verdict per @review-and-submit.mdc § 1-7 (PASS / WARN / FAIL per section)
+2. LLM-level collapse audit (full Part A template)
+3. Per-test feasibility flags, and whether Step 3a-V was escalated
+4. Edit ledger — for each edit you made, one line: "<file>: <one-line fix summary> — preservation-safe | justified regression (<which gate, why unavoidable>)". If you made no edits, say so explicitly.
+5. Next action:
+   - If any task file was edited → "Dirty-flag fired. Returning to Step 2b's static_checks / collapse_check / 1x oracle + NOP before Step 4. Not running 10x oracle now. Expect N preservation-safe edits to re-pass on first try; expect M justified regressions to require per-gate re-verification." (N and M come from the edit ledger.)
+   - Else if any sub-step is FAIL without an applied edit → "Stopping. Fix flagged issues under the preservation discipline, then restart Step 3b from sub-step 1."
+   - Else → "Ready for Step 4 (10x flakiness check + packaging + approval gate)."
+
+Do NOT produce an ACCEPT / ACCEPT WITH NOTES / REJECT verdict here — that is Step 4's output after the mechanical gate has actually run.
 
 Task path: tasks/<task-name>
 ```
 
 ---
 
-## After Step 3b: Package & Submit
+## Step 3b→4: Cursor — Dirty-flag re-entry (ONLY if you edited a task file in Step 3a/3b)
 
-Once the review passes:
+Run this after Step 3b **only when** you made any edit under `tasks/<task-name>/` during Step 3a or Step 3b. That edit makes Step 2b's mechanical evidence stale; do not proceed to Step 4 until you re-validate the current working tree state.
 
 ```text
-generate submission zip
+You made a task-file edit in Step 3a/3b, so the dirty-flag rule fired. Re-run Step 2b's mechanical chain for the current working tree state, then re-run Step 3b (paper review). Do NOT run the 10x oracle stress test yet.
+
+Run:
+  python3 run_static_checks.py --task-dir tasks/<task-name> --version edition_2
+  python3 collapse_check.py tasks/<task-name>
+  harbor run -p "tasks/<task-name>" -a oracle
+  harbor run -p "tasks/<task-name>" -a nop
+
+After those pass again, re-run Step 3b (structural review + Part A + Part B). Only then proceed to Step 4.
 ```
 
-```bash
-cd tasks/<task-name>
-rm -f ../../Task_Ready_To_Submit/<task-name>.zip
-zip -rq ../../Task_Ready_To_Submit/<task-name>.zip . -x '*/__pycache__/*' '*.pyc' '.*'
-python3 ../../validate_submission_zip.py ../../Task_Ready_To_Submit/<task-name>.zip
-python3 ../../verifier_health.py --task-dir ../../tasks/<task-name> --output-json /tmp/<task-name>-verifier-health.json
-python3 ../../approve_task.py --task-dir ../../tasks/<task-name> --zip ../../Task_Ready_To_Submit/<task-name>.zip --verifier-health /tmp/<task-name>-verifier-health.json
+---
+
+## Step 4: Cursor — Flakiness, Packaging & Approval Gate
+
+Run after Step 3b's summary said "Ready for Step 4" (no dirty-flag, no FAILs). Step 4 has four sub-steps:
+
+1. Oracle 10x flakiness check — the only place the stress test runs, after every edit is settled
+2. Generate the submission zip (with FORBIDDEN_ROOT_FILES exclusions)
+3. Run `approve_task.py` (which bundles `run_static_checks.py` + `collapse_check.py` + `validate_submission_zip.py` + manifest verification + zip/source parity)
+4. Produce the final verdict
+
+Decision: **ACCEPT / ACCEPT WITH NOTES / REJECT** — three options only. Do **NOT** produce a SEND FEEDBACK verdict; it is no longer part of this workflow. If the task is unsalvageable through small fixes, REJECT with a one-paragraph note describing what restructuring a future attempt would need.
+
+```text
+Run the 10x oracle flakiness check, package the task, run the single approval gate, then produce the final verdict (ACCEPT / ACCEPT WITH NOTES / REJECT — never SEND FEEDBACK).
+
+## Preconditions
+
+- Step 2b's mechanical gates all passed (static_checks, collapse_check, and the 1x oracle + NOP sanity check).
+- Step 3b finished with "Ready for Step 4" (no task-file edits, no FAILs in any sub-step).
+- If Step 3a-Q was run: `/tmp/<task-name>-quality-check-adjudication.json` exists.
+- If Step 3a-V was run: `/tmp/<task-name>-verifier-health.json` exists.
+
+If any of those is not true, STOP and return to the appropriate earlier step. Do not zip or approve using stale or pre-edit evidence.
+
+## 1. Oracle 10x flakiness check (BLOCKING — runs ONCE at this stage)
+
+This is the only place the 10x oracle stress test runs in the whole workflow. Earlier steps used `harbor run -p ... -a oracle` (one trial, no -k) as a cheap sanity check, because any structural edit downstream would have wasted the 10x investment. By now every mechanical and LLM-level edit is settled, so 10 parallel trials actually mean something.
+
+  harbor run -p "tasks/<task-name>" -a oracle -k 10 -n 10
+
+All 10 trials must score 1.0. If any trial scores below 1.0, the oracle is flaky (non-deterministic solve.sh, environment race, timing dependency, filesystem ordering, network retry, etc.):
+- Do NOT just rerun and hope. Identify the source of non-determinism.
+- Fix it in `solution/solve.sh`, `environment/`, or the test — whichever is actually racing.
+- That fix is a task-file edit → the dirty-flag rule fires. Return to Step 2b's "Static checks" section and work forward (static → collapse → **1x oracle + NOP sanity**). Then go through Step 3b (the three-sub-step review) again to re-confirm nothing concept-level regressed. Only then come back here for another 10x.
+
+Do not run `approve_task.py` with a flaky oracle. The gate won't catch flakiness — it's a one-shot check from the gate's perspective — but shipping a flaky task is worse than shipping no task.
+
+Report: oracle score (X/10). If not 10/10, stop and follow the fix-and-restart loop above.
+
+## 2. Generate the submission zip
+
+The zip must NOT contain any file listed under `validate_submission_zip.FORBIDDEN_ROOT_FILES` (`output_contract.toml`, `quality_check_adjudication.json`, `rubric.txt`, `rubrics.txt`). These files live at the task root for repo tooling but are forbidden in the shipped archive — exclude them explicitly with `-x`:
+
+  cd tasks/<task-name>
+  rm -f ../../Task_Ready_To_Submit/<task-name>.zip
+  zip -rq ../../Task_Ready_To_Submit/<task-name>.zip . \
+      -x '*/__pycache__/*' '*.pyc' '.*' \
+      -x 'output_contract.toml' \
+      -x 'quality_check_adjudication.json' \
+      -x 'rubric.txt' \
+      -x 'rubrics.txt'
+  python3 ../../validate_submission_zip.py ../../Task_Ready_To_Submit/<task-name>.zip
+  cd ../..
+
+If `validate_submission_zip.py` reports `forbidden archive-root file(s) present`, the most common cause is that the `-x` exclusion list above was incomplete — add the missing filename and re-zip. Do NOT continue to the gate with a non-PASS zip validation.
+
+## 3. Run the approval gate
+
+`approve_task.py` re-runs `run_static_checks.py` + `collapse_check.py` (RC1-RC7) + `validate_submission_zip.py` + manifest verification + zip/source parity, and — when attached — strictly validates the verifier-health and quality-check artifacts. (These already passed in Step 2b; the gate re-runs them as the authoritative check against the actual shipped zip.) Pick the one command that matches which Step 3a sub-steps (if any) you actually ran:
+
+  # Routine path — no Step 3a-V, no Step 3a-Q:
+  python3 approve_task.py --task-dir tasks/<task-name> \
+      --zip Task_Ready_To_Submit/<task-name>.zip \
+      --skip-verifier-health
+
+  # Step 3a-V was run (no 3a-Q):
+  python3 approve_task.py --task-dir tasks/<task-name> \
+      --zip Task_Ready_To_Submit/<task-name>.zip \
+      --verifier-health /tmp/<task-name>-verifier-health.json
+
+  # Step 3a-Q was run (no 3a-V):
+  python3 approve_task.py --task-dir tasks/<task-name> \
+      --zip Task_Ready_To_Submit/<task-name>.zip \
+      --skip-verifier-health \
+      --quality-check-adjudication /tmp/<task-name>-quality-check-adjudication.json
+
+  # Both 3a-Q and 3a-V were run:
+  python3 approve_task.py --task-dir tasks/<task-name> \
+      --zip Task_Ready_To_Submit/<task-name>.zip \
+      --verifier-health /tmp/<task-name>-verifier-health.json \
+      --quality-check-adjudication /tmp/<task-name>-quality-check-adjudication.json
+
+Flag rules:
+- `--verifier-health` and `--skip-verifier-health` are mutually exclusive — use exactly one.
+- Pass `--verifier-health` or `--quality-check-adjudication` ONLY when the corresponding Step 3a sub-step was actually run.
+
+If `approve_task.py` exits non-zero, report its blocking failures verbatim. Fix the specific files it flagged **under the Step 3b preservation discipline** (predict at-risk gates, prefer preservation-safe fixes, label justified regressions). If the fix touches `instruction.md`, `tests/`, `solution/`, `environment/`, or `task.toml`, the dirty-flag rule fires — go back to Step 2b's "Static checks" section and work forward (static → collapse → **1x oracle + NOP**, NOT 10x), then through Step 3b's three sub-steps again, before retrying Step 4. Preservation-safe fixes should re-pass every earlier gate on the first try; the re-run confirms rather than discovers. The 10x flakiness check at the top of Step 4 runs again when you re-enter Step 4 — that is the correct single place for it, and it will catch any determinism regression the earlier cheap sanity missed. Edits limited to forbidden-but-on-disk files (e.g., regenerating `quality_check_adjudication.json`) do NOT trigger the dirty-flag rule because those files are not part of the shipped task; just re-zip with the same `-x` list and rerun the gate.
+
+## 4. Decision
+
+Produce exactly one verdict from these three. Apply the blocking conditions from `@review-and-submit.mdc` § Decision Criteria. SEND FEEDBACK is no longer a valid choice — if the task is unsalvageable through small fixes, REJECT with a redesign note.
+
+- **ACCEPT** — all of the following are true:
+  - Oracle 10/10 at 1.0 and NOP 0.0 (Step 2b)
+  - `collapse_check.py` PASS overall (every RC1-RC7 PASS, or documented WARN)
+  - RC6 is `symptoms-only` or `cause-revealing` (never `spec-complete`)
+  - RC7 is `substantive` or `borderline` (never `trivial`)
+  - Step 3b LLM-level collapse audit verdict is PASS
+  - No HIGH-risk per-test feasibility flag remains unresolved
+  - `validate_submission_zip.py` PASS (no forbidden root files in zip)
+  - `approve_task.py` exit 0
+  - If Step 3a-V was run: PASS with at least one behavioral partial-oracle failure
+  - If Step 3a-Q was run: every fail adjudicated as `convention-conflict` or `unsupported` (no `task-defect`)
+
+- **ACCEPT WITH NOTES** — same as ACCEPT, except:
+  - `collapse_check.py` returned WARN (not FAIL) with documented residual hardness, OR
+  - Step 3b LLM-level collapse audit returned WARN with documented justification, OR
+  - Minor mechanical issues remain that do not affect difficulty
+  Not allowed when: any RC is FAIL; `verifier_health.py` was run and FAILed; discoverability signals were found but not fixed.
+
+- **REJECT** — any of the following is true and cannot be fixed without restructuring the task:
+  - `collapse_check.py` FAIL after attempted fixes
+  - Step 3b LLM-level collapse audit FAIL
+  - Oracle cannot reach 1.0
+  - NOP scores above 0.0 and cannot be brought to 0.0
+  - The task fails a hardness axis (Discover, Synthesize, Diagnose, Navigate coupling, Reason beyond training)
+  - The concept is unsalvageable through small fixes (would have been "SEND FEEDBACK" under the legacy criteria) — REJECT with a one-paragraph note describing what restructuring a future attempt would need
+
+**Do NOT use SEND FEEDBACK.** It is not a valid verdict in this workflow.
+
+## Required report
+1. Overall decision (ACCEPT / ACCEPT WITH NOTES / REJECT — never SEND FEEDBACK)
+2. `validate_submission_zip.py` result (and any forbidden-root file the `-x` list caught and excluded)
+3. `approve_task.py` exit code
+4. Final zip path
+5. Which Step 3a artifacts (if any) were attached, and which approve_task.py flag combination was used
+6. Reference back to Step 3b's summary for the upstream review verdicts (do not duplicate them here; just confirm they were consulted)
+7. If REJECT: the one-paragraph redesign note (replaces the legacy SEND FEEDBACK)
+
+Task path: tasks/<task-name>
 ```
 
-Verify: `instruction.md`, `task.toml`, `output_contract.toml`, `environment/`, `solution/`, and `tests/` at archive root.
+---
 
-Platform submission:
+## Submitting to the Platform
+
+Run this after Step 4's `approve_task.py` exited 0 with a verdict of ACCEPT or ACCEPT WITH NOTES. The validated zip is already at `Task_Ready_To_Submit/<task-name>.zip`.
+
+Verify the archive root contains exactly: `instruction.md`, `task.toml`, `environment/`, `solution/`, `tests/`. The archive root must NOT contain `output_contract.toml`, `quality_check_adjudication.json`, `rubric.txt`, or `rubrics.txt` — these live at the task root for repo tooling but are forbidden in the shipped archive (see `validate_submission_zip.FORBIDDEN_ROOT_FILES`). If any forbidden file is present, go back to Step 4 sub-step 1 and check the zip command's `-x` exclusion list.
+
+Platform upload:
 1. Upload zip. Check "Generate rubric". Uncheck "Send to reviewer". Submit.
 2. Wait for CI to return the generated rubric.
 3. Edit the rubric for accuracy.
 4. Uncheck "Generate rubric". Check "Send to reviewer". Submit.
+
+If platform CI or a reviewer flags something after upload, that is a **revision**, not a new task. Go to Step 3a and run only the sub-step(s) the feedback points at, then return to Step 3b and Step 4.

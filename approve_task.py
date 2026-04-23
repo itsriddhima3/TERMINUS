@@ -2,19 +2,31 @@
 """
 Single hard-task approval gate for Terminal-Bench 3 Edition 2.
 
-The mechanical checks are the authoritative and sole gate:
+The always-blocking mechanical stack is:
 
-    static checks + collapse check (RC1-RC7) + verifier_health
+    static checks + collapse check (RC1-RC7)
     + submission zip validation + manifest alignment + zip/source parity
 
-If those pass, the task is approved. The `instruction_audit` RC6 and
-`oracle-triviality` RC7 checks introduced in the April 2026 refactor, together
-with `verifier_health.py`'s partial-oracle / randomized-order / repeat-oracle
-gates, are the empirical backstop. Quality review (`harbor tasks check -m
-openai/gpt-5.2`) runs separately during Step 3a and is not invoked from this
-script.
+Two opt-in diagnostics are also consumed when attached:
+
+    verifier_health.py         (Step 3a-V) via --verifier-health <path>
+    quality_check_adjudicate   (Step 3a-Q) via --quality-check-adjudication <path>
+
+If the always-blocking stack passes and any attached diagnostic passes its
+own strict checks, the task is approved. `verifier_health.py` is opt-in
+because Step 2b's 10x oracle + NOP preflight already covers routine
+correctness; run it only for suspect tasks (0/10 on platform, order-
+sensitive tests, partial-oracle ablation evidence). Use
+`--skip-verifier-health` on the routine path to suppress the default WARN.
+`--verifier-health` and `--skip-verifier-health` are mutually exclusive.
 
 Usage:
+    # Routine path (no Step 3a-V):
+    python3 approve_task.py --task-dir tasks/<task-name> \
+        --zip Task_Ready_To_Submit/<task-name>.zip \
+        --skip-verifier-health
+
+    # Escalated path (Step 3a-V was run):
     python3 approve_task.py --task-dir tasks/<task-name> \
         --zip Task_Ready_To_Submit/<task-name>.zip \
         --verifier-health /tmp/<task-name>-verifier-health.json \
@@ -45,8 +57,10 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=(
             "Run the repo's hard-task approval gate across static checks, collapse audit, "
-            "submission zip validation, verifier health, and cross-artifact consistency. "
-            "The mechanical stack is the sole source of truth for approval."
+            "submission zip validation, cross-artifact consistency, and — when attached "
+            "via --verifier-health / --quality-check-adjudication — the opt-in "
+            "verifier-health and quality-check diagnostics. The always-blocking "
+            "mechanical stack is the source of truth for approval."
         )
     )
     parser.add_argument("--task-dir", type=Path, required=True, help="Task directory under tasks/")
@@ -55,7 +69,22 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         "--verifier-health",
         dest="verifier_health_path",
         type=Path,
-        help="JSON report emitted by verifier_health.py",
+        help=(
+            "JSON report emitted by verifier_health.py. Optional: omit for "
+            "routine tasks (the gate emits a WARN). Pass this only when "
+            "Step 3a-V was actually run. Mutually exclusive with "
+            "--skip-verifier-health."
+        ),
+    )
+    parser.add_argument(
+        "--skip-verifier-health",
+        dest="skip_verifier_health",
+        action="store_true",
+        help=(
+            "Explicitly opt out of the verifier-health diagnostic. Use on "
+            "routine tasks where Step 3a-V was not run. Suppresses the "
+            "default WARN. Mutually exclusive with --verifier-health."
+        ),
     )
     parser.add_argument(
         "--quality-check-adjudication",
@@ -68,7 +97,12 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         ),
     )
     parser.add_argument("--json", action="store_true", help="Emit machine-readable JSON")
-    return parser.parse_args(argv)
+    args = parser.parse_args(argv)
+    if args.verifier_health_path is not None and args.skip_verifier_health:
+        parser.error(
+            "--verifier-health and --skip-verifier-health are mutually exclusive"
+        )
+    return args
 
 
 def sha256_bytes(content: bytes) -> str:
@@ -128,8 +162,44 @@ def empty_verifier_health_report(
         "path": str(verifier_health_path.resolve()) if verifier_health_path else None,
         "healthy": False,
         "decision": "FAIL",
+        "status": "FAIL",
         "blocking_failures": [error],
         "warnings": [],
+        "checks": {},
+    }
+
+
+def skipped_verifier_health_report(
+    explicit_skip: bool,
+) -> dict[str, Any]:
+    """Return a non-blocking SKIPPED verifier-health report.
+
+    verifier_health.py is an opt-in diagnostic. If the caller did not pass
+    --verifier-health, routine approvals should not block on a missing
+    report. Instead we surface a WARN (when the caller neither opted in
+    nor explicitly opted out) or a silent pass (when --skip-verifier-health
+    is set).
+    """
+    if explicit_skip:
+        warnings: list[str] = []
+        reason = "opted out via --skip-verifier-health"
+    else:
+        warnings = [
+            "no verifier-health report attached — run verifier_health.py "
+            "if platform agent trials score 0/10, a test looks "
+            "order-sensitive or flaky, or a reviewer requested "
+            "partial-oracle evidence (pass --verifier-health <path>); "
+            "use --skip-verifier-health to suppress this warning"
+        ]
+        reason = "no --verifier-health passed (routine path)"
+    return {
+        "path": None,
+        "healthy": True,
+        "decision": "SKIPPED",
+        "status": "SKIPPED",
+        "reason": reason,
+        "blocking_failures": [],
+        "warnings": warnings,
         "checks": {},
     }
 
@@ -249,12 +319,19 @@ def compare_source_and_zip(task_dir: Path, zip_path: Path) -> dict[str, Any]:
 def load_verifier_health_report(
     task_dir: Path,
     verifier_health_path: Path | None,
+    skip_verifier_health: bool = False,
 ) -> dict[str, Any]:
+    """Load a verifier-health report, or return a non-blocking SKIPPED stub.
+
+    verifier_health.py is an opt-in diagnostic. When the caller passes
+    neither --verifier-health nor --skip-verifier-health, we return a
+    SKIPPED report with a warning to nudge the author toward running the
+    diagnostic when relevant. When --skip-verifier-health is set, we
+    return a silent SKIPPED report. Only when --verifier-health <path> is
+    explicitly passed do we apply the strict validation below.
+    """
     if verifier_health_path is None:
-        return empty_verifier_health_report(
-            verifier_health_path,
-            "missing verifier-health report: run verifier_health.py and pass --verifier-health",
-        )
+        return skipped_verifier_health_report(explicit_skip=skip_verifier_health)
 
     verifier_health_path = verifier_health_path.expanduser().resolve()
     try:
@@ -277,10 +354,12 @@ def load_verifier_health_report(
     healthy = payload.get("healthy")
     decision = payload.get("decision")
 
+    resolved_decision = decision if isinstance(decision, str) else ("PASS" if healthy else "FAIL")
     report = {
         "path": str(verifier_health_path),
         "healthy": bool(healthy),
-        "decision": decision if isinstance(decision, str) else ("PASS" if healthy else "FAIL"),
+        "decision": resolved_decision,
+        "status": resolved_decision,
         "blocking_failures": blocking_failures if isinstance(blocking_failures, list) else [],
         "warnings": warnings if isinstance(warnings, list) else [],
         "checks": checks if isinstance(checks, dict) else {},
@@ -307,6 +386,7 @@ def load_verifier_health_report(
             **report,
             "healthy": False,
             "decision": "FAIL",
+            "status": "FAIL",
             "blocking_failures": report["blocking_failures"] + validation_failures,
         }
 
@@ -459,13 +539,17 @@ def build_report(
     zip_path: Path,
     verifier_health_path: Path | None = None,
     quality_check_adjudication_path: Path | None = None,
+    skip_verifier_health: bool = False,
 ) -> dict[str, Any]:
     """Run the full approval gate.
 
-    The mechanical checks (static, collapse, zip validation, manifests,
-    zip/source parity, verifier_health, quality-check adjudication) are
-    the source of truth. Every one of them contributes to
-    `blocking_failures` directly.
+    The always-blocking mechanical checks (static, collapse, zip
+    validation, manifests, zip/source parity) are the source of truth.
+    `verifier_health` and `quality_check_adjudication` are opt-in
+    diagnostics: they contribute to `blocking_failures` only when the
+    caller actually attaches them (or, for quality-check, when a per-task
+    waiver file triggers strict adjudication). Every active check
+    contributes to `blocking_failures` directly.
     """
     task_dir = task_dir.expanduser().resolve()
     zip_path = zip_path.expanduser().resolve()
@@ -502,7 +586,9 @@ def build_report(
         collapse_status = "FAIL"
 
     zip_report = validate_submission_zip.build_report(zip_path)
-    verifier_health_report = load_verifier_health_report(task_dir, verifier_health_path)
+    verifier_health_report = load_verifier_health_report(
+        task_dir, verifier_health_path, skip_verifier_health=skip_verifier_health
+    )
     quality_check_adjudication_report = load_quality_check_adjudication_report(
         task_dir, quality_check_adjudication_path
     )
@@ -564,7 +650,13 @@ def build_report(
             f"verifier health warning: {message}"
             for message in verifier_health_report["warnings"]
         )
-    if not verifier_health_report["healthy"]:
+    # verifier_health.py is an opt-in diagnostic. A SKIPPED status (when the
+    # caller did not pass --verifier-health) never blocks approval; any
+    # WARN it produced is already captured above.
+    if (
+        verifier_health_report.get("status") != "SKIPPED"
+        and not verifier_health_report["healthy"]
+    ):
         blocking_failures.extend(
             f"verifier health failed: {message}"
             for message in verifier_health_report["blocking_failures"]
@@ -607,6 +699,16 @@ def build_report(
     }
 
 
+def _format_verifier_health_status(report: dict[str, Any]) -> str:
+    status = report.get("status")
+    if status == "SKIPPED":
+        reason = report.get("reason")
+        return f"SKIPPED ({reason})" if reason else "SKIPPED"
+    if report.get("healthy"):
+        return "PASS"
+    return "FAIL"
+
+
 def format_text_report(payload: dict[str, Any]) -> str:
     lines = [
         f"Approval gate: {payload['decision']}",
@@ -621,7 +723,7 @@ def format_text_report(payload: dict[str, Any]) -> str:
         "  - validate_submission_zip.py: " + ("PASS" if payload["zip_validation"]["valid"] else "FAIL"),
         "  - manifest verification: " + ("PASS" if payload["manifest_verification"]["valid"] else "FAIL"),
         "  - source/zip match: " + ("PASS" if payload["source_zip_verification"]["valid"] else "FAIL"),
-        "  - verifier_health.py: " + ("PASS" if payload["verifier_health"]["healthy"] else "FAIL"),
+        "  - verifier_health.py: " + _format_verifier_health_status(payload["verifier_health"]),
         "  - quality_check_adjudicate.py: "
         + (payload["quality_check_adjudication"]["gate"]),
     ]
@@ -646,6 +748,7 @@ def main(argv: list[str] | None = None) -> int:
         args.zip_path,
         verifier_health_path=args.verifier_health_path,
         quality_check_adjudication_path=args.quality_check_adjudication_path,
+        skip_verifier_health=args.skip_verifier_health,
     )
     if args.json:
         print(json.dumps(payload, indent=2))

@@ -30,10 +30,11 @@ Terminal-Bench is a popular benchmark for measuring the capabilities of agents a
 We're actively looking for contributors to add new, challenging tasks. See the [Open Call for Task Contributions](https://docs.google.com/document/d/1pe_gEbhVDgORtYsQv4Dyml8uaR7PZBEyVZnBUrs1z0M/edit?tab=t.0) for goals, timeline, and expectations. See [workflow-prompts.md](workflow-prompts.md) for the step-by-step task creation pipeline and [commands.md](commands.md) for CLI reference.
 
 The default Terminal-Bench 3.0 Edition 2 authoring and review path in this repo is hard-only. Medium tasks are out of scope unless the repo adds a separately named profile.
-Hard-task approval is repo-local and mechanical: `collapse_check.py`, `verifier_health.py`, `harbor` oracle/NOP preflight, `harbor tasks check` with adjudication where needed, then `approve_task.py` with a validated submission zip. See [workflow-prompts.md](workflow-prompts.md) and [commands.md](commands.md).
+Hard-task approval is repo-local and mechanical: `collapse_check.py` + `harbor` oracle/NOP preflight (always-on, Step 2b), plus two opt-in diagnostics — `verifier_health.py` (Step 3a-V) and `harbor tasks check` with adjudication (Step 3a-Q) — gated into `approve_task.py` with a validated submission zip. See [workflow-prompts.md](workflow-prompts.md) and [commands.md](commands.md).
 Use `tasks/` only for active authoring work. Checked-in tooling fixtures now live under `repo_tests/fixtures/tasks/` so contributors are not trained on negative examples from the primary workspace.
 
 Read the [task proposal rubric](web/TASK_PROPOSAL_RUBRIC.md) before getting started.
+For Step 1 website ideation, use the goal-sized `web/` bundle flow in [workflow-prompts.md](workflow-prompts.md), especially [web/bulk-idea-generation.md](web/bulk-idea-generation.md) and [web/option-a-seed-refinement.md](web/option-a-seed-refinement.md). The default two-prompt flow targets 150 Step-2a-ready seeds unless you ask for a different bank size.
 
 ## Resources
 

@@ -5,20 +5,18 @@ All harbor, CI, validation, and debug commands for Terminal-Bench 3 task develop
 ## Harbor — Task Validation
 
 ```bash
-# Preflight: oracle and NOP may be launched in parallel in separate terminals
-# as long as task files are not being edited during the run.
+# Step 2b preflight (BLOCKING, routine): oracle and NOP may be launched in
+# parallel in separate terminals. Do not edit task files during either run.
 # Oracle stress test — 10 parallel runs (no API key needed)
 harbor run -p "tasks/<task-name>" -a oracle -k 10 -n 10
 
 # NOP (must score 0.0, no API key needed)
 harbor run -p "tasks/<task-name>" -a nop
 
-# Only after BOTH oracle and NOP pass:
-# Source OpenAI API key (required for the GPT-5.2 quality check)
+# Step 3a-Q (OPT-IN): GPT-5.2 quality check. Only run when a reviewer asked
+# for it or you want to pressure-test instruction/test wording.
 set -a && source .env && set +a
-
-# Quality check (uses the OpenAI API via harbor)
-harbor tasks check "tasks/<task-name>" -m "openai/gpt-5.2"
+harbor tasks check "tasks/<task-name>" -m "openai/gpt-5.2" -o /tmp/<task-name>-qc.json
 
 # Interactive debug (shell into the container)
 harbor tasks start-env -p "tasks/<task-name>" -e docker -a -i
@@ -32,16 +30,16 @@ harbor tasks init <task-name> --include-standard-metadata --tasks-dir tasks/
 - `-k N` sets how many parallel runs to schedule; use `-n N` to cap how many run at once
 - Oracle: use `-k 10 -n 10` so all 10 runs execute together (no buffered batches)
 - Each parallel run gets its own job directory, results are aggregated automatically
-- `oracle -k 10 -n 10` and `nop` are safe to run at the same time as preflight in separate terminals
-- Do not start quality check until both preflight runs have passed
-- Do not overlap `verifier_health.py` with real Step 3a harbor runs on the same task directory; it launches additional oracle jobs and temporary task copies for randomized-order and partial-oracle checks
+- `oracle -k 10 -n 10` and `nop` are safe to run at the same time as Step 2b preflight in separate terminals
+- Do not start Step 3a-Q (quality check) until Step 2b's oracle + NOP preflight has passed
+- Do not overlap `verifier_health.py` (Step 3a-V) with other harbor runs on the same task directory; it launches additional oracle jobs and temporary task copies for randomized-order and partial-oracle checks
 
 ### Interpreting results
 
 - **Mean 1.0** = agent passed all tests (for oracle runs, this is expected)
 - **Mean 0.0** = agent failed all tests (expected for NOP)
 - **Errors** = agent crashed before producing a result (infra issue, not task issue)
-- Difficulty is judged by the mechanical stack (collapse check RC1-RC7 + verifier_health). Repo-local approval uses only that stack plus packaging checks.
+- Difficulty is judged by `collapse_check.py` RC1-RC7 (always blocking) plus `verifier_health.py` when escalated (opt-in diagnostic, see Step 3a-V). Repo-local approval uses the mechanical stack plus packaging checks.
 
 ## Git (Temporary Local Init)
 
@@ -93,13 +91,24 @@ diff <(python3 run_static_checks.py --task-dir tasks/<task-name> 2>&1 | grep '^ 
      <(python3 run_static_checks.py --task-dir /tmp/ref/${REF}    2>&1 | grep '^  -' | sort)
 ```
 
-## Verifier Health
+## Verifier Health (Step 3a-V, opt-in diagnostic)
+
+`verifier_health.py` is an **opt-in** diagnostic. Run it only when:
+
+- Platform agent trials scored 0/10 while Step 2b's oracle + NOP look healthy
+- A specific test looks chain-dependent, order-sensitive, or flaky
+- A reviewer asked for partial-oracle ablation evidence
+- Step 2b's 10x oracle stress showed intermittent failures (add `--include-repeat-oracle`)
+
+Skip it for routine tasks.
 
 ```bash
-# Machine-run verifier health gate for review-time checks.
-# This runs repeated oracle consistency, randomized-order verifier runs,
-# and partial-oracle ablations, then writes a JSON report for approve_task.py.
+# Default pass: randomized-order verifier runs + partial-oracle ablations.
 python3 verifier_health.py --task-dir tasks/<task-name> --output-json /tmp/<task-name>-verifier-health.json
+
+# Expensive stress: repeated-oracle consistency. Only when Step 2b's 10x stress was flaky.
+python3 verifier_health.py --task-dir tasks/<task-name> --include-repeat-oracle \
+    --output-json /tmp/<task-name>-verifier-health.json
 
 # Optional machine-readable stdout form.
 python3 verifier_health.py --task-dir tasks/<task-name> --json
@@ -109,17 +118,31 @@ python3 verifier_health.py --task-dir tasks/<task-name> --json
 
 ## Hard Approval Gate
 
-The mechanical stack (static checks, collapse check RC1-RC7, verifier_health, submission zip, manifests, zip/source parity) is the sole approval gate.
+The always-blocking mechanical stack is static checks, `collapse_check.py` (RC1-RC7), submission-zip validation, manifest verification, and zip/source parity. `verifier_health.py` and the quality-check adjudication are blocking **only** when they were actually run (Step 3a-V / Step 3a-Q respectively).
 
 ```bash
-# Standard invocation.
-python3 approve_task.py --task-dir tasks/<task-name> --zip Task_Ready_To_Submit/<task-name>.zip --verifier-health /tmp/<task-name>-verifier-health.json
+# Routine path — no Step 3a-V run. --skip-verifier-health is required to
+# suppress the default WARN; omitting both flags yields WARN (no block).
+python3 approve_task.py --task-dir tasks/<task-name> \
+    --zip Task_Ready_To_Submit/<task-name>.zip \
+    --skip-verifier-health
 
-# Machine-readable JSON.
-python3 approve_task.py --task-dir tasks/<task-name> --zip Task_Ready_To_Submit/<task-name>.zip --verifier-health /tmp/<task-name>-verifier-health.json --json
+# Escalated path — Step 3a-V was run. --verifier-health strictly validates the report.
+python3 approve_task.py --task-dir tasks/<task-name> \
+    --zip Task_Ready_To_Submit/<task-name>.zip \
+    --verifier-health /tmp/<task-name>-verifier-health.json
+
+# Add --quality-check-adjudication when Step 3a-Q was run (or when a
+# tasks/<task-name>/quality_check_adjudication.json waiver file exists).
+python3 approve_task.py --task-dir tasks/<task-name> \
+    --zip Task_Ready_To_Submit/<task-name>.zip \
+    --skip-verifier-health \
+    --quality-check-adjudication /tmp/<task-name>-quality-check-adjudication.json
+
+# Machine-readable JSON (add --json to any invocation above).
 ```
 
-`approve_task.py` is the authoritative repo-local hard-task approval gate. It consumes the verifier-health report and bundles `run_static_checks.py`, `collapse_check.py` (RC1-RC7), `validate_submission_zip.py`, manifest verification, and zip/source parity. Exit 0 is required before calling a hard task approved or ready in this repo.
+`--verifier-health` and `--skip-verifier-health` are mutually exclusive. `approve_task.py` is the authoritative repo-local approval gate. Exit 0 is required before calling a task approved or ready in this repo.
 
 ## Repo Tooling Regressions
 
@@ -135,7 +158,8 @@ Any future checker fix for a false positive or false negative should update this
 ## Collapse & Discoverability Check
 
 ```bash
-# Mechanical collapse/discoverability check (run after Step 2b and during Step 3b)
+# Mechanical collapse/discoverability check (run during Step 2b; rerun only
+# if task files are edited after that — Step 3b does not repeat it by default).
 python3 collapse_check.py tasks/<task-name>
 
 # JSON output (for CI integration)

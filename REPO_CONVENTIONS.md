@@ -203,8 +203,8 @@ gate. It regularly produces three kinds of fail that are NOT task defects:
    behavior that do not exist in the task. Hallucinated citations.
 3. **Quality-vs-difficulty collapse** — the remedy would push
    `instruction.md` toward spec-language, tripping RC6 (`spec-complete`)
-   in `collapse_check.py`. Documented at length in `workflow-prompts.md`
-   L302.
+   in `collapse_check.py`. Documented at length in the Step 3a-Q
+   quality-vs-difficulty block of `workflow-prompts.md`.
 
 Because of (1) and (2), a literal-repair loop ("keep editing until the
 checker passes") is the wrong response and regularly regresses either
@@ -214,7 +214,7 @@ mechanical checks or RC6/difficulty.
 `quality_check_adjudicate.py` against a per-task
 `tasks/<task-name>/quality_check_adjudication.json` waiver. Classifications:
 
-- `task-defect` — real gap. Must be repaired (Step 3a repair loop).
+- `task-defect` — real gap. Must be repaired (see Step 3a-Q in `workflow-prompts.md` — fix the task, rerun Step 2b's oracle + NOP preflight, then re-adjudicate).
 - `convention-conflict` — evidence required: `enforcing_rule.file`
   and `enforcing_rule.line`. The script verifies the file exists and the
   line is in range.
