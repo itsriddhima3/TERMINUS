@@ -403,41 +403,66 @@ Both `harbor tasks check` (quality check) and `verifier_health.py` are **complet
 
 Run when a reviewer requested it or you want to pressure-test the instruction/test wording against an LLM judge.
 
+**The user provides the entire quality-check result as input to this step (pasted at the bottom of the prompt).** The agent does NOT re-run `harbor tasks check`; it works from the pasted result. This step is deliberately narrow: route every ❌ fail through the adjudicator first, repair **only** the axes the adjudicator classifies as `task-defect`, and do so without regressing any gate an earlier step has already earned.
+
 ```text
-1. Source the OpenAI API key:
-     set -a && source .env && set +a
-   If .env is missing or has no key, state so and skip 3a-Q entirely.
+1. Parse the quality-check result the user pasted at the bottom of this prompt and write it to `/tmp/<task-name>-qc.json` in the harbor-compatible shape the adjudicator expects:
+     {
+       "<rubric_axis>": { "outcome": "pass" | "fail", "explanation": "<text>" },
+       ...
+     }
+   For each line of the form `✅ pass - <axis>: <text>` or `❌ fail - <axis>: <text>`:
+   - `outcome` is `pass` (✅) or `fail` (❌), lowercase.
+   - `<axis>` is the token between ` - ` and the FIRST `:` on that line.
+   - `<text>` is everything after that first colon (preserve internal colons, parentheses, quotes verbatim — the adjudicator's SHA digest is taken over this file).
+   Preserve every axis the pasted input reports — both passes and fails — so the adjudicator's audit trail is complete. Do not invent axes the user did not provide.
 
-2. Capture the harbor quality check to a JSON file:
-     harbor tasks check "tasks/<task-name>" -m "openai/gpt-5.2" -o /tmp/<task-name>-qc.json
+   If the pasted input contains **zero ❌ fail entries**, there is nothing to adjudicate and nothing to repair. Write `/tmp/<task-name>-qc.json` for the audit trail, then skip to step 6.
 
-3. If any ❌ fail is reported, adjudicate every fail before editing anything:
+2. **Check with the adjudicator FIRST — before any task-file edit.** The adjudicator is the authoritative decision on whether a repair is required for each fail; never pre-empt it by editing based on the raw checker text. Run:
      python3 quality_check_adjudicate.py \
          --task-dir tasks/<task-name> \
          --qc-output /tmp/<task-name>-qc.json \
          --out /tmp/<task-name>-quality-check-adjudication.json
 
-   Author `tasks/<task-name>/quality_check_adjudication.json` with one entry per fail. Each entry must include `rubric_axis`, `finding_summary`, and `classification` plus class-specific evidence:
-   - `task-defect` — real gap. Blocking until repaired. Requires `repair_reference` (commit SHA, PR URL, or `"pending"`).
-   - `convention-conflict` — checker remedy contradicts a rule enforced by `run_static_checks.py`, `collapse_check.py`, or the canonical templates in `task-creation.mdc`. Requires `enforcing_rule.file` and `enforcing_rule.line`.
-   - `unsupported` — finding cites code/fields/behavior that do not exist in the task. Requires `negative_lookup.command` and `negative_lookup.expected_stdout`.
+   Author `tasks/<task-name>/quality_check_adjudication.json` with one entry per fail. Each entry must include `rubric_axis`, `finding_summary`, and `classification` plus class-specific evidence. Only `task-defect` drives a task-file edit — the other two classifications are resolved by waiver evidence alone:
+   - `task-defect` — real gap. **Repair required.** Blocking until repaired. Requires `repair_reference` (commit SHA, PR URL, or `"pending"`).
+   - `convention-conflict` — checker remedy contradicts a rule enforced by `run_static_checks.py`, `collapse_check.py`, or the canonical templates in `task-creation.mdc`. **No task edit — waive with evidence.** Requires `enforcing_rule.file` and `enforcing_rule.line`.
+   - `unsupported` — finding cites code/fields/behavior that do not exist in the task. **No task edit — waive with evidence.** Requires `negative_lookup.command` and `negative_lookup.expected_stdout`.
 
    `quality_check_adjudicate.py` exits non-zero whenever any fail is unadjudicated or classified `task-defect`.
 
-4. **Quality-vs-difficulty tension (READ BEFORE EDITING).** Fixing quality findings like `behavior_in_task_description`, `behavior_in_tests`, or `anti_cheating_measures` often tempts you to add specifics to `instruction.md`, test assertions, or runtime checks. The same specificity is exactly what RC6 (instruction spec-completeness) and the collapse/discoverability gate reject. Satisfy the quality check by describing **observable behavior and acceptance criteria**, not by leaking algorithms, fix locations, cause attributions, exact thresholds, or solver recipes. If a quality finding cannot be repaired without revealing cause-level detail, the failure is a task-design problem, not a wording problem — restructure the underlying test/oracle/environment instead. Adjudication (as `convention-conflict` or `unsupported`) is the correct response when a fail is hallucinated or contradicts a repo-enforced rule.
+3. **Scope-lock before repairing.** Read `/tmp/<task-name>-quality-check-adjudication.json` and enumerate two disjoint lists:
+   - axes classified `task-defect` — **the only axes this step may edit task files for**,
+   - axes classified `convention-conflict` or `unsupported` — **do not touch any task file for these**; they are resolved by the waiver evidence alone.
 
-5. For each `task-defect` you chose to repair by editing task files, apply the **Step 3b preservation discipline** (predict at-risk gates, prefer preservation-safe fixes, label justified regressions):
+   If the `task-defect` list is empty, skip to step 6 — the quality check is resolved entirely through waivers and no task edits are needed. Editing anything to make the raw checker "look cleaner" risks regressing RC6, collapse difficulty, or the `instruction_test_vocabulary` static check for no legitimate quality gain.
+
+4. **Quality-vs-difficulty tension (READ BEFORE EDITING).** Fixing quality findings like `behavior_in_task_description`, `behavior_in_tests`, or `anti_cheating_measures` often tempts you to add specifics to `instruction.md`, test assertions, or runtime checks. The same specificity is exactly what RC6 (instruction spec-completeness) and the collapse/discoverability gate reject. Satisfy the quality check by describing **observable behavior and acceptance criteria**, not by leaking algorithms, fix locations, cause attributions, exact thresholds, or solver recipes. If a `task-defect` cannot be repaired without revealing cause-level detail, the failure is a task-design problem, not a wording problem — restructure the underlying test/oracle/environment instead. Adjudication (as `convention-conflict` or `unsupported`) is the correct response when a fail is hallucinated or contradicts a repo-enforced rule. For convention-conflict / unsupported classifications, the correct response is adjudication evidence, not a task edit.
+
+5. **For each axis classified `task-defect` (and ONLY those), apply the Step 3b preservation discipline** (predict at-risk gates, prefer preservation-safe fixes, label justified regressions):
    a. State the finding and the exact edit. Name the at-risk gates (most quality-check defects impact instruction.md wording → RC6 and `instruction_test_vocabulary`; some impact tests → NOP and RC3/RC4).
    b. Run `python3 collapse_check.py tasks/<task-name>`. FAIL = revert/restructure the edit. WARN = note whether each signal was already present pre-edit. PASS = proceed.
    c. Re-read `instruction.md` honestly — did the edit add algorithm names, schemas, CLI flags, thresholds, file/function locations, cause statements, or step-by-step recipes? If yes, rewrite the edit to stay at symptom/behavior level.
    d. Rerun Step 2b's oracle 1x + NOP sanity check (results from before the edit do NOT carry forward; do not run 10x here — 10x is Step 4's). A preservation-safe edit should re-pass this on the first try; if it doesn't, the edit wasn't actually preservation-safe.
-   e. Rerun the harbor quality check and re-adjudicate.
+   e. The agent does not re-run harbor. If the user supplies a fresh QC result after the repair (by re-running harbor externally and pasting a new block), re-enter this step from sub-step 1 with the new pasted input; otherwise the adjudication artifact from sub-step 2 is the authoritative quality-check record for this revision.
 
-   Repeat until `quality_check_adjudicate.py` exits 0 AND `collapse_check.py` is not FAIL.
+   **Do not touch any task file for an axis NOT classified `task-defect`.** This is the single rule that operationalizes "without causing any other regression" — broadening the repair scope beyond the adjudicator's decision is the most common source of RC6 / `instruction_test_vocabulary` / NOP regression in this step.
 
 6. Pass the adjudication artifact to `approve_task.py` via `--quality-check-adjudication /tmp/<task-name>-quality-check-adjudication.json` when you run Step 4.
 
-Report: harbor capture path, adjudication gate, per-finding classification, any files edited, post-edit `collapse_check.py` verdict.
+Report:
+- `/tmp/<task-name>-qc.json` path (harbor-JSON reconstructed from the pasted input).
+- Adjudicator gate (PASS / FAIL) and per-axis classification.
+- Explicit `task-defect` list (repaired) vs. `convention-conflict` / `unsupported` list (waived, no edit).
+- Per edit: at-risk gates named (from 5a), post-edit `collapse_check.py` verdict, post-edit oracle 1x + NOP scores.
+- Final confirmation: "no task file was edited for an axis NOT classified `task-defect`".
+
+Task path: tasks/<task-name>
+
+Quality check result (paste the full ✅/❌ block below):
+
+[USER PASTES THE FULL QUALITY CHECK OUTPUT HERE]
 ```
 
 ### 3a-V. Verifier health (partial-oracle + randomized-order) — OPT-IN, REVISIONS
