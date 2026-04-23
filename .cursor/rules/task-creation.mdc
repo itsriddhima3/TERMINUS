@@ -5,6 +5,33 @@ alwaysApply: true
 
 # Task Creation
 
+## Construction-to-Spec: the primary authoring discipline
+
+This file is the construction specification for Step 2b. Everything in it is a rule you apply *while drafting*, not a reference you hope to have consulted. Every mechanical and review check that runs after Step 2b — `run_static_checks.py`, `collapse_check.py` RC1-RC7, `@review-and-submit.mdc` §1-7, `@difficulty-calibration.mdc` Part A and Part B — examines something this file already documents. The expected outcome of a disciplined draft is **one-shot PASS through every check**, with the checks functioning as hallucination catchers, not design oracles.
+
+Before touching any file, internalize the full rule set:
+
+- **This file** — file layout, `instruction.md` shape and humanization, `task.toml` metadata, `output_contract.toml` contract, Dockerfile rules, `test.sh` template (standard vs. UI), `solve.sh` discipline, `test_outputs.py` structure, discoverability principles (file, knob, path).
+- **`@review-and-submit.mdc` §1-7** — the post-construction checklist. Every bullet is something you satisfy here, at construction.
+- **`@difficulty-calibration.mdc` Part A** — the collapse audit template. Design the task so the audit returns PASS on the first read (smallest plausible patch is *not* trivial, editable frontier is not 1-4 obvious files, requirement-to-file map is not 1:1, oracle LOC is substantive, no discoverability signals, no red flags, residual hardness is real).
+- **`@difficulty-calibration.mdc` Part B** — per-test feasibility risks. Avoid creating single-valid-approach, chain-dependent, order-sensitive, flaky, or niche-technique tests *while writing them*.
+
+### RC1-RC7 as construction constraints
+
+`collapse_check.py` checks seven root causes. Each maps to a specific construction rule:
+
+| RC  | Rule                   | Construction-time constraint                                                                                                                                  |
+|-----|------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| RC1 | Oracle simplification  | `solve.sh` must add logic, not just delete/revert. If the "fix" is `sed -i '/BUG/d'` or reverts a flag, the task is trivial — redesign at the spec level.    |
+| RC2 | Oracle predictability  | File, directory, and test names must not encode the contract. No `broken_*`, `buggy_*`, `fix_me_*`, `golden_*`, `expected_*` tokens in solver-visible surfaces. |
+| RC3 | Verifier shallowness   | Tests assert domain-correct computed values, not format/schema/existence alone. Every explicit prohibition in `instruction.md` has a direct test that catches violations. |
+| RC4 | Tamper surface         | Tests do not depend on files the agent can rewrite to bypass domain reasoning. Expected values live in test code, not in "golden" files under `environment/`. |
+| RC5 | Reference artifacts    | No answer-shaped golden/reference/broken fixtures on solver-visible surfaces (`instruction.md`, `tests/`, `environment/`). Embed expected values in test code. |
+| RC6 | Instruction specificity| `instruction.md` stays symptoms-only. No algorithm names, schema enumerations, CLI flag lists, numeric thresholds, file/function locations, cause statements, recipes, binding phrases. |
+| RC7 | Oracle triviality      | `solve.sh` non-boilerplate LOC ≥ 30 (≥ 80 is comfortable). If the genuine fix is <30 LOC, the task is too simple — redesign the concept, do not pad.         |
+
+Construction is spec-aware, not spec-discovering. While writing each file, pre-validate against the rules relevant to that file. If a rule would force you off the authoring spec's design, revise the draft — the rule is from a constraint the spec already assumed.
+
 ## Before Writing Any Code
 
 Ask for ALL missing required fields BEFORE writing code:
@@ -91,7 +118,10 @@ Do NOT include `rubrics.txt` — rubrics are edited in the submission UI.
 6. **Absolute paths** — Use `/app/output.txt`, never `./output.txt`.
 
 ### Humanization rules
+
 Write like a real engineer prompting Cursor or Claude Code, not like an LLM writing a benchmark. Avoid the "GPT-style" of writing — verbose, repetitive, overly polite, exhaustively formatted.
+
+**These rules are the construction-time version of RC6 (instruction specificity). Every signal listed below is also something `collapse_check.py` RC6 or `instruction_audit.py` will detect — satisfy them here so those checks pass on first run.**
 
 Remove these synthetic smells:
 - Roleplay boilerplate ("You are an expert programmer…")
@@ -102,6 +132,16 @@ Remove these synthetic smells:
 - Hint leakage naming the exact algorithm or broken file
 - Prescribed implementation scaffolding — exact function signatures, exact file layouts, named libraries, or named build commands when the agent should be figuring those out. Specifying the contract an output must satisfy is fine; specifying the code shape that produces it is a hint.
 - Emojis and decorative unicode. Scattered bold markers on solution-adjacent phrases ("**Policy limit**: $500") also count — they telegraph where the answer is.
+
+RC6 signal families to explicitly avoid (each triggers the mechanical check):
+- **Named algorithms** — "CRC32", "HMAC-SHA256", "AES-GCM", "Kahan summation", "two-pointer", "backtracking" → describe what the output must be, not how to compute it.
+- **Schema enumerations** — listing every key of every structured output with its type. Document the overall contract in prose; let the agent derive the schema from behavior.
+- **API/CLI enumerations** — listing every flag, subcommand, or method signature. Describe the observable behavior; let the agent discover the interface.
+- **Numeric thresholds** — "tolerance 1e-6", "must converge in 50 iterations", "block size 4096" → describe what "correct" means; let the agent derive any required numeric choice.
+- **Binding phrases** — "you must", "the algorithm is", "the formula is", "defined as", "equivalent to" → replace with descriptive language about observed behavior.
+- **Scope closures** — "and nothing else", "only these fields", "exactly these steps" → these lock the agent into the oracle's exact approach; allow multiple valid approaches.
+- **File/function locations** — "edit `src/parser.c` line 42", "modify `parse_header()`", "the bug is in the token-counting loop" → describe the symptom, not the location.
+- **Cause statements** — "because the hash is truncated", "this is caused by signed overflow" → describe what's observed, not what's responsible.
 
 Replace with:
 - Direct problem statement
@@ -128,6 +168,16 @@ Vary the style across tasks. Some terse, some conversational, some structured. N
 - Keep milestone files concise (3–5 lines, up to 10–12 for milestone_1.md)
 
 ## task.toml
+
+**Construction-time constraints this section enforces.** `task.toml` is validated by `run_static_checks.py --only task_toml` and related checks. The rules below are all enforced:
+
+- `version = "2.0"` required
+- All `[metadata]` fields present with valid values
+- `timeout_coherence`: `verifier.timeout_sec ≥ environment.build_timeout_sec` when `tests/` invokes a build step; `verifier.timeout_sec ≤ 1800` and `agent.timeout_sec ≤ 1800` (hard platform cap)
+- `codebase_size` must match actual env file count: `minimal` (0-19, blocked), `small` (20-200), `large` (200+)
+- 3-6 `tags`, no filler padding
+- `subcategories` (not `task_subtypes`); subcategory values restricted to `long_context`, `tool_specific`, `api_integration`, `db_interaction`, `ui_building`
+- `number_of_milestones` must match actual milestone count (0 for non-milestone)
 
 ```toml
 version = "2.0"
@@ -195,6 +245,12 @@ Rules:
 
 ## environment/Dockerfile
 
+**Construction-time constraints this section enforces.** Most Dockerfile rules are enforced mechanically by `run_static_checks.py`:
+- `dockerfile_copy_sources` — every `COPY`/`ADD` source path must resolve inside the build context. Dead references (e.g., `COPY .cargo /app/.cargo` with no `.cargo/` directory) are HIGH failures.
+- `package_hygiene` — no build-artifact dirs (`build/`, `bin/`, `target/`, `dist/`, `node_modules/`, `__pycache__/`) anywhere under `environment/`; no pre-computed outputs under `environment/{output,out,bin}/`.
+- `shell_script_integrity` — any file with a `#!` shebang must have LF line endings (CRLF breaks kernel interpretation).
+- `timeout_coherence` — `verifier.timeout_sec` must be ≥ `environment.build_timeout_sec` when `tests/` invokes a build step.
+
 - Set `WORKDIR /app` (or similar real working directory)
 - Pin every `FROM` stage by digest, including builder stages
 - Pin apt package versions (e.g., `curl=7.88.1-10+deb12u8`)
@@ -248,6 +304,11 @@ Notes:
 
 ## solution/solve.sh
 
+**Construction-time constraints this section enforces.** `solve.sh` is the primary source of RC1 and RC7 signals:
+- RC1 (oracle simplification): must ADD real logic, not just delete/revert/flip flags
+- RC7 (oracle triviality): non-boilerplate LOC ≥ 30 floor, ≥ 80 for comfortable PASS
+- Oracle-1x plumbing: outputs exactly what tests assert, deterministically
+
 - Must solve the entire instruction deterministically
 - Must perform real work, not hardcode answers or copy test expectations
 - Must not require interactive input or fetch web dependencies at runtime
@@ -256,6 +317,16 @@ Notes:
 - Must pass ALL tests when run inside the container
 - Write like a human (standard keyboard characters only)
 - For milestone tasks: `solve.sh` chains `solve1.sh ... solveN.sh` in order
+
+### Determinism discipline (for Step 4's 10x flakiness check)
+`solve.sh` runs once in Step 2b as a sanity check and ten times in Step 4 as a flakiness check. A single pass is not evidence of determinism. While writing `solve.sh`:
+- No randomness (no unseeded `random`, no `$RANDOM`, no `uuidgen`).
+- No network calls, no external web resources.
+- No timing-dependent logic, no sleeps coupled to external state, no retry loops without bounded deterministic termination.
+- No filesystem-ordering dependence (iterate sorted, not raw `ls`).
+- No concurrency unless carefully scoped — concurrent writes to the same file are a common source of Step 4 10x failures.
+
+If any of the above is structurally required (e.g., a genuinely nondeterministic build step), isolate the nondeterministic part and normalize the output before tests see it.
 
 ### Discoverability principle
 
@@ -380,6 +451,16 @@ fi
 
 ## tests/test_outputs.py
 
+**Construction-time constraints this section enforces.** Every rule below maps to a post-construction check you should pass first try:
+
+- NOP invariant → tests must reject the broken baseline (empty output, missing file, default value)
+- RC3 (verifier shallowness) → assertions check computed domain-correct values, not format/schema/existence alone
+- RC4 (tamper surface) → tests depend only on solver outputs, not on environment files the agent can rewrite
+- RC5 (reference artifacts) → expected values are embedded in test code, not read from solver-visible files
+- Part B (per-test feasibility) → each test is independently passable by multiple valid approaches
+- `instruction_test_vocabulary` static check → every exact-value assertion on an instruction-named field has that value grounded somewhere in `instruction.md` text
+
+### Structural rules
 - Use exact filename `test_outputs.py` (or `test_m1.py ... test_mN.py` for milestones)
 - Write normal pytest tests with informative docstrings
 - Test behavior, not implementation. Do not parse source code.
@@ -394,6 +475,14 @@ fi
 - Must pass `ruff`
 - Target at least 6 discoverable tests, preferably 10–15 for larger tasks
 
+### NOP-aware construction
+Every assertion must fail against the NOP baseline (what the agent sees before doing any work — typically missing files, empty outputs, or default/zero values). Before finalizing each test, ask: "if `solve.sh` did nothing, would this assertion catch it?" If the answer is no (e.g., `assert Path(output).exists()` passes on a touched-but-empty file), tighten the assertion to require domain-correct content, not mere existence.
+
+### RC3/RC4-aware construction
+- Do not assert only "file exists" or "JSON is valid" — assert the values inside are domain-correct.
+- Do not read expected values from a file in `environment/` that the agent could rewrite. Compute expected values in test code from the task's specification, or embed them as literals.
+- If a test compares agent output to a reference, the reference must live in test code (`/tests/`), not in `environment/`.
+
 ### Per-test feasibility (prevents 0/10 per-test rejection)
 - Each test must be independently achievable, not chain-dependent on the full solution
 - If asserting an exact value, it must be the only correct answer
@@ -402,17 +491,99 @@ fi
 
 ## Packaging
 
-### Zip format
-Files must be at the archive root (no wrapping folder):
+Packaging is **Step 4's job**, not Step 2b's. Step 2b drafts files and runs the verification chain (static checks, collapse check, oracle 1x + NOP); Step 4 is where the submission zip is actually created, validated, and approved. The instructions below are the rules Step 4 enforces — they are documented here so construction stays aware of what will ship.
+
+### Files at archive root
+
+Required (must be in the zip, at the archive root):
+- `instruction.md`
+- `task.toml`
+- `environment/` directory
+- `solution/` directory
+- `tests/` directory
+
+Forbidden (must NOT be in the zip, even though some live at the task root for repo tooling):
+- `output_contract.toml` — authoring metadata; read by repo tooling, not shipped.
+- `quality_check_adjudication.json` — per-task quality-check waiver; repo-internal.
+- `rubric.txt`, `rubrics.txt` — rubrics are authored in the submission UI.
+- Anything under `__pycache__/`, `.*`, `*.pyc`.
+
+These four forbidden filenames are the canonical `validate_submission_zip.FORBIDDEN_ROOT_FILES` list. Step 4's zip command excludes them explicitly:
+
 ```bash
 cd tasks/<task-name>
 rm -f ../../Task_Ready_To_Submit/<task-name>.zip
-zip -rq ../../Task_Ready_To_Submit/<task-name>.zip . -x '*/__pycache__/*' '*.pyc' '.*'
+zip -rq ../../Task_Ready_To_Submit/<task-name>.zip . \
+    -x '*/__pycache__/*' '*.pyc' '.*' \
+    -x 'output_contract.toml' \
+    -x 'quality_check_adjudication.json' \
+    -x 'rubric.txt' \
+    -x 'rubrics.txt'
 python3 ../../validate_submission_zip.py ../../Task_Ready_To_Submit/<task-name>.zip
 ```
 
-This validation step is mandatory for every generated submission zip. Do not ship or mark a zip ready unless `validate_submission_zip.py` returns PASS.
+`validate_submission_zip.py` returning PASS is the gate, not the goal — Step 4 then runs `approve_task.py` as the authoritative repo-local approval, which bundles `run_static_checks.py` + `collapse_check.py` + zip validation + manifest verification + zip/source parity.
 
-Verify `instruction.md`, `task.toml`, `environment/`, `solution/`, and `tests/` are at archive root. Append `--json` for machine-readable output.
+### Construction-time implications
 
-Do NOT include `rubrics.txt`. Place zip in `Task_Ready_To_Submit/`.
+- Do NOT place `rubrics.txt` at the task root. It will be rejected by the zip validator and fail `approve_task.py` anyway.
+- DO place `output_contract.toml` at the task root. It is required by repo conventions and read by `run_static_checks.py --only output_contract`. The `-x` exclusion keeps it out of the shipped zip without forcing you to move it.
+- Do NOT add the forbidden files to `.gitignore` — they must be committed to the task directory for repo tooling; only the zip step excludes them.
+
+## Pre-submit self-check (before reporting `done` in Step 2b)
+
+Before concluding Step 2b, walk this construction checklist. Each item corresponds to a check that will run downstream — a disciplined draft passes every one on the first mechanical run.
+
+**File layout**
+- [ ] All required files present for the task type (standard / milestone / UI)
+- [ ] No forbidden files at task root (`rubric.txt`, `rubrics.txt`, legacy `milestones.md`)
+- [ ] `output_contract.toml` present at task root (required; excluded from zip later)
+- [ ] Env file count under `environment/` (excluding Dockerfile and docker-compose) is ≥ 20
+
+**Instruction (RC6 + §1)**
+- [ ] No named algorithms, schema enumerations, CLI/flag lists, numeric thresholds, binding phrases, scope closures, file/function locations, or cause statements
+- [ ] No emojis, no decorative unicode, no bold markers on solution-adjacent values
+- [ ] No roleplay boilerplate, no verifier-centric phrasing, no step-by-step recipes
+- [ ] Absolute paths, not relative
+- [ ] 150-200 words of actionable content, human-voiced prose
+- [ ] Task name not leaked; no legacy canary strings
+- [ ] Every exact-value assertion in tests has its value grounded somewhere in instruction text (`instruction_test_vocabulary` check)
+- [ ] No `internal_harness_files` path surfaced (unless also in `user_visible_outputs`)
+
+**task.toml (§5 + static checks)**
+- [ ] `version = "2.0"`, all required `[metadata]` fields present
+- [ ] `codebase_size` matches actual env file count
+- [ ] 3-6 tags, no padding; `subcategories` (not `task_subtypes`)
+- [ ] `verifier.timeout_sec` ≥ `environment.build_timeout_sec` if tests build anything; both ≤ 1800
+
+**Environment / Dockerfile (§2 + static checks)**
+- [ ] `WORKDIR` set; every `FROM` pinned by digest; apt versions pinned
+- [ ] Every `COPY`/`ADD` source resolves inside build context
+- [ ] No `solution/`, `tests/`, or oracle answer files copied into image
+- [ ] No build-artifact directories under `environment/`
+- [ ] No privileged, SYS_ADMIN, or docker.sock mounts
+- [ ] Test-only deps in `tests/test.sh`, not Dockerfile
+- [ ] All shebanged scripts use LF line endings
+
+**Tests (RC3/RC4/RC5 + NOP + Part B)**
+- [ ] `tests/test.sh` matches the canonical template verbatim (control flow, reward footer); only documented `[VARIABLE]` slots changed
+- [ ] Every assertion fails against the NOP baseline (empty output, missing file, default value)
+- [ ] Assertions check domain-correct computed values, not format/existence alone
+- [ ] Expected values live in test code, not in `environment/` files the agent could rewrite
+- [ ] No order dependency, no shared global state, no flaky timing
+- [ ] Each test is independently passable by multiple valid approaches
+- [ ] 6+ tests (10-15 for larger tasks), discoverable `test_*` names
+
+**Solve.sh (RC1 + RC7)**
+- [ ] Non-boilerplate LOC ≥ 30 (target 80+)
+- [ ] Adds real logic; no pure `sed -i '/BUG/d'` reverts
+- [ ] No randomness, no network, no timing dependencies, no filesystem-ordering assumptions (10x-ready)
+- [ ] For milestone tasks, chains `solve1.sh ... solveN.sh`
+
+**Solver-visible surfaces (RC2/RC5 + discoverability)**
+- [ ] No `broken_*`, `buggy_*`, `fix_me_*`, `golden_*`, `expected_*` tokens in file or directory names
+- [ ] No answer-shaped fixtures in solver-visible surfaces
+- [ ] Test names describe what to verify, not what to fix
+- [ ] Comments in `environment/` do not reveal fix locations or correct values
+
+If any item above is not satisfied, fix it before reporting `done` in Step 2b. The Step 2b mechanical chain (static checks → collapse check → oracle 1x + NOP) then confirms, not discovers, that construction was correct.
