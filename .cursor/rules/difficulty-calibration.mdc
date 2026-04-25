@@ -13,7 +13,7 @@ Use this rule whenever you are reviewing, repairing, or approving a task for sub
 Both are rejection reasons on the platform. Catch them before uploading.
 The default Edition 2 acceptance profile in this repo is hard-only.
 
-**The mechanical stack is the sole gate.** `collapse_check.py` runs seven root-cause checks (RC1-RC7), including the two that closed the previous biggest gap: RC6 audits `instruction.md` for spec-completeness (algorithms, schemas, CLI flags, thresholds, binding phrases, scope closures) via `instruction_audit.py`, and RC7 promotes the A12 oracle-LOC heuristic (<30 non-boilerplate lines = FAIL) to a mechanical gate. If any of the seven RCs returns FAIL, the task does not ship. `verifier_health.py` (repeat-oracle / randomized-order / partial-oracle ablations) is the empirical backstop. Post-upload evaluation on the platform is outside this repo-local gate.
+**The mechanical stack is the sole gate.** `collapse_check.py` runs eight root-cause checks (RC1-RC8), five compositional contract checks (CR1, CR2, CR7-CR9), and eight gate-extra checks (GX1-GX8). RC6 audits `instruction.md` for spec-completeness via `instruction_audit.py`; RC7 promotes the A12 oracle-LOC heuristic (<30 non-boilerplate lines = FAIL) to a mechanical gate. The GX layer was added after three previously-shipped tasks (`grandchild-exit-leak`, `pipe-close-shadow`, `child-finalization-gap`) collapsed despite passing RC1-RC8 + CR1-CR9; it closes structural gaps the earlier stack missed (LOC inflation via heredoc body-size, no-op frontier rewrites, disclosure comments in env, hardcoded oracle constants in tests, test-side derivation logic without an env home, narrative cause-disclosure). If any of these 21 checks returns FAIL, the task does not ship. `verifier_health.py` (repeat-oracle / randomized-order / partial-oracle ablations) is the empirical backstop. Post-upload evaluation on the platform is outside this repo-local gate.
 
 ## Solver-Visible Surface Policy
 
@@ -38,7 +38,7 @@ Do not skip the second pass. Most problems only surface after the draft is concr
 
 A strong real-world idea can still collapse into a trivial task once the files exist. Judge the task at its current stage, not by the original concept.
 
-`collapse_check.py` runs seven mechanical checks (RC1-RC7) against the finished task. Any FAIL verdict is blocking — A0-A13 below drive the seven RCs, and the RCs drive the approval gate.
+`collapse_check.py` runs the full mechanical stack (RC1-RC8 + CR1, CR2, CR7-CR9 + GX1-GX8) against the finished task. Any FAIL verdict is blocking — A0-A21 below drive the checks, and the checks drive the approval gate.
 
 ### Fatal question
 
@@ -179,6 +179,42 @@ The classifier maps triggered families to one of:
 - **symptoms-only → RC6 = PASS** (no families triggered)
 
 A hard task's instruction must be symptoms-only. If RC6 reports spec-complete, the agent can skip the hard reasoning by reading the instruction alone — the codebase is decorative.
+
+### A14-A21. Gate Extras (GX1-GX8 — closing structural gate gaps)
+
+After three previously-shipped tasks (`grandchild-exit-leak`, `pipe-close-shadow`, `child-finalization-gap`) collapsed to trivial / easy / medium despite passing the RC1-RC8 + CR1-CR9 stack, eight root-level checks were added in `gate_extras.py`. Each is framed against a property the author cannot evade by switching to a near-equivalent gaming move. All run under the same `collapse_check.py` driver and use the standard FAIL / WARN / PASS contract. A FAIL on any one of them blocks shipping.
+
+**A14. GX1 Oracle Comment Leakage** — the disclosure comment problem.
+
+Three detectors at root level. (a) any comment within ±5 lines of an oracle-changed line that uses a token from the closed CORRECTIONAL_VOCAB set (~50 English correction-words covering bug/fix/wrong/should/expected/intentional/...) — FAIL. (b) any comment present in the env file that is removed or altered by the oracle — the author is implicitly admitting it was bug-related — FAIL. (c) any comment anywhere in `environment/` using STRONG_BUG_VOCAB (`bug`, `fixme`, `xxx`, `intentionally`, `wrong`, ...) — FAIL outright; lighter correctional vocab elsewhere in env → WARN. The closed-vocab set is what makes this robust: removing every word from the lemma list also removes the comment's disclosure value to the agent.
+
+**A15. GX2 Real-Diff Bulk Rewrite** — RC1 was comparing file size, not diff.
+
+For every heredoc / `Path.write_text` / install-replace, run `difflib.SequenceMatcher` opcodes on (env_text, body) after language-aware comment stripping. Any individual rewrite with body_lines ≥ 30 AND semantic_delta (added+removed) ≤ 5 → FAIL. Catches the 31-line heredoc with +2/-2 real diff that RC1 reports as net_delta = 0 because env and body have the same line count.
+
+**A16. GX3 Oracle Edit Distance** — supersedes RC7's transitive-LOC sum.
+
+Replaces RC7's body-size sum with comment-stripped, language-aware edit distance summed across all writes / patches / inplace edits. Same A12 thresholds (FAIL < 30, WARN 30-79, PASS ≥ 80) but on real numerator. New files (no env baseline) count as full body LOC after comment stripping.
+
+**A17. GX4 No-Op Frontier Rewrite** — frontier-padding via byte-identical writes.
+
+Detects any heredoc / python_write whose body is byte-identical or whitespace-only-different from the existing env file. Catches the "rewrite the file unchanged so its subsystem stays on the frontier and clears CR2's ≥3-distinct-roots rule" pattern (pipe-close-shadow's `run_main.c` ploy with the comment "keeps the site byte-identical when a trailing newline is already present").
+
+**A18. GX5 Instruction-Test Token Overlap** — provenance-based, replaces RC6's dense-cluster heuristic.
+
+Walk every test-asserted token (subscript keys + literals in equality compares with subscript/attribute chains). Classify by provenance into instruction-only / env-only / both / orphan. FAIL when instruction-only fraction > 0.40 with ≥ 5 tokens; WARN when > 0.25. Catches "the schema you're verifying is named in the instruction, so the codebase is decorative" without depending on backtick density thresholds.
+
+**A19. GX6 Causal Connective Density** — narrative cause-disclosure.
+
+Closed list of ~30 English causal/temporal connectives covering subordinators (`while`, `before`, `after`, `because`, `since`, `until`, `even though`, `still`) AND result clauses (`as a result`, `consequently`, `therefore`, `due to`, `leads to`, `causes`). FAIL when ≥ 4 hits AND > 1.5/100 words; WARN at ≥ 3 hits + > 1.0/100 words. A symptoms-only instruction can describe what is observed without chaining clauses across subsystems with these connectives.
+
+**A20. GX7 Test-Literal Homing** — extends CR9 to three patterns CR9 misses.
+
+(a) Path-construction literals: `Path(...) / "seg.ok"`, `os.path.join(_, "x")`, `Path("x")`. (b) Module-level constant aliases: `D_FLAT = "1e1eb0e82d..."` referenced later in `assert r["d_field"] == D_FLAT` (CR9's Compare-walker only sees the Name, missing the Constant). (c) Long-opaque literals: any string ≥ 16 chars that is ≥ 95% alphanumeric anywhere in tests — catches hash digests / base64 blobs / UUIDs hidden in helper-function defaults. Each captured literal must appear in the solver-visible corpus (instruction + env file content + env file/dir names). Alias or opaque orphans → FAIL; path-literal-only orphans → WARN.
+
+**A21. GX8 Test-Import Consistency** — derivation contract must live in env.
+
+Two detectors. (a) Every non-pytest-infra Python module imported by tests must appear in env code or be named in instruction.md. The `TEST_INFRA_MODULES` closed list (~30 entries: pytest, subprocess, pathlib, json, etc.) is what test infra is allowed to use; everything else needs a home. (b) Every "domain primitive" import (closed list: `hashlib`, `hmac`, `base64`, `binascii`, `struct`, `zlib`, `secrets`, `cryptography`, ...) must also be imported by env code, regardless of whether instruction names it — instruction can describe a contract but cannot substitute for env IMPLEMENTATION when derivation is at stake. Catches "tests do their own SHA-256 derivation that env never references."
 
 ### Collapse audit output template
 

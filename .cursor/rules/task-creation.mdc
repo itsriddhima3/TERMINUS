@@ -32,6 +32,44 @@ Before touching any file, internalize the full rule set:
 
 Construction is spec-aware, not spec-discovering. While writing each file, pre-validate against the rules relevant to that file. If a rule would force you off the authoring spec's design, revise the draft — the rule is from a constraint the spec already assumed.
 
+### Fix-surface construction rules (CR1-CR7)
+
+RC1-RC7 catch structural collapse. CR1-CR7 catch **fix-surface telegraphing**: the code-level signals that let a frontier reader identify the fix site from the file tree alone, before reading any bodies. A draft can pass every RC and still collapse because the drafter picked a clean name for the decision function and filed it in a directory named after the task's core concept. These rules close that channel.
+
+Every CR rule below is enforced mechanically by `collapse_check.py` and traces back to a specific observed trivialization mode in the Apr 2026 audit (5 of 10 shipped tasks trivialized because of signals these rules now catch).
+
+| CR  | Rule                       | Construction-time constraint                                                                                                                                                      |
+|-----|----------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| CR1 | Symbol-table compliance    | The authoring spec's `symbol_table` names every symbol the oracle touches. Use those names verbatim — do not rename, do not relocate, do not introduce new top-level symbols on the fix path outside the table. |
+| CR2 | Flipping-point contract    | The authoring spec's `flipping_point_contract` names ≥3 fix locations and specifies the test-subset each location controls. The built task must satisfy this contract: reverting any single location must flip only its declared test subset. No single location may flip a majority of tests. |
+| CR3 | Signature opacity          | Parameter names on the fix path must not lexically or semantically match instruction nouns. Use opaque identifiers (`a`, `b`, `c`; `primary`, `secondary`; `state_x`, `state_y`) or positional parameters. Function signatures on the fix path must not encode the instruction's abstraction (e.g. three parameters named after the three authorities the instruction discusses). |
+| CR4 | No literal scenario values on fix path | No string or integer literal that matches a scenario-controlled value may appear in any function body on the fix path. All such values must arrive via parameters, config reads, or state reads. A `"v3"` literal in a function that should respect the active version is a direct tell. |
+| CR5 | No shadow-pair files       | No two files in the visible codebase may contain function definitions with matching names AND matching or near-matching bodies (≥80% AST similarity). Parallel-package telegraphs (e.g. `pkg_a/choice.py::pick_lineage` and `pkg_b/choice.py::pick_lineage` with identical bodies) let the agent triangulate the fix site from the symbol alone. |
+| CR6 | No intent comments on fix path | Comments on files the oracle touches may describe mechanics ("sort ascending", "open in binary mode") but must not describe **intent** or **invariants** ("ensures canonical authority survives churn", "required for correct precedence"). Intent comments narrate the fix to the agent. |
+| CR7 | Grep-resistance            | No function name, top-level class name, parameter name, or path token on the fix path may appear verbatim in `instruction.md` as a noun. Drafter extracts every noun from the instruction, then greps the fix-path symbols — any match is a FAIL. |
+| CR8 | No central orchestration of fix-path symbols | No single visible file may reference (call, import, or name) more than 2 symbols declared in the authoring spec's `symbol_table`. An orchestrator that exposes the full fix-site call graph in one file (e.g. a `harness/driver.py` that invokes every fix-path function across every scenario) gives the agent the entire fix structure for free. Distribute orchestration across scenario-specific entry points. Apr 2026 `enum-packing-split` post-mortem: 155-LOC `harness/driver.py` called every opaque fix symbol and rendered code-side opacity irrelevant because the driver WAS the spec. |
+| CR9 | Test-contract traceability | Every string literal, field name, and required value that `tests/test_outputs.py` asserts against must either (a) appear in `instruction.md`, or (b) appear in a code stub/signature/docstring visible to the solver BEFORE applying the fix. Tests must not introduce requirements that have no home anywhere in the visible system. Example failure: test requires `view['norm_token'] == view['digest_hex'][:8]` but neither the instruction nor any pre-fix code stub mentions `norm_token`. The solver has nowhere to learn the contract, so the test is a hidden spec — and 100% of trials fail the same test uniformly (not because the task is hard, because it's broken). |
+
+**Why these are construction-time rules, not post-draft fixes.** Retrofit renames break RC1 (oracle simplification) because the drafter ends up redesigning `solve.sh` to match new names. Retrofit decoy-insertion breaks RC3/RC4 because decoys that don't do real work end up as answer-shaped fixtures. The rules must be followed during first draft, not cleaned up after.
+
+**The symbol table is the primary handoff.** The authoring spec's `symbol_table` and `flipping_point_contract` are not suggestions — they are the construction manifest you fill in. If the spec's table doesn't exist or is underspecified, return to Step 2a rather than inventing the names yourself. Drafter-invented names are the dominant source of CR1/CR3/CR7 failures.
+
+### Instruction prose rules (separate from code-side opacity)
+
+CR1-CR9 govern the **code**: symbol names, file topology, comments, test-to-code traceability. The **instruction** is governed by RC6 (specificity) plus one additional rule whose absence drove the Apr 2026 `enum-packing-split` post-mortem:
+
+**Instruction honesty.** `instruction.md` must be a complete, readable specification of the system's contract at the symptoms-only level. Three concrete requirements:
+
+1. **An expert reading only `instruction.md` must be able to verify from the solver's output alone whether a solution is correct.** If `tests/test_outputs.py` asserts `view['norm_token'] == view['digest_hex'][:8]`, either `instruction.md` states this relationship or a solver-visible code stub documents it. CR9 enforces this mechanically.
+
+2. **Standard domain language, not synthetic jargon.** Terms like "live-read path," "reread-from-disk path," "post-rebuild cleanup" are fine — they are real distinctions a systems engineer recognizes. Terms like "outward slot strings," "material value," "wire family," "barrier view," "durable frontier" are made-up vocabulary that forces the agent to decode from code rather than from the spec. If a term would need a glossary for a domain expert to understand it, replace it with the standard term.
+
+3. **Synthetic data tokens are OK if the instruction names them explicitly.** "The first row maps to `Acme-Crate`, the second to `Beta-Tote`, the third to `Delta-Bin`" is specification. Embedding those values in tests without naming them in the instruction is hidden-spec and CR9 FAILs it.
+
+**What "instruction honesty" does NOT mean.** It does not mean naming the fix location — that is a RC6 violation. It does not mean listing algorithm names or implementation details — those are RC6-forbidden. Honest means "anyone reading this can verify correctness from the output"; it does not mean "anyone reading this can infer the fix site."
+
+The `code_forbidden_tokens` field in the authoring spec's construction manifest applies to **code symbols only**. It does not restrict instruction vocabulary. A drafter who sees `code_forbidden_tokens: [lineage, authority, precedence]` and writes an instruction avoiding all three words has misread the rule — the instruction may use those words freely; only the code symbols on the fix path must avoid them.
+
 ## Before Writing Any Code
 
 Ask for ALL missing required fields BEFORE writing code:
@@ -472,7 +510,7 @@ fi
 - No wall-clock, latency, throughput, or memory assertions
 - No test execution order dependency or shared global state
 - No hardcoded random values
-- Must pass `ruff`
+- Must pass `ruff` on verifier files and on `environment/` Python only (Edition 2 `run_static_checks.py` runs both; other languages under `environment/` are not linted by ruff)
 - Target at least 6 discoverable tests, preferably 10–15 for larger tasks
 
 ### NOP-aware construction

@@ -31,7 +31,7 @@ Every idea must survive all six:
 5. **Interesting** — Real-world economic value. Someone would be paid to do this.
 6. **Outcome-verified** — Grade results not process. Do not dictate tools/approach. Do not overspecify output format.
 
-## 20 Anti-Trivialization Checks
+## 21 Anti-Trivialization Checks
 
 Run ALL of these before allowing an idea to proceed to spec.
 
@@ -55,6 +55,7 @@ Run ALL of these before allowing an idea to proceed to spec.
 18. **Hard-only gate** — Is this clearly hard, not merely respectable or medium? If medium, this check is FAIL.
 19. **Discovery budget test (BLOCKING)** — Before any files exist, enumerate every non-trivial discovery the future solver must extract from the finished task's codebase or runtime behavior that is NOT stated or directly derivable from instruction.md. The list must contain at least 3 items. For each, name the discovery, where it should live once Step 2b creates the task, and why the instruction must not reveal it. If you cannot name 3, or every item reduces to "find where code doesn't match spec," the task is easy. Reject. This is the single most reliable hardness test.
 20. **Instruction specificity test** — Check where the instruction falls on this hierarchy: **Spec-complete** (always easy): exact algorithms, thresholds, schemas, formulas given. **Cause-revealing** (usually medium): broken component named but full fix not specified. **Symptoms-only** (can be hard): observable misbehavior without indicating where or why. A hard task's instruction must be at the symptoms-only level.
+21. **Topology distribution test (BLOCKING)** — Enumerate **three distinct fix topologies** for this idea. For each topology, name ≥3 code locations (files/functions) that must coordinate, AND demonstrate that no single location is sufficient to pass the tests. If the drafter cannot articulate three topologies each requiring ≥3 locations, the idea fundamentally has a one-function exploit locus — it will trivialize regardless of how well Step 2b drafts it. Ideas that pass this test produce fix-locus distribution at realization time; ideas that fail it cannot be rescued by construction discipline. This is the structural analogue of check 19 (discovery budget): discovery_budget measures what the solver must LEARN; topology_distribution measures what the solver must COORDINATE.
 
 ## What Does NOT Count as Hard
 
@@ -176,6 +177,87 @@ When the winning variant is GO, produce two physical files using these exact str
 
 ### Drafting guardrails
 [1 short paragraph on what Step 2b must avoid leaking through instructions, names, tests, comments, fixtures, or structure]
+
+### Construction manifest (BLOCKING — Step 2b must follow this verbatim)
+
+This section is the machine-checkable handoff to Step 2b. Prose guardrails above are necessary but insufficient — the drafter has been observed to violate them while believing it satisfied them (Apr 2026 audit: 5 of 10 shipped tasks trivialized via telegraphs the "avoid prompt nouns" guardrail was supposed to prevent). The construction manifest replaces drafter name-invention with a committed specification.
+
+#### symbol_table
+
+Pre-assign non-domain names for every symbol on the fix path (the symbols Step 2b's `solve.sh` will touch). Step 2b must use these names verbatim — it cannot rename, relocate, or add new top-level symbols on the fix path outside this table.
+
+Required format (YAML-like, one entry per fix-path symbol):
+
+```
+- path: <file-path relative to environment/>
+  symbol: <opaque non-domain name>
+  kind: function | class | constant
+  signature: <exact signature; parameter names must not lexically or semantically match any instruction noun>
+  purpose: <one line describing what the body does — NOT why it's the fix>
+```
+
+Naming rules:
+- Every symbol name on the fix path must be opaque to the instruction. If the instruction is about "lineage," names like `pick_lineage`, `resolve_lineage`, `lineage_of` are forbidden. Use opaque identifiers: `op_a`, `reconcile_b`, `resolve_c`, `step_1`, `phase_b`, etc.
+- Parameter names must not match instruction nouns. If the instruction mentions three authorities, do not take three parameters named after those authorities.
+- Paths should not concentrate in a single directory named after the task's core concept. Distribute.
+
+List every symbol the oracle touches, including helpers. Minimum 3 entries (paired with flipping_point_contract requiring ≥3 locations).
+
+#### flipping_point_contract
+
+Commit to a test-subset structure that proves the fix is not concentrated in one location. Step 2b verifies this mechanically after the oracle works: revert each location in isolation, rerun tests, confirm the declared subset flips.
+
+Required format:
+
+```
+locations:
+  - id: A
+    path: <file that gets reverted>
+    controls_tests: [test_1, test_2]
+  - id: B
+    path: <different file>
+    controls_tests: [test_3, test_4]
+  - id: C
+    path: <different file>
+    controls_tests: [test_5]
+no_single_location_flips_majority: true
+concentration_cap: 0.5    # max fraction of tests any single location may control
+```
+
+Constraints:
+- Minimum 3 locations across distinct directories or distinct module roots.
+- No single location may control more than 50% of tests (`concentration_cap ≤ 0.5`).
+- Test subsets may overlap but the union must cover every test.
+- Step 2b's `collapse_check.py --check flipping_point_compliance` verifies this after the oracle runs green.
+
+#### decoy_manifest
+
+Name 2-4 helper modules or files with signatures that structurally rhyme with fix-path symbols but are NOT on the fix path. Step 2b creates these as part of environment/ with bodies that do genuine non-fix work.
+
+Required format:
+
+```
+- path: <file path>
+  kind: module | helper | config-reader
+  rhymes_with: <fix_path_symbol_id from symbol_table>
+  non_fix_purpose: <what this file actually does in non-fix scenarios>
+```
+
+A codebase where one module is "wrong-shaped" relative to several similar-looking ones cannot be trivialized by `find | xargs cat` scanning.
+
+#### code_forbidden_tokens
+
+Enumerate every noun in instruction.md (nouns plus domain-meaningful compound nouns). Step 2b must not use any of these as a function name, class name, top-level constant, directory name, or parameter name anywhere **on the fix path**.
+
+**This ban applies to CODE SYMBOLS ONLY.** The instruction itself is unrestricted — it uses whatever standard domain language makes the contract clear to a reader. The Apr 2026 `enum-packing-split` post-mortem confirmed that drafters misreading this rule as "obfuscate the instruction too" produces trivial tasks (where the agent decodes from tests + driver files) or unsolvable tasks (where tests introduce requirements the jargon-only instruction never documented). The rule is that `pick_lineage` cannot be a function name when the instruction talks about "build lineage" — NOT that the instruction must avoid the word "lineage."
+
+Required format:
+
+```
+code_forbidden_tokens: [<noun1>, <noun2>, ...]
+```
+
+`collapse_check.py --check grep_resistance` verifies this after construction by greping each token across the oracle frontier's code symbols.
 ```
 
 ### Reviewer Appendix (`specs/<task-name>-reviewer.md` or `specs/<task-name>-candidate-N-reviewer.md`)
@@ -202,7 +284,10 @@ When the winning variant is GO, produce two physical files using these exact str
   Why instruction must not reveal it: [why naming it in instruction.md would collapse the task]
 
 ### Anti-trivialization verdict
-[full 20-check table with reasoning per check]
+[full 21-check table with reasoning per check]
+
+### Topology enumeration (3 candidate fix topologies)
+[Required by check 21. Enumerate three distinct plausible fix topologies. For each, name ≥3 code locations (files/functions) that must coordinate, and state in one sentence why no single location is sufficient. If the drafter cannot articulate three such topologies, the idea fundamentally has a one-function locus and cannot be hard. These topologies are analysis-only — Step 2b picks one to realize via the construction manifest in the authoring spec.]
 
 ### Rubric axes
 [for each of the 6 axes: 1 sentence reasoning + Pass/Warn/Fail]
