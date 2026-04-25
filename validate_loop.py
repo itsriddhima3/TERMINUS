@@ -86,6 +86,7 @@ ANTI_TRIVIALIZATION_CHECKS = {
     "hard_only_gate": "Hard-only gate",
     "discovery_budget_test": "Discovery budget test",
     "instruction_specificity_test": "Instruction specificity test",
+    "topology_distribution_test": "Topology distribution test",
 }
 
 

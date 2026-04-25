@@ -1724,46 +1724,64 @@ def check_test_layout(task_dir: Path, task_data: dict, reporter: Reporter) -> No
 
     if not verifier_files:
         reporter.ok("Python verifier layout checks skipped (no Python verifier files required for this task type)")
-        return
+    else:
+        for verifier_file in verifier_files:
+            source = verifier_file.read_text(encoding="utf-8")
+            try:
+                tree = ast.parse(source)
+            except SyntaxError as exc:
+                reporter.fail(f"{verifier_file.relative_to(task_dir).as_posix()} could not be parsed: {exc}")
+                continue
 
-    for verifier_file in verifier_files:
-        source = verifier_file.read_text(encoding="utf-8")
-        try:
-            tree = ast.parse(source)
-        except SyntaxError as exc:
-            reporter.fail(f"{verifier_file.relative_to(task_dir).as_posix()} could not be parsed: {exc}")
-            continue
-
-        test_nodes = parse_test_nodes(tree)
-        if not test_nodes:
-            reporter.fail(
-                f"{verifier_file.relative_to(task_dir).as_posix()} does not expose discoverable pytest tests"
-            )
-        else:
-            missing_docstrings = [name for name, node in test_nodes if not ast.get_docstring(node)]
-            if missing_docstrings:
+            test_nodes = parse_test_nodes(tree)
+            if not test_nodes:
                 reporter.fail(
-                    f"{verifier_file.relative_to(task_dir).as_posix()} is missing informative docstrings for: "
-                    + ", ".join(missing_docstrings)
+                    f"{verifier_file.relative_to(task_dir).as_posix()} does not expose discoverable pytest tests"
+                )
+            else:
+                missing_docstrings = [name for name, node in test_nodes if not ast.get_docstring(node)]
+                if missing_docstrings:
+                    reporter.fail(
+                        f"{verifier_file.relative_to(task_dir).as_posix()} is missing informative docstrings for: "
+                        + ", ".join(missing_docstrings)
+                    )
+
+            if has_main_guard(tree) or CUSTOM_DRIVER_PATTERN.search(source):
+                reporter.fail(
+                    f"{verifier_file.relative_to(task_dir).as_posix()} must not include a custom __main__ or hand-rolled test driver"
                 )
 
-        if has_main_guard(tree) or CUSTOM_DRIVER_PATTERN.search(source):
-            reporter.fail(
-                f"{verifier_file.relative_to(task_dir).as_posix()} must not include a custom __main__ or hand-rolled test driver"
+            for pattern in SUSPICIOUS_SOURCE_READ_PATTERNS:
+                if pattern.search(source):
+                    reporter.fail(
+                        f"{verifier_file.relative_to(task_dir).as_posix()} appears to inspect source code under /app; "
+                        "verifiers must test behavior, not implementation details"
+                    )
+                    break
+
+        ruff = shutil.which("ruff")
+        if ruff:
+            result = subprocess.run(
+                [ruff, "check", *[str(path) for path in verifier_files]],
+                cwd=repo_root(),
+                capture_output=True,
+                text=True,
+                check=False,
             )
+            if result.returncode != 0:
+                output = "\n".join(part for part in (result.stdout, result.stderr) if part.strip())
+                reporter.fail(f"ruff check failed for verifier files.\n{output}")
+            else:
+                reporter.ok("ruff check passed for verifier files")
 
-        for pattern in SUSPICIOUS_SOURCE_READ_PATTERNS:
-            if pattern.search(source):
-                reporter.fail(
-                    f"{verifier_file.relative_to(task_dir).as_posix()} appears to inspect source code under /app; "
-                    "verifiers must test behavior, not implementation details"
-                )
-                break
-
+    # Ruff only lints Python (and configured pyi) sources; other languages under
+    # environment/ (C, Rust, Go, JSON, etc.) are ignored. If there are no Python
+    # files, ruff exits 0 (may print a harmless "No Python files found" notice).
+    env_dir = task_dir / "environment"
     ruff = shutil.which("ruff")
-    if ruff and verifier_files:
+    if ruff and env_dir.is_dir():
         result = subprocess.run(
-            [ruff, "check", *[str(path) for path in verifier_files]],
+            [ruff, "check", str(env_dir)],
             cwd=repo_root(),
             capture_output=True,
             text=True,
@@ -1771,9 +1789,9 @@ def check_test_layout(task_dir: Path, task_data: dict, reporter: Reporter) -> No
         )
         if result.returncode != 0:
             output = "\n".join(part for part in (result.stdout, result.stderr) if part.strip())
-            reporter.fail(f"ruff check failed for verifier files.\n{output}")
+            reporter.fail(f"ruff check failed for environment/.\n{output}")
         else:
-            reporter.ok("ruff check passed for verifier files")
+            reporter.ok("ruff check passed for environment/")
 
 
 def check_dockerfile_copy_sources(task_dir: Path, reporter: Reporter) -> None:

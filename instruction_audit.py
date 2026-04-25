@@ -331,14 +331,21 @@ def classify_specificity(signals: dict[str, object]) -> dict[str, object]:
     if alg_total >= 3:
         strong.append("A:algorithm_mentions")
 
-    # B — schema enumerations
+    # B — schema enumerations.
+    # A 'cluster' here is a window of ~400 chars near a schema noun where 5+
+    # backticked identifiers appear; tasks that list the verifier schema
+    # verbatim hit many clusters with high identifier counts. Calibrated
+    # after pipe-close-shadow (6 clusters, 7 max idents) was previously
+    # classified only cause-revealing/WARN despite the instruction giving
+    # the agent the full output schema and expected triples.
     if (
         schema["dense_identifier_clusters"] >= 1
         or len(schema["all_caps_tokens"]) >= 3
     ):
         triggered.append("B:schema_enumerations")
     if (
-        schema["max_identifiers_near_schema_noun"] >= 8
+        schema["dense_identifier_clusters"] >= 5
+        or schema["max_identifiers_near_schema_noun"] >= 7
         or len(schema["all_caps_tokens"]) >= 5
     ):
         strong.append("B:schema_enumerations")

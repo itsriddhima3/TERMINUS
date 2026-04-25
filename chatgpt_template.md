@@ -1,6 +1,12 @@
-# OPTION B
+# STEP 1 — OPTION B
 
-Run Option B from bulk-idea-generation.md in full-sweep mode. Produce 25 self-screened strong candidates for all the categories 1 - 9.Give me a downloadable .md file as output.
-# OPTION A
+Run Option B from `web/bulk-idea-generation.md` in **goal-sized opus-weak mode**.
+The final target after Option A is **150 Step-2a-ready seeds**.
+Use the four Opus-weak categories, keep the bank category-balanced, keep Topology distinct within category, and give me a downloadable `.md` seed-bank file.
 
-use bulk-ideas.md as seed ideas file and generate very strong variant for each.Give me a downloadable .md file as output.
+# STEP 1 — OPTION A
+
+Run Option A from `web/option-a-seed-refinement.md` in **step2a-bank mode** against the attached bulk-ideas file.
+The final target is **150 Step-2a-ready seeds**.
+Repair or replace weak seeds instead of collapsing to a tiny shortlist.
+Keep the four Opus-weak categories balanced, keep Topology distinct within category, and give me a downloadable `.md` file.

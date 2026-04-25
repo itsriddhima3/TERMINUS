@@ -149,11 +149,13 @@ Read the ACTION line from the output.
 7. If you changed anything from the original idea beyond fixing the flagged issues (language, scope, domain, architecture, number of modules, etc.), state each change and why it was necessary.
 8. Build a structured evidence JSON that matches `specs/validation_schema.json`. Populate ALL required fields. In particular:
    - `hardness_axes`
-   - `anti_trivialization_checks`
+   - `anti_trivialization_checks` (21 entries — includes `topology_distribution_test`)
    - `discovery_budget`
    - `instruction_specificity`
    - `attack_path`
    - `smallest_plausible_patch`
+   - `topology_enumeration` (BLOCKING): at least 3 distinct fix topologies, each naming ≥3 code locations that must coordinate, and for each a one-sentence explanation of why no single location is sufficient. If you cannot articulate 3 such topologies, the idea has a one-function-exploit locus — reject.
+   - `construction_manifest` (BLOCKING): the machine-checkable handoff to Step 2b. Must include `symbol_table` (opaque pre-assigned names for every fix-path symbol, ≥3 entries), `flipping_point_contract` (≥3 locations across distinct roots, with per-location test subsets summing under a 50% concentration cap), `decoy_manifest` (≥2 rhyming helper modules), and `code_forbidden_tokens` (every domain noun extracted from instruction.md — these are banned from CODE symbol names on the fix path, NOT from the instruction itself; `instruction.md` uses whatever standard domain language makes the contract clear).
    The `discovery_budget` field is BLOCKING: include at least 3 non-trivial solver discoveries the finished task should force from the codebase/runtime. For each item, name the discovery, where it should live after Step 2b, and why instruction.md must not reveal it. If you cannot list 3, the idea is easy.
    The `instruction_specificity` field is BLOCKING: for a hard candidate, `level` must be `symptoms-only`. If the best honest level is `spec-complete` or `cause-revealing`, the idea cannot GO.
 9. Count your FAILs and WARNs from the evidence and written review. Do not let the score contradict the structured verdicts.
@@ -235,17 +237,21 @@ Before drafting any file, internalize these rule sources:
 - `@review-and-submit.mdc` §1-7 — the structural checklist Step 3b will walk (Instruction, Environment, Oracle Solution, Verifiers, Task Metadata, Task Structure, Difficulty Calibration). Every bullet there is something you can satisfy at construction.
 - `@difficulty-calibration.mdc` Part A — the collapse audit template (smallest plausible patch, editable frontier, requirement-to-file map, oracle LOC, discoverability, red flags, residual hardness). Design the task so this audit returns PASS on the first read.
 - `@difficulty-calibration.mdc` Part B — per-test feasibility risks: single-valid-approach, chain-dependency, order-sensitivity, flakiness, niche-technique. Avoid creating any of these while writing tests.
-- `collapse_check.py` RC1-RC7 — mechanical collapse rules. Each RC translates to a specific construction constraint:
+- `collapse_check.py` RC1-RC7 + RC8 + CR1-CR7 — mechanical collapse and fix-surface rules. Each translates to a specific construction constraint:
 
-| RC  | Rule                   | What this means at construction time                                                                                                                                  |
-|-----|------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| RC1 | Oracle simplification  | `solve.sh` must add logic, not just delete/revert. If the "fix" is `sed -i '/BUG/d'`, the task is trivial — redesign.                                                  |
-| RC2 | Oracle predictability  | File, directory, and test names must not encode the task contract. No `broken_*`, `buggy_*`, `fix_me_*`, `golden_*` tokens in solver-visible surfaces.                 |
-| RC3 | Verifier shallowness   | Tests must assert domain-correct computed values, not format/schema/existence alone. Every explicit prohibition in `instruction.md` needs a direct test.               |
-| RC4 | Tamper surface         | Tests must not depend on files the agent can rewrite to bypass domain reasoning. Compute expected values in test code; don't read "golden" files from `environment/`.  |
-| RC5 | Reference artifacts    | No answer-shaped golden/reference/broken fixtures on solver-visible surfaces (`instruction.md`, `tests/`, `environment/`). Embed expected values in test code.         |
-| RC6 | Instruction specificity| `instruction.md` stays symptoms-only. No algorithm names, schema enumerations, CLI flag lists, numeric thresholds, file/function locations, cause statements, recipes. |
-| RC7 | Oracle triviality      | `solve.sh` non-boilerplate LOC ≥ 30 (≥ 80 is comfortable). If the genuine fix is <30 LOC, the task is too simple — redesign before drafting, don't pad.               |
+| Rule | Axis                         | What this means at construction time                                                                                                                                  |
+|------|------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| RC1  | Oracle simplification        | `solve.sh` must add logic, not just delete/revert. If the "fix" is `sed -i '/BUG/d'`, the task is trivial — redesign.                                                  |
+| RC2  | Oracle predictability        | File, directory, and test names must not encode the task contract. No `broken_*`, `buggy_*`, `fix_me_*`, `golden_*` tokens in solver-visible surfaces.                 |
+| RC3  | Verifier shallowness         | Tests must assert domain-correct computed values, not format/schema/existence alone. Every explicit prohibition in `instruction.md` needs a direct test.               |
+| RC4  | Tamper surface               | Tests must not depend on files the agent can rewrite to bypass domain reasoning. Compute expected values in test code; don't read "golden" files from `environment/`.  |
+| RC5  | Reference artifacts          | No answer-shaped golden/reference/broken fixtures on solver-visible surfaces (`instruction.md`, `tests/`, `environment/`). Embed expected values in test code.         |
+| RC6  | Instruction specificity      | `instruction.md` stays symptoms-only. No algorithm names, schema enumerations, CLI flag lists, numeric thresholds, file/function locations, cause statements, recipes. |
+| RC7  | Oracle triviality            | `solve.sh` non-boilerplate LOC ≥ 30 (≥ 80 is comfortable). If the genuine fix is <30 LOC, the task is too simple — redesign before drafting, don't pad.               |
+| RC8  | Frontier concentration       | Oracle targets should not all cluster in one subsystem with small target files. Diagnostic WARN (no FAIL); paired with CR2 for the real gate.                          |
+| CR1  | Symbol-table compliance      | Every oracle-touched symbol must match the authoring spec's `construction_manifest.symbol_table`. No invented domain-telegraphing names on the fix path.              |
+| CR2  | Flipping-point contract      | Authoring spec's `flipping_point_contract` must name ≥3 locations across distinct roots with ≤50% test-control concentration. Static verification of the contract shape. |
+| CR7  | Grep-resistance              | No instruction noun may appear as a function/class/path token on the fix path. Diagnostic WARN; pair with CR1 symbol-table compliance for the enforcement.             |
 
 Construction is spec-aware, not spec-discovering. While writing each file, pre-validate against the rules relevant to that file. The mechanical checks afterward should confirm, not discover, that construction was correct. If you find yourself thinking "I'll let the check tell me," stop — read the rule now, apply it now.
 
