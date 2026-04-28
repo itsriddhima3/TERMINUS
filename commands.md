@@ -66,6 +66,9 @@ python3 run_static_checks.py --task-dir tasks/<task-name> --version edition_2 --
 python3 run_static_checks.py --task-dir tasks/<task-name> --version edition_2 --only dockerfile --only compose
 python3 run_static_checks.py --task-dir tasks/<task-name> --version edition_2 --only test_sh --only test_layout
 python3 run_static_checks.py --task-dir tasks/<task-name> --version edition_2 --only instruction --only absolute_paths --only canary --only output_contract
+# `--only instruction` includes a non-blocking WARN when the literal word "milestone" / "milestones"
+# appears in instruction.md (mirrors the upstream instruction-eval rule). See REPO_CONVENTIONS.md
+# § "The literal word 'milestone' in instruction.md is a (non-blocking) warning" for the rationale.
 
 # Legacy ci_checks/*.sh entrypoints are compatibility wrappers only. They delegate
 # to run_static_checks.py and are no longer the source of truth for per-task semantics.

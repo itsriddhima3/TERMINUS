@@ -136,6 +136,13 @@ SIGNAL_COMPLETION_PATTERNS = (
         re.IGNORECASE | re.DOTALL,
     ),
 )
+# Upstream instruction-eval policy: the literal word "milestone" must not
+# appear in the agent-facing instruction.md, even on tasks that have
+# `number_of_milestones > 0`. The eval emits a non-blocking warning when it
+# does, so we mirror it here as a warn-level static check. We match the
+# singular and plural forms with word boundaries so identifiers like
+# `milestone_count` inside backticked code are not flagged.
+MILESTONE_LANGUAGE_PATTERN = re.compile(r"\bmilestones?\b", re.IGNORECASE)
 
 STRICT_MODE_PATTERN = re.compile(
     r"^\s*set\s+-[A-Za-z]*e[A-Za-z]*u[A-Za-z]*o\s+pipefail\b|^\s*set\s+-[A-Za-z]*E[A-Za-z]*e[A-Za-z]*u[A-Za-z]*o\s+pipefail\b"
@@ -1635,6 +1642,15 @@ def check_instruction(task_dir: Path, task_data: dict | None, reporter: Reporter
     if milestone_count > 0 and not instruction_has_signal_completion_directive(instruction):
         reporter.fail(
             "Milestone tasks must tell the agent to signal completion before advancing to the next milestone"
+        )
+
+    milestone_language_hits = MILESTONE_LANGUAGE_PATTERN.findall(instruction)
+    if milestone_language_hits:
+        reporter.warn(
+            f"instruction.md contains the word 'milestone' ({len(milestone_language_hits)} occurrence(s)); "
+            "the upstream instruction-eval flags milestone-related language in agent-facing instructions. "
+            "This is non-blocking, but rephrase using neutral wording (e.g. 'step', 'stage', 'each part') so "
+            "the eval does not surface the warning at submit time"
         )
 
     paragraphs = [part.strip() for part in re.split(r"\n\s*\n", instruction.strip()) if part.strip()]
