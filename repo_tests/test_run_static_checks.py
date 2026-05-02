@@ -120,6 +120,74 @@ class RunStaticChecksRegressionTest(unittest.TestCase):
 
         self.assertEqual(reporter.failures, [])
 
+    def test_milestone_word_in_instruction_emits_nonblocking_warning(self) -> None:
+        """Mirror of the upstream instruction-eval rule: when the literal word
+        'milestone' (or 'milestones') appears in instruction.md, surface a
+        non-blocking warning so authors can rephrase before submit. The check
+        must not promote to a failure — the upstream eval is non-blocking and
+        the static checker has to stay aligned."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            task_dir = self.copy_fixture("public-contract-milestone", tmpdir)
+
+            reporter = run_static_checks.run_checks(task_dir, {"instruction"})
+
+        self.assertEqual(reporter.failures, [])
+        milestone_warnings = [
+            warning for warning in reporter.warnings
+            if "instruction.md contains the word 'milestone'" in warning
+        ]
+        self.assertEqual(len(milestone_warnings), 1, reporter.warnings)
+        self.assertIn("2 occurrence(s)", milestone_warnings[0])
+        self.assertIn("non-blocking", milestone_warnings[0])
+
+    def test_milestone_word_warning_is_silent_when_instruction_uses_neutral_wording(self) -> None:
+        """Authors who follow the upstream guidance and rephrase 'milestone' as
+        'step' (or similar neutral wording) should not see the warning. The
+        underlying milestone task still has number_of_milestones = 2 in
+        task.toml; the static check must look at the prose only, not the
+        metadata."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            task_dir = self.copy_fixture("public-contract-milestone", tmpdir)
+            instruction_path = task_dir / "instruction.md"
+            instruction_path.write_text(
+                "For the current step, write `/app/out/report.json` as JSON with `checksum` and "
+                "`status` fields. Signal completion before you advance to the next step.\n",
+                encoding="utf-8",
+            )
+
+            reporter = run_static_checks.run_checks(task_dir, {"instruction"})
+
+        self.assertEqual(reporter.failures, [])
+        milestone_warnings = [
+            warning for warning in reporter.warnings
+            if "instruction.md contains the word 'milestone'" in warning
+        ]
+        self.assertEqual(milestone_warnings, [])
+
+    def test_milestone_word_warning_ignores_underscored_identifiers(self) -> None:
+        """Identifiers like `milestone_count` (e.g. mentioned inside backticks
+        as a metadata field name) must not trigger the warning — the underscore
+        prevents `\\b` from matching, and the rule targets prose usage of the
+        word, not field-name references."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            task_dir = self.copy_fixture("public-contract-milestone", tmpdir)
+            instruction_path = task_dir / "instruction.md"
+            instruction_path.write_text(
+                "Write `/app/out/report.json` as JSON with `checksum` and `status` fields. "
+                "The `milestone_count` field in `task.toml` is metadata, not user-facing. "
+                "Signal completion before you advance to the next step.\n",
+                encoding="utf-8",
+            )
+
+            reporter = run_static_checks.run_checks(task_dir, {"instruction"})
+
+        self.assertEqual(reporter.failures, [])
+        milestone_warnings = [
+            warning for warning in reporter.warnings
+            if "instruction.md contains the word 'milestone'" in warning
+        ]
+        self.assertEqual(milestone_warnings, [])
+
     def test_oracle_knob_discoverability_warns_when_flag_is_invisible(self) -> None:
         """A knob referenced by solve.sh but absent from instruction.md
         AND absent from every comment/doc under environment/ must warn.
@@ -435,3 +503,164 @@ class RunStaticChecksRegressionTest(unittest.TestCase):
 
         sum_warnings = [w for w in reporter.warnings if "exceeds verifier" in w]
         self.assertEqual(sum_warnings, [])
+
+    def test_environment_hidden_instructions_passes_on_realistic_environment_prose(self) -> None:
+        """Realistic environment context — descriptive prose about how the
+        system behaves, what the tests consume, what the public API does — must
+        not trigger the hidden-instructions check. The shipped fixture
+        environments are all in this style and must stay PASS."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            task_dir = self.copy_fixture("public-contract-standard", tmpdir)
+            env_dir = task_dir / "environment"
+            env_dir.mkdir(exist_ok=True)
+            (env_dir / "README.md").write_text(
+                "# Widget Service\n\n"
+                "The widget service exposes an HTTP API for inspecting "
+                "registered widgets. The user-agent header is forwarded to "
+                "downstream callers. Diagnostic output is consumed by the "
+                "verifier and should remain deterministic.\n",
+                encoding="utf-8",
+            )
+            reporter = run_static_checks.run_checks(task_dir, {"environment_hidden_instructions"})
+
+        self.assertEqual(reporter.failures, [], reporter.failures)
+        self.assertIn(
+            "environment/ contains no hidden-instruction patterns",
+            reporter.passes,
+        )
+
+    def test_environment_hidden_instructions_fails_on_solver_directed_phrase(self) -> None:
+        """A markdown file inside environment/ that contains explicit
+        solver-direction phrasing ('Claude should call ...') must FAIL the
+        new check. This is the canonical failure mode the upstream
+        instruction-eval is trying to prevent."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            task_dir = self.copy_fixture("public-contract-standard", tmpdir)
+            env_dir = task_dir / "environment"
+            env_dir.mkdir(exist_ok=True)
+            (env_dir / "NOTES.md").write_text(
+                "# Implementation notes\n\n"
+                "Claude should call `widget.recompute()` after every state "
+                "transition; otherwise the cache becomes stale.\n",
+                encoding="utf-8",
+            )
+            reporter = run_static_checks.run_checks(task_dir, {"environment_hidden_instructions"})
+
+        hidden_failures = [
+            failure for failure in reporter.failures
+            if "hidden-instruction content" in failure
+        ]
+        self.assertEqual(len(hidden_failures), 1, reporter.failures)
+        self.assertIn("environment/NOTES.md", hidden_failures[0])
+        self.assertIn("solver-direction phrase", hidden_failures[0])
+
+    def test_environment_hidden_instructions_fails_on_solution_reveal_phrase(self) -> None:
+        """'The fix is to ...' / 'to solve this task ...' phrasing inside
+        environment/ is a solution-reveal even when no AI brand name is named.
+        These need to FAIL because they short-circuit the engineering
+        challenge — the agent reads the answer instead of doing the work."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            task_dir = self.copy_fixture("public-contract-standard", tmpdir)
+            env_dir = task_dir / "environment"
+            env_dir.mkdir(exist_ok=True)
+            # Plain Python file: only solver-direction patterns apply, prose
+            # patterns (HINT/STEP) don't, but solution-reveal IS a solver-
+            # direction pattern and must fire even in source-code comments.
+            (env_dir / "core.py").write_text(
+                "# The fix is to swap the lock acquisition order in `commit`.\n"
+                "def commit():\n"
+                "    pass\n",
+                encoding="utf-8",
+            )
+            reporter = run_static_checks.run_checks(task_dir, {"environment_hidden_instructions"})
+
+        hidden_failures = [
+            failure for failure in reporter.failures
+            if "hidden-instruction content" in failure
+        ]
+        self.assertEqual(len(hidden_failures), 1, reporter.failures)
+        self.assertIn("environment/core.py", hidden_failures[0])
+
+    def test_environment_hidden_instructions_fails_on_walkthrough_in_markdown(self) -> None:
+        """Markdown files inside environment/ with `STEP 1:` / `HINT:` line
+        lead-ins or the literal word `walkthrough` are walkthroughs by any
+        reasonable definition; these are exactly what the upstream rule
+        prohibits."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            task_dir = self.copy_fixture("public-contract-standard", tmpdir)
+            env_dir = task_dir / "environment"
+            env_dir.mkdir(exist_ok=True)
+            (env_dir / "GUIDE.md").write_text(
+                "# Step-by-step walkthrough\n\n"
+                "STEP 1: open `core.py` and locate the `commit` function.\n"
+                "STEP 2: change the lock acquisition order.\n"
+                "STEP 3: rerun the tests.\n",
+                encoding="utf-8",
+            )
+            reporter = run_static_checks.run_checks(task_dir, {"environment_hidden_instructions"})
+
+        hidden_failures = [
+            failure for failure in reporter.failures
+            if "hidden-instruction content" in failure
+        ]
+        self.assertEqual(len(hidden_failures), 1, reporter.failures)
+        self.assertIn("environment/GUIDE.md", hidden_failures[0])
+        self.assertIn("prescriptive prose marker", hidden_failures[0])
+
+    def test_environment_hidden_instructions_does_not_fire_on_todo_in_source_code(self) -> None:
+        """Plain `# TODO: handle empty input` style comments inside source
+        code are a normal idiom and must NOT trip the prose-only patterns.
+        The prose patterns (HINT/STEP) are scoped to .md/.txt/.rst/.markdown
+        files specifically because TODO/FIXME/HINT in comments are routine."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            task_dir = self.copy_fixture("public-contract-standard", tmpdir)
+            env_dir = task_dir / "environment"
+            env_dir.mkdir(exist_ok=True)
+            (env_dir / "core.py").write_text(
+                "# TODO: handle empty input gracefully\n"
+                "# HINT: the iterator may yield None\n"
+                "# STEP 1: this is a comment header for a unit, not a walkthrough\n"
+                "def normalize(items):\n"
+                "    return [item for item in items if item]\n",
+                encoding="utf-8",
+            )
+            reporter = run_static_checks.run_checks(task_dir, {"environment_hidden_instructions"})
+
+        self.assertEqual(reporter.failures, [], reporter.failures)
+
+    def test_environment_hidden_instructions_does_not_fire_on_user_agent_or_software_agent(self) -> None:
+        """The word 'agent' in production senses (user-agent, HTTP agent,
+        software agent, agent registration) is intentionally not flagged.
+        Banning it would create false positives across most realistic
+        web-service tasks; the rule only bans solver-direction phrasing."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            task_dir = self.copy_fixture("public-contract-standard", tmpdir)
+            env_dir = task_dir / "environment"
+            env_dir.mkdir(exist_ok=True)
+            (env_dir / "transport.py").write_text(
+                '"""HTTP transport layer.\n\n'
+                "The user agent header is forwarded to downstream services.\n"
+                "Each registered agent must implement the `dispatch()` protocol.\n"
+                'The agent registry is keyed by agent ID.\n"""\n',
+                encoding="utf-8",
+            )
+            reporter = run_static_checks.run_checks(task_dir, {"environment_hidden_instructions"})
+
+        self.assertEqual(reporter.failures, [], reporter.failures)
+
+    def test_environment_hidden_instructions_skipped_when_no_environment_dir(self) -> None:
+        """Tasks without an environment/ directory (rare but legal during
+        scaffolding) must produce a skip-style PASS, not a failure. The
+        public-contract-standard fixture happens to ship without one, which
+        exercises this path naturally."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            task_dir = self.copy_fixture("public-contract-standard", tmpdir)
+            self.assertFalse((task_dir / "environment").exists())
+
+            reporter = run_static_checks.run_checks(task_dir, {"environment_hidden_instructions"})
+
+        self.assertEqual(reporter.failures, [])
+        self.assertIn(
+            "environment/ hidden-instruction check skipped (no environment/ directory)",
+            reporter.passes,
+        )

@@ -17,6 +17,7 @@ COMMON_STATIC_PASS_MESSAGES = (
     "docker-compose checks skipped (no environment/docker-compose.yaml)",
     "instruction.md uses absolute in-container path references",
     "output contract matches the declared user-visible outputs and schema checks",
+    "environment/ contains no hidden-instruction patterns",
 )
 
 STATIC_CHECK_EXPECTATIONS = {
@@ -41,7 +42,7 @@ STATIC_CHECK_EXPECTATIONS = {
 
 COLLAPSE_CHECK_EXPECTATIONS = {
     "byzantine-storage-rebalance": {
-        "fails": 7,
+        "fails": 8,
         "warns": 6,
         "oracle_targets": [
             "internal/catalog/merge.go",
@@ -71,6 +72,8 @@ COLLAPSE_CHECK_EXPECTATIONS = {
             "gx6_causal_connective_density": "PASS",
             "gx7_test_literals_homed": "FAIL",
             "gx8_test_import_consistency": "PASS",
+            "gx9_instruction_contract_saturation": "FAIL",
+            "gx10_instruction_polarity_contradiction": "PASS",
         },
         "issue_counts": {
             "rc4_tamper_surface": 2,
@@ -97,7 +100,7 @@ COLLAPSE_CHECK_EXPECTATIONS = {
         },
     },
     "implicit-step-restart": {
-        "fails": 7,
+        "fails": 8,
         "warns": 6,
         "oracle_targets": [
             "src/integrator/cycle_orchestrator.cpp",
@@ -127,6 +130,8 @@ COLLAPSE_CHECK_EXPECTATIONS = {
             "gx6_causal_connective_density": "FAIL",
             "gx7_test_literals_homed": "FAIL",
             "gx8_test_import_consistency": "FAIL",
+            "gx9_instruction_contract_saturation": "FAIL",
+            "gx10_instruction_polarity_contradiction": "PASS",
         },
         "issue_counts": {
             "rc4_tamper_surface": 0,
@@ -187,6 +192,8 @@ COLLAPSE_CHECK_EXPECTATIONS = {
             "gx6_causal_connective_density": "WARN",
             "gx7_test_literals_homed": "FAIL",
             "gx8_test_import_consistency": "FAIL",
+            "gx9_instruction_contract_saturation": "PASS",
+            "gx10_instruction_polarity_contradiction": "PASS",
         },
         "issue_counts": {
             "rc4_tamper_surface": 2,
@@ -257,6 +264,8 @@ COLLAPSE_CHECK_EXPECTATIONS = {
             "gx6_causal_connective_density": "PASS",
             "gx7_test_literals_homed": "FAIL",
             "gx8_test_import_consistency": "FAIL",
+            "gx9_instruction_contract_saturation": "PASS",
+            "gx10_instruction_polarity_contradiction": "PASS",
         },
         "issue_counts": {
             "rc4_tamper_surface": 0,
