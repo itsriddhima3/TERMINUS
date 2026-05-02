@@ -66,9 +66,13 @@ python3 run_static_checks.py --task-dir tasks/<task-name> --version edition_2 --
 python3 run_static_checks.py --task-dir tasks/<task-name> --version edition_2 --only dockerfile --only compose
 python3 run_static_checks.py --task-dir tasks/<task-name> --version edition_2 --only test_sh --only test_layout
 python3 run_static_checks.py --task-dir tasks/<task-name> --version edition_2 --only instruction --only absolute_paths --only canary --only output_contract
+python3 run_static_checks.py --task-dir tasks/<task-name> --version edition_2 --only environment_hidden_instructions
 # `--only instruction` includes a non-blocking WARN when the literal word "milestone" / "milestones"
 # appears in instruction.md (mirrors the upstream instruction-eval rule). See REPO_CONVENTIONS.md
 # § "The literal word 'milestone' in instruction.md is a (non-blocking) warning" for the rationale.
+# `--only environment_hidden_instructions` rejects step-by-step walkthroughs, HINT:/STEP N: markers,
+# and solver-direction phrasing ("Claude should...", "to solve this task...", "the fix is to...")
+# inside environment/. See REPO_CONVENTIONS.md § "environment/ files cannot give the agent the 'how'".
 
 # Legacy ci_checks/*.sh entrypoints are compatibility wrappers only. They delegate
 # to run_static_checks.py and are no longer the source of truth for per-task semantics.
@@ -241,16 +245,30 @@ git push origin task/<task-name>
 ## Packaging
 
 ```bash
-# Create submission zip (files at archive root, no wrapping folder)
+# Create submission zip (files at archive root, no wrapping folder).
+# The -x list excludes both the standard cruft (caches, pyc, dotfiles) and
+# the repo-internal authoring artifacts that validate_submission_zip.py
+# rejects at archive-root level (output_contract.toml,
+# quality_check_adjudication.json, construction_manifest.json, rubric*.txt)
+# plus AI-scaffolding filenames banned at any depth (CLAUDE.md, AGENTS.md,
+# skills.md, copilot-instructions.md, .cursor/ etc.).
 cd tasks/<task-name>
 rm -f ../../Task_Ready_To_Submit/<task-name>.zip
-zip -rq ../../Task_Ready_To_Submit/<task-name>.zip . -x '*/__pycache__/*' '*.pyc' '.*'
+zip -rq ../../Task_Ready_To_Submit/<task-name>.zip . \
+  -x '*/__pycache__/*' '*.pyc' '.*' \
+  -x 'output_contract.toml' 'quality_check_adjudication.json' \
+  -x 'construction_manifest.json' 'rubric.txt' 'rubrics.txt' \
+  -x 'CLAUDE.md' '*/CLAUDE.md' 'AGENTS.md' '*/AGENTS.md' \
+  -x 'skills.md' '*/skills.md' 'AGENT.md' '*/AGENT.md' \
+  -x '.cursorrules' '.cursor/*' '*/.cursor/*' \
+  -x '.aider/*' '*/.aider/*' '.continue/*' '*/.continue/*' \
+  -x '.claude/*' '*/.claude/*'
 
-# Verify structure and required archive-root entries
+# Verify structure, required archive-root entries, and absence of banned files
 python3 ../../validate_submission_zip.py ../../Task_Ready_To_Submit/<task-name>.zip
 ```
 
-Verify: `instruction.md`, `task.toml`, `output_contract.toml`, `environment/`, `solution/`, and `tests/` at archive root.
+Verify: `instruction.md`, `task.toml`, `environment/`, `solution/`, and `tests/` at archive root. The validator additionally rejects `output_contract.toml` / `construction_manifest.json` / `quality_check_adjudication.json` / `rubric*.txt` at archive root and any AI-scaffolding filename (CLAUDE.md, AGENTS.md, skills.md, .cursor/, .aider/, .continue/, .claude/) at any archive depth, case-insensitively. See `REPO_CONVENTIONS.md` § "AI-scaffolding filenames are banned anywhere in the submission archive" for the full ban list and rationale.
 
 ## Docker Troubleshooting
 
