@@ -17,6 +17,38 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 SCHEMA_FIXTURE = REPO_ROOT / "specs" / "validation_schema.json"
 
 
+# Minimal v2-compliant authoring spec used by the cmd_select test.
+# The select test exercises the file-promotion mechanic; under the
+# strict v2 contract, candidate specs must declare `version: 2` and
+# carry the three required subsections, otherwise `_enforce_lint_spec_or_exit`
+# rejects them. Keeping the fixture v2-compliant keeps the test
+# focused on promotion semantics rather than lint behavior.
+V2_CANDIDATE_AUTHORING = """\
+### Decision
+GO — Attempt 3.
+
+### Metadata
+- version: 2
+- Task name: demo-task
+
+## Authoring Brief
+Drafting input.
+
+### Triviality Ledger
+- Naive single-file fix passes basic test but fails coordination
+  test because the invariant spans two roots.
+
+### Per-gate Pitfall Inventory
+- RC6 risk: instruction stays symptoms-only; no algorithm names.
+
+### Initial Draft Commitments
+- environment/<root>/<file>.py — fix-path entry.
+
+## Reviewer Appendix
+Reviewer-only analysis.
+"""
+
+
 def _named_entries(expected: dict[str, str]) -> list[dict[str, str]]:
     return [
         {
@@ -166,6 +198,25 @@ def _valid_evidence() -> dict[str, object]:
             ],
             "code_forbidden_tokens": ["lineage", "authority", "precedence"],
         },
+        "naming_pass": {
+            "instruction_nouns_extracted": ["lineage", "authority", "precedence"],
+            "renames_during_drafting": [
+                {
+                    "original": "pick_lineage",
+                    "renamed_to": "reconcile_b",
+                    "reason": "Original symbol name overlapped instruction noun 'lineage'.",
+                }
+            ],
+            "test_names_audited": ["test_one", "test_two", "test_three"],
+            "concentration_math": {
+                "total_tests": 5,
+                "per_location": [
+                    {"location_id": "A", "test_count": 2, "ratio": 0.4},
+                    {"location_id": "B", "test_count": 1, "ratio": 0.2},
+                    {"location_id": "C", "test_count": 2, "ratio": 0.4},
+                ],
+            },
+        },
     }
 
 
@@ -273,7 +324,7 @@ class ValidateLoopRegressionTest(unittest.TestCase):
         candidate_reviewer = Path("specs/demo-task-candidate-1-reviewer.md")
         canonical_authoring.write_text("best attempt\n", encoding="utf-8")
         canonical_reviewer.write_text("best reviewer\n", encoding="utf-8")
-        candidate_authoring.write_text("selected candidate\n", encoding="utf-8")
+        candidate_authoring.write_text(V2_CANDIDATE_AUTHORING, encoding="utf-8")
         candidate_reviewer.write_text("selected reviewer\n", encoding="utf-8")
 
         stdout = io.StringIO()
@@ -285,7 +336,7 @@ class ValidateLoopRegressionTest(unittest.TestCase):
                 )
             )
 
-        self.assertEqual(canonical_authoring.read_text(encoding="utf-8"), "selected candidate\n")
+        self.assertEqual(canonical_authoring.read_text(encoding="utf-8"), V2_CANDIDATE_AUTHORING)
         self.assertEqual(canonical_reviewer.read_text(encoding="utf-8"), "selected reviewer\n")
         self.assertFalse(candidate_authoring.exists())
         self.assertFalse(candidate_reviewer.exists())

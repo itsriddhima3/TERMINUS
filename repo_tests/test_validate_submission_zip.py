@@ -84,6 +84,37 @@ class ValidateSubmissionZipRegressionTest(unittest.TestCase):
             payload["failures"],
         )
 
+    def test_step2b_checksum_at_archive_root_is_rejected(self) -> None:
+        """`.step2b-checksum` is local generated state written by
+        scripts/check-task.sh Phase C and verified by approve_task.py
+        before packaging. It must never ship in a submission archive.
+
+        The sentinel starts with `.` so the dotfile filter in
+        approve_task.should_skip_packaged_path already keeps it out of
+        the source manifest at packaging time. Adding it to
+        FORBIDDEN_ROOT_FILES is belt-and-suspenders: if a future change
+        to the dotfile filter ever lets it through, this rule still
+        catches it explicitly. Mirrors the
+        construction_manifest.json regression."""
+        self.assertIn(".step2b-checksum", validate_submission_zip.FORBIDDEN_ROOT_FILES)
+
+        payload_bytes = _build_minimal_zip(
+            {".step2b-checksum": b'{"instruction.md": "abc123"}\n'}
+        )
+        zip_path = Path(self.id() + ".zip")
+        try:
+            zip_path.write_bytes(payload_bytes)
+            payload = validate_submission_zip.build_report(zip_path)
+        finally:
+            if zip_path.exists():
+                zip_path.unlink()
+
+        self.assertFalse(payload["valid"], payload)
+        self.assertIn(
+            "forbidden archive-root file(s) present: .step2b-checksum",
+            payload["failures"],
+        )
+
     def test_banned_ai_filename_in_environment_is_rejected(self) -> None:
         """The upstream instruction-eval flags AI-scaffolding filenames as red
         flags for AI-generated content. CLAUDE.md, AGENTS.md, skills.md, etc.

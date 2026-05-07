@@ -12,6 +12,7 @@ from unittest import mock
 
 import approve_task
 import run_static_checks
+import task_integrity
 from repo_tests.cases import FIXTURE_TASKS_DIR
 
 
@@ -107,6 +108,7 @@ class ApproveTaskRegressionTest(unittest.TestCase):
             write_zip_from_source(task_dir, zip_path)
             verifier_health_path = tmp_root / "verifier-health.json"
             write_verifier_health_report(verifier_health_path, task_dir)
+            task_integrity.write_step2b_checksum(task_dir)
 
             with mock.patch.object(approve_task.run_static_checks, "run_checks", return_value=build_clean_reporter()), mock.patch.object(
                 approve_task.collapse_check,
@@ -134,6 +136,10 @@ class ApproveTaskRegressionTest(unittest.TestCase):
             write_verifier_health_report(verifier_health_path, task_dir)
 
             (task_dir / "instruction.md").write_text("changed after packaging\n", encoding="utf-8")
+            # Write the sentinel AFTER the modification so the dirty-flag
+            # is fresh against the new tree; the surfaced blocking failure
+            # is the source/zip mismatch (instruction.md), not a stale checksum.
+            task_integrity.write_step2b_checksum(task_dir)
 
             with mock.patch.object(approve_task.run_static_checks, "run_checks", return_value=build_clean_reporter()), mock.patch.object(
                 approve_task.collapse_check,
@@ -160,6 +166,7 @@ class ApproveTaskRegressionTest(unittest.TestCase):
             shutil.copytree(fixture, task_dir)
             zip_path = tmp_root / f"{fixture.name}.zip"
             write_zip_from_source(task_dir, zip_path)
+            task_integrity.write_step2b_checksum(task_dir)
 
             with mock.patch.object(approve_task.run_static_checks, "run_checks", return_value=build_clean_reporter()), mock.patch.object(
                 approve_task.collapse_check,
@@ -188,6 +195,7 @@ class ApproveTaskRegressionTest(unittest.TestCase):
             shutil.copytree(fixture, task_dir)
             zip_path = tmp_root / f"{fixture.name}.zip"
             write_zip_from_source(task_dir, zip_path)
+            task_integrity.write_step2b_checksum(task_dir)
 
             with mock.patch.object(approve_task.run_static_checks, "run_checks", return_value=build_clean_reporter()), mock.patch.object(
                 approve_task.collapse_check,
