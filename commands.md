@@ -242,7 +242,65 @@ git commit -m "Add <task-name>: brief description"
 git push origin task/<task-name>
 ```
 
+## Step 2b Preflight (`scripts/check-task.sh`)
+
+The preferred preflight is a single command. It runs Phase A (static + collapse),
+Phase B (build a temp zip with the documented exclusion list and validate it),
+and Phase C (write `.step2b-checksum` via `task_integrity.py`). Phase C records
+the sentinel `approve_task.py` requires before packaging.
+
+```bash
+./scripts/check-task.sh tasks/<task-name>
+```
+
+The script also appends per-task authoring metrics to
+`tasks/<task-name>/.step2b-metrics.jsonl` (one JSONL record per Phase A tool
+exit plus two wall-clock markers); the file is gitignored, excluded from
+submission zips, and consumed by `approve_task.py` to render the
+`## Per-task authoring metrics` block in `specs/<task-name>-validation-log.md`.
+See `REPO_CONVENTIONS.md` § "Local generated state: `.step2b-metrics.jsonl`".
+
+This is preflight only. Step 2b PASS still requires running oracle 1x and NOP
+separately (see "Harbor — Task Validation" above for the exact commands). The
+script's exit message names them.
+
+The Phase B exclusion list is the source of truth for what `validate_submission_zip.py`
+expects in a shipping zip. If you need to build a zip outside of preflight (e.g.
+for the Step 4 packaging step below), use the same `-x` patterns the script uses
+so the validator sees the same archive shape. The list is pinned by
+`repo_tests/test_check_task_sh.py::test_phase_b_exclusions_match_commands_md`,
+which keeps the script and this file in sync.
+
+### `task_integrity.py` — sentinel write/verify
+
+`scripts/check-task.sh` Phase C calls `task_integrity.py write` internally. Run
+the CLI directly only when debugging the checksum (e.g. to confirm an
+`approve_task.py` "stale checksum" message is real). See
+`REPO_CONVENTIONS.md` § "Local generated state: `.step2b-checksum`" for
+visibility rules.
+
+```bash
+# Write the sentinel for a task (overwrites any existing one).
+python3 task_integrity.py write tasks/<task-name>
+
+# Verify the sentinel matches the current task tree. Exit 0 = clean,
+# exit 1 = dirty/missing (with a per-file list of added/modified/removed entries),
+# exit 2 = bad usage.
+python3 task_integrity.py verify tasks/<task-name>
+```
+
+Do not commit `.step2b-checksum` (different contributors will produce different
+values for the same task in different working states). The recommended
+`.gitignore` entry is `tasks/*/.step2b-checksum`.
+
 ## Packaging
+
+Build the shipping zip for Step 4 using the same exclusion list as preflight
+Phase B (the lists are kept in sync by
+`repo_tests/test_check_task_sh.py::test_phase_b_exclusions_match_commands_md`).
+`approve_task.py` (see "Hard Approval Gate" above) re-runs
+`validate_submission_zip.py` against the built zip, so the standalone
+validator call is a debugging convenience, not a required step.
 
 ```bash
 # Create submission zip (files at archive root, no wrapping folder).
@@ -251,7 +309,7 @@ git push origin task/<task-name>
 # rejects at archive-root level (output_contract.toml,
 # quality_check_adjudication.json, construction_manifest.json, rubric*.txt)
 # plus AI-scaffolding filenames banned at any depth (CLAUDE.md, AGENTS.md,
-# skills.md, copilot-instructions.md, .cursor/ etc.).
+# skills.md, .cursor/, .aider/, .continue/, .claude/).
 cd tasks/<task-name>
 rm -f ../../Task_Ready_To_Submit/<task-name>.zip
 zip -rq ../../Task_Ready_To_Submit/<task-name>.zip . \
@@ -259,16 +317,16 @@ zip -rq ../../Task_Ready_To_Submit/<task-name>.zip . \
   -x 'output_contract.toml' 'quality_check_adjudication.json' \
   -x 'construction_manifest.json' 'rubric.txt' 'rubrics.txt' \
   -x 'CLAUDE.md' '*/CLAUDE.md' 'AGENTS.md' '*/AGENTS.md' \
-  -x 'skills.md' '*/skills.md' 'AGENT.md' '*/AGENT.md' \
-  -x '.cursorrules' '.cursor/*' '*/.cursor/*' \
+  -x 'skills.md' '*/skills.md' \
+  -x '.cursor/*' '*/.cursor/*' \
   -x '.aider/*' '*/.aider/*' '.continue/*' '*/.continue/*' \
   -x '.claude/*' '*/.claude/*'
 
-# Verify structure, required archive-root entries, and absence of banned files
+# Standalone validator (optional — approve_task.py runs it too).
 python3 ../../validate_submission_zip.py ../../Task_Ready_To_Submit/<task-name>.zip
 ```
 
-Verify: `instruction.md`, `task.toml`, `environment/`, `solution/`, and `tests/` at archive root. The validator additionally rejects `output_contract.toml` / `construction_manifest.json` / `quality_check_adjudication.json` / `rubric*.txt` at archive root and any AI-scaffolding filename (CLAUDE.md, AGENTS.md, skills.md, .cursor/, .aider/, .continue/, .claude/) at any archive depth, case-insensitively. See `REPO_CONVENTIONS.md` § "AI-scaffolding filenames are banned anywhere in the submission archive" for the full ban list and rationale.
+Verify: `instruction.md`, `task.toml`, `environment/`, `solution/`, and `tests/` at archive root. The validator additionally rejects `output_contract.toml` / `construction_manifest.json` / `quality_check_adjudication.json` / `rubric*.txt` / `.step2b-checksum` at archive root and any AI-scaffolding filename (CLAUDE.md, AGENTS.md, skills.md, .cursor/, .aider/, .continue/, .claude/) at any archive depth, case-insensitively. See `REPO_CONVENTIONS.md` § "AI-scaffolding filenames are banned anywhere in the submission archive" for the full ban list and rationale.
 
 ## Docker Troubleshooting
 

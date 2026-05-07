@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import ast
+import os
 import posixpath
 import re
 import shlex
@@ -3555,6 +3556,30 @@ def run_checks(task_dir: Path, selected_checks: set[str] | None = None) -> Repor
     return reporter
 
 
+def _record_metric_outcome(reporter: "Reporter") -> None:
+    """Best-effort metric record for the per-task instrumentation.
+
+    Gated on `TB3_METRICS_TASK_DIR` so reviewer one-shots and CI
+    spot-checks remain silent. Failures (missing module, OS error,
+    etc.) are silently swallowed — the metric must never surface a
+    tool failure. See docs/exec-plans/instrumentation.md.
+    """
+    if not os.environ.get("TB3_METRICS_TASK_DIR"):
+        return
+    try:
+        import metrics_collector
+
+        if reporter.has_failures():
+            outcome = "FAIL"
+        elif reporter.warnings:
+            outcome = "WARN"
+        else:
+            outcome = "PASS"
+        metrics_collector.record_exit("run_static_checks", outcome)
+    except Exception:
+        return
+
+
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
     if args.version != "edition_2":
@@ -3567,8 +3592,11 @@ def main(argv: list[str] | None = None) -> int:
         return 2
 
     reporter = run_checks(task_dir, set(args.only or SUPPORTED_CHECKS))
-    print_report(reporter)
-    return 1 if reporter.has_failures() else 0
+    try:
+        print_report(reporter)
+        return 1 if reporter.has_failures() else 0
+    finally:
+        _record_metric_outcome(reporter)
 
 
 if __name__ == "__main__":

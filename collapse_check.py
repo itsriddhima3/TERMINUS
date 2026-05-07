@@ -35,6 +35,7 @@ from __future__ import annotations
 import argparse
 import ast
 import json
+import os
 import re
 import shlex
 import sys
@@ -3342,6 +3343,29 @@ def format_text_report(task_dir: Path, report: dict) -> str:
     return "\n".join(lines)
 
 
+def _record_metric_outcome(report: dict) -> None:
+    """Best-effort metric record for the per-task instrumentation.
+
+    Gated on `TB3_METRICS_TASK_DIR` so reviewer one-shots and CI
+    spot-checks remain silent. Failures (missing module, OS error,
+    etc.) are silently swallowed — the metric must never surface a
+    tool failure. Outcome is `"FAIL"` if `report["fails"]` is
+    truthy, otherwise `"PASS"`; there is no WARN tier in collapse
+    (the metric `collapse_check_failures_before_first_pass` only
+    counts hard failures gating Step 2b). See
+    `docs/exec-plans/instrumentation.md`.
+    """
+    if not os.environ.get("TB3_METRICS_TASK_DIR"):
+        return
+    try:
+        import metrics_collector
+
+        outcome = "FAIL" if report.get("fails") else "PASS"
+        metrics_collector.record_exit("collapse_check", outcome)
+    except Exception:
+        return
+
+
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
     if not args.task_dir.is_dir():
@@ -3349,11 +3373,14 @@ def main(argv: list[str] | None = None) -> int:
         return 1
 
     report = build_report(args.task_dir)
-    if args.json:
-        print(json.dumps(report, indent=2))
-    else:
-        print(format_text_report(args.task_dir, report))
-    return exit_code(report)
+    try:
+        if args.json:
+            print(json.dumps(report, indent=2))
+        else:
+            print(format_text_report(args.task_dir, report))
+        return exit_code(report)
+    finally:
+        _record_metric_outcome(report)
 
 if __name__ == "__main__":
     raise SystemExit(main())

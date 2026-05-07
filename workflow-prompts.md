@@ -8,6 +8,7 @@ All prompts for the Terminal-Bench 3 task creation pipeline, in order.
 Step 1:           ChatGPT  → Find the idea (creative, iterative)
 Step 2a:          Cursor   → Validate idea + produce authoring spec + reviewer appendix (automated loop)
                              [you review specs/<task-name>.md and specs/<task-name>-reviewer.md]
+                             [agent runs `validate_loop.py finalize <task>` as the strict v2 gate]
 Step 2b:          Cursor   → Draft files + mechanical gates + ORACLE 1X SANITY
                                1. Create task files
                                2. Discovery budget + discoverability gate (paper — free)
@@ -38,11 +39,12 @@ Step 3b→4 (re-entry):  Cursor   → DIRTY-FLAG RE-VALIDATION (only when you ed
 
                               Then rerun Step 3b (paper review) to confirm no concept-level regressions.
                               Only after that is it valid to run Step 4's 10x oracle stress test.
-Step 4:           Cursor   → ORACLE 10X + Package + Approval Gate. Four sub-steps:
+Step 4:           Cursor   → ORACLE 10X + Package + Approval Gate. Five sub-steps:
                                1. Oracle 10x flakiness check (the ONLY place 10x runs)
                                2. Generate zip (excluding FORBIDDEN_ROOT_FILES like output_contract.toml)
                                3. approve_task.py (static + collapse + zip validation re-run)
-                               4. Decision: ACCEPT / ACCEPT WITH NOTES / REJECT. No SEND FEEDBACK.
+                               4. Mirror task.toml + instruction.md into repo_tests/fixtures/tasks/<name>/
+                               5. Decision: ACCEPT / ACCEPT WITH NOTES / REJECT. No SEND FEEDBACK.
 Platform submit:           → Upload the zip produced by Step 4.
 ```
 
@@ -67,6 +69,45 @@ The 10x oracle stress test runs exactly **once per development cycle**, at the s
 ### Preservation discipline (why re-runs should confirm, not discover)
 
 Construction-to-spec gets the task right on first draft. Cheapest-first ordering prevents wasted work when an edit does happen. Preservation discipline makes those edits minimal: every gate that passes is an invariant on all later work — a later edit should be designed to preserve every already-passing gate. The dirty-flag rule is the safety net that catches regressions; preservation discipline is the default plan that makes those regressions rare. When a Step 3b (or Step 3a, or Step 4) fix breaks an earlier gate, it should be a labelled *justified regression*, not the normal consequence of any fix. See Step 3b's "Preservation discipline" subsection for the edit-risk map and textual self-checks; the same discipline applies to Step 3a and Step 4 fix loops.
+
+### Ralph discipline within the Step model
+
+The TB3 step model already implements the Ralph loop pattern; this
+section names the Ralph discipline so the mapping is explicit. There
+is no parallel Loop A/B/C/D/E vocabulary — Steps 1, 2a, 2b, 3b, and 4
+are the loops, and the existing harness (`validate_loop.py`,
+`approve_task.py`, `specs/`, `repo_tests/`) is the machinery.
+
+- **Step 2a (idea validation)**: one task spec per loop. Validate against
+  `idea-validation.mdc`; produce `specs/<task-name>.md` with all required
+  sections (Authoring Brief, Triviality Ledger, Per-gate Pitfall Inventory,
+  Initial Draft Commitments). `validate_loop.py` is the gate; `lint_spec.py`
+  enforces the v2 mandatory sub-sections.
+
+- **Step 2b (construction)**: one validated spec per loop. Draft files,
+  then run `./scripts/check-task.sh tasks/<task-name>` (Phase A static +
+  collapse, Phase B packaging preview, Phase C `.step2b-checksum`), then
+  `harbor run -p tasks/<task-name> -a oracle` (1x), then `harbor run -p
+  tasks/<task-name> -a nop`. Failure → return to drafting; the
+  `.step2b-checksum` will catch any subsequent edits and force a
+  preflight re-run before approval.
+
+- **Step 3b (review)**: one constructed task per loop. Paper review
+  against `review-and-submit.mdc` and `difficulty-calibration.mdc`. Any
+  edit returns to Step 2b; the dirty-flag is mechanical (the sentinel
+  becomes stale and `approve_task.py` refuses).
+
+- **Step 4 (packaging)**: clean Step 2b + 3b evidence. Oracle 10x, build
+  the shipping zip, run `approve_task.py` (which verifies the
+  `.step2b-checksum` before doing anything else).
+
+- **Cross-cutting (failure triage)**: when a gate fails three times the
+  same way, file a `CNI.md` entry citing the three instances. Choose the
+  cheapest enforcement that prevents recurrence (script → static check →
+  collapse check → scoped rule → deep rule → critical rule). This is the
+  Ralph "convert failures into rules" discipline; the trigger threshold
+  and implementation order are documented in `CNI.md` § "Promotion and
+  demotion policy".
 
 ### Setup
 - **Step 1**: Attach the entire `web/` folder to ChatGPT (drag and drop all 6 files).
@@ -147,7 +188,35 @@ Read the ACTION line from the output.
 5. Run the collapse audit from @difficulty-calibration.mdc Part A (full template).
 6. If this is attempt 2+: for each check that was WARN or FAIL in a previous attempt and is now PASS, explicitly state what design change caused the improvement. Do not just rephrase the reasoning — name the structural change.
 7. If you changed anything from the original idea beyond fixing the flagged issues (language, scope, domain, architecture, number of modules, etc.), state each change and why it was necessary.
-8. Build a structured evidence JSON that matches `specs/validation_schema.json`. Populate ALL required fields. In particular:
+8. Naming pass and token-provenance audit (run BEFORE building the
+   evidence JSON):
+   a. Draft the symptoms-only instruction prose. Extract every
+      noun from it. That extracted list is BOTH
+      `naming_pass.instruction_nouns_extracted` and
+      `construction_manifest.code_forbidden_tokens` — populate
+      both from the same source list, do not derive separately.
+   b. For every entry in `construction_manifest.symbol_table`
+      (kind, signature, path, symbol name), every path in
+      `flipping_point_contract.locations`, every entry in
+      `decoy_manifest`, and every test function name you plan:
+      check whether any token from the noun list appears as a
+      case-insensitive substring. If yes, rename it. Record each
+      rename as `{original, renamed_to, reason}` in
+      `naming_pass.renames_during_drafting`. If no renames were
+      needed, leave the list empty — the loop will WARN but
+      accept; do not fabricate renames to suppress the warning.
+   c. Compute concentration math. Total tests = size of the union
+      of `controls_tests` across all
+      `flipping_point_contract.locations`. For each location:
+      test_count = len(controls_tests), ratio = test_count /
+      total_tests. Populate `naming_pass.concentration_math`
+      accordingly. The validator will recompute and reject on
+      mismatch — your numbers must be honest, not aspirational.
+   d. Verify every entry in `decoy_manifest` has a non-empty
+      `rhymes_with` field naming a fix-path symbol. The schema
+      now requires this; missing rhymes will fail schema
+      validation at record time.
+9. Build a structured evidence JSON that matches `specs/validation_schema.json`. Populate ALL required fields. In particular:
    - `hardness_axes`
    - `anti_trivialization_checks` (21 entries — includes `topology_distribution_test`)
    - `discovery_budget`
@@ -156,23 +225,33 @@ Read the ACTION line from the output.
    - `smallest_plausible_patch`
    - `topology_enumeration` (BLOCKING): at least 3 distinct fix topologies, each naming ≥3 code locations that must coordinate, and for each a one-sentence explanation of why no single location is sufficient. If you cannot articulate 3 such topologies, the idea has a one-function-exploit locus — reject.
    - `construction_manifest` (BLOCKING): the machine-checkable handoff to Step 2b. Must include `symbol_table` (opaque pre-assigned names for every fix-path symbol, ≥3 entries), `flipping_point_contract` (≥3 locations across distinct roots, with per-location test subsets summing under a 50% concentration cap), `decoy_manifest` (≥2 rhyming helper modules), and `code_forbidden_tokens` (every domain noun extracted from instruction.md — these are banned from CODE symbol names on the fix path, NOT from the instruction itself; `instruction.md` uses whatever standard domain language makes the contract clear).
+   - `naming_pass` (BLOCKING): the audit trail from step 8. Carries `instruction_nouns_extracted` (the same list used to populate `code_forbidden_tokens`), `renames_during_drafting` (each `{original, renamed_to, reason}` rename you applied; empty list is allowed but warns), `test_names_audited` (≥3 final test function names), and `concentration_math` (total_tests + per-location test_count and ratio matching the validator's recomputation).
    The `discovery_budget` field is BLOCKING: include at least 3 non-trivial solver discoveries the finished task should force from the codebase/runtime. For each item, name the discovery, where it should live after Step 2b, and why instruction.md must not reveal it. If you cannot list 3, the idea is easy.
    The `instruction_specificity` field is BLOCKING: for a hard candidate, `level` must be `symptoms-only`. If the best honest level is `spec-complete` or `cause-revealing`, the idea cannot GO.
-9. Count your FAILs and WARNs from the evidence and written review. Do not let the score contradict the structured verdicts.
-10. Produce two documents using the format in @idea-validation.mdc:
+10. Count your FAILs and WARNs from the evidence and written review. Do not let the score contradict the structured verdicts.
+11. Produce two documents using the format in @idea-validation.mdc:
     - an authoring spec for Step 2b
     - a separate reviewer appendix for human review only
     The Decision line in BOTH files must include the attempt number (e.g., "GO — Attempt 2. ...").
     Hold both docs in your context — do NOT save them yet.
-11. Save the structured evidence JSON to a temporary path, for example:
+12. Save the structured evidence JSON to a temporary path, for example:
       /tmp/<task-name>-validation-evidence.json
-12. Record the result FIRST (this determines where to save and whether the evidence is sufficient):
+13. Record the result FIRST (this determines where to save and whether the evidence is sufficient):
       python validate_loop.py record <task-name> --evidence /tmp/<task-name>-validation-evidence.json
-13. Read `SAVE_TO` and `REVIEWER_SAVE_TO` from the script's output. NOW save the authoring spec to `SAVE_TO` and the reviewer appendix to `REVIEWER_SAVE_TO`.
+14. Read `SAVE_TO` and `REVIEWER_SAVE_TO` from the script's output. NOW save the authoring spec to `SAVE_TO` and the reviewer appendix to `REVIEWER_SAVE_TO`.
     Each file must contain ONLY this variant's content — no comparison tables, no previous attempt data, no clutter.
     If `SAVE_TO` is `DISCARD`, do not save either file — the attempt was a regression and should not be persisted.
     IMPORTANT: always save AFTER record, never before. The script decides whether this attempt should overwrite the best specs or go to paired candidate files.
-14. Read the script's ACTION. It will say one of:
+15. After saving both files on a GO action, run the strict lint gate:
+      python validate_loop.py finalize <task-name>
+    If it exits 0, proceed to step 16.
+    If it exits 1, the saved spec violates the v2 contract — read
+    the failure list, amend the saved files in place to add
+    `version: 2` and the three required subsections (or fix the
+    specific failures the gate names), then re-run finalize. Do
+    NOT re-run `record` — the evidence is unchanged; only the spec
+    text needed correction.
+16. Read the script's ACTION. It will say one of:
     - ACTION: CONTINUE — list your current WARNs and FAILs. For each, propose a specific concrete change (not vague — e.g., "move matvec accounting into a separate module with its own seeded defect" not "spread bugs around"). Apply ALL changes to create a new variant. Go back to step 1 of this loop with the new variant.
     - ACTION: SELECT — go to the SELECT section below.
     - ACTION: GO — go to the DONE section below.
@@ -576,6 +655,7 @@ Walk @review-and-submit.mdc § 1-7 (Instruction, Environment, Oracle Solution, V
 Mandatory sub-checks:
 - Compare tests/test.sh against the official platform template in @task-creation.mdc. Standard and UI tasks have different templates — confirm which applies and that the structural parts (control flow, variable names, reward footer) match verbatim.
 - Confirm `output_contract.toml` exists at the task root (required by repo conventions; will be excluded from the zip in Step 4).
+- Hard FAIL classification: the following are always Hard FAIL, never WARN, regardless of mechanical-gate verdicts: (a) solve.sh edits a path declared in the spec's decoy_manifest; (b) construction_manifest.json is missing when the spec's Construction manifest section names a symbol_table; (c) flipping_point_contract.locations[*].controls_tests lists a test that does not flip when that location is reverted; (d) any solve.sh operation that produces no on-disk change, or whose only on-disk effect is cosmetic comment / marker substitution to satisfy A16 line-count thresholds. See difficulty-calibration.mdc A16 WARN-band policy.
 
 (`run_static_checks.py` and the environment file-count gate already ran in Step 2b. If no edits have happened since, do not re-run them — they passed. Any edit here triggers the dirty-flag rule, which will run them again on re-entry.)
 
@@ -594,6 +674,8 @@ Run @difficulty-calibration.mdc Part A on the actual drafted files. Report the f
 - red flags
 - residual hardness (one paragraph: what remains hard after the prompt honestly states every checked behavior)
 - collapse verdict (PASS / WARN / FAIL)
+
+**Oracle reality check (mandatory).** For every non-trivial operation in solution/solve.sh, confirm its target file exists and the operation produces a substantive on-disk change. A sed that targets non-existent markers, or whose only on-disk effect is cosmetic comment substitution to clear A16's line-count threshold, is a Hard FAIL per the §1 sub-check above. The diagnostic: "if I removed this operation, would oracle still score 1.0?" If yes, the operation is cosmetic. Apply the preservation discipline if a fix is needed.
 
 **Discoverability dimension:** patch SIZE (how much work) and patch FINDABILITY (can the agent locate where to work without domain understanding) are both required. A 200-line oracle across 7 files is still trivial if any channel tells the agent where to look.
 
@@ -668,17 +750,18 @@ After those pass again, re-run Step 3b (structural review + Part A + Part B). On
 
 ## Step 4: Cursor — Flakiness, Packaging & Approval Gate
 
-Run after Step 3b's summary said "Ready for Step 4" (no dirty-flag, no FAILs). Step 4 has four sub-steps:
+Run after Step 3b's summary said "Ready for Step 4" (no dirty-flag, no FAILs). Step 4 has five sub-steps:
 
 1. Oracle 10x flakiness check — the only place the stress test runs, after every edit is settled
 2. Generate the submission zip (with FORBIDDEN_ROOT_FILES exclusions)
 3. Run `approve_task.py` (which bundles `run_static_checks.py` + `collapse_check.py` + `validate_submission_zip.py` + manifest verification + zip/source parity)
-4. Produce the final verdict
+4. Mirror `task.toml` + `instruction.md` into `repo_tests/fixtures/tasks/<task-name>/` so the parity test stays green
+5. Produce the final verdict
 
 Decision: **ACCEPT / ACCEPT WITH NOTES / REJECT** — three options only. Do **NOT** produce a SEND FEEDBACK verdict; it is no longer part of this workflow. If the task is unsalvageable through small fixes, REJECT with a one-paragraph note describing what restructuring a future attempt would need.
 
 ```text
-Run the 10x oracle flakiness check, package the task, run the single approval gate, then produce the final verdict (ACCEPT / ACCEPT WITH NOTES / REJECT — never SEND FEEDBACK).
+Run the 10x oracle flakiness check, package the task, run the single approval gate, mirror the task into repo_tests fixtures, then produce the final verdict (ACCEPT / ACCEPT WITH NOTES / REJECT — never SEND FEEDBACK).
 
 ## Preconditions
 
@@ -753,7 +836,40 @@ Flag rules:
 
 If `approve_task.py` exits non-zero, report its blocking failures verbatim. Fix the specific files it flagged **under the Step 3b preservation discipline** (predict at-risk gates, prefer preservation-safe fixes, label justified regressions). If the fix touches `instruction.md`, `tests/`, `solution/`, `environment/`, or `task.toml`, the dirty-flag rule fires — go back to Step 2b's "Static checks" section and work forward (static → collapse → **1x oracle + NOP**, NOT 10x), then through Step 3b's three sub-steps again, before retrying Step 4. Preservation-safe fixes should re-pass every earlier gate on the first try; the re-run confirms rather than discovers. The 10x flakiness check at the top of Step 4 runs again when you re-enter Step 4 — that is the correct single place for it, and it will catch any determinism regression the earlier cheap sanity missed. Edits limited to forbidden-but-on-disk files (e.g., regenerating `quality_check_adjudication.json`) do NOT trigger the dirty-flag rule because those files are not part of the shipped task; just re-zip with the same `-x` list and rerun the gate.
 
-## 4. Decision
+## 4. Mirror task to `repo_tests/fixtures/`
+
+After `approve_task.py` exits 0 and before producing the verdict, copy the two
+files the zip-name-parity test expects into `repo_tests/fixtures/tasks/<task-name>/`.
+The shipped task is now locked (Step 4 is the final gate; later edits restart
+from Step 2b), so this is the correct anchor for fixture mirroring.
+
+  mkdir -p repo_tests/fixtures/tasks/<task-name>
+  cp tasks/<task-name>/task.toml \
+     tasks/<task-name>/instruction.md \
+     repo_tests/fixtures/tasks/<task-name>/
+
+Rules:
+- Copy verbatim. No edits, no normalization.
+- Do not add other files (state JSONs, validation logs, checksums, zips,
+  manifests) to the fixture dir — only `task.toml` and `instruction.md`.
+- Verify both source files exist before copying. If either is missing
+  (e.g. you typoed `<task-name>`), abort and report — do not partially
+  populate the fixture dir.
+
+Verify the suite returns to baseline:
+
+  python3 -m unittest discover -s repo_tests 2>&1 | tail -3
+  python3 -m unittest discover -s repo_tests 2>&1 \
+    | grep -E '^(FAIL|ERROR):' | sort | md5sum
+
+The failure count should be one lower than before this sub-step ran (the
+parity test for `<task-name>.zip` flips from FAIL to PASS). The md5 of the
+sorted failure list should match the project's recorded baseline. If the
+count drops by more than one, or the md5 unexpectedly changes beyond the
+parity-test entry, stop and investigate before producing the verdict — a
+fixture commit must not silently mask an unrelated test failure.
+
+## 5. Decision
 
 Produce exactly one verdict from these three. Apply the blocking conditions from `@review-and-submit.mdc` § Decision Criteria. SEND FEEDBACK is no longer a valid choice — if the task is unsalvageable through small fixes, REJECT with a redesign note.
 
@@ -790,9 +906,10 @@ Produce exactly one verdict from these three. Apply the blocking conditions from
 2. `validate_submission_zip.py` result (and any forbidden-root file the `-x` list caught and excluded)
 3. `approve_task.py` exit code
 4. Final zip path
-5. Which Step 3a artifacts (if any) were attached, and which approve_task.py flag combination was used
-6. Reference back to Step 3b's summary for the upstream review verdicts (do not duplicate them here; just confirm they were consulted)
-7. If REJECT: the one-paragraph redesign note (replaces the legacy SEND FEEDBACK)
+5. Fixture mirror confirmation: `repo_tests/fixtures/tasks/<task-name>/{task.toml,instruction.md}` present; post-mirror `repo_tests` failure count and md5 of the sorted failure list (matches the recorded baseline modulo this task's parity test flipping to PASS)
+6. Which Step 3a artifacts (if any) were attached, and which approve_task.py flag combination was used
+7. Reference back to Step 3b's summary for the upstream review verdicts (do not duplicate them here; just confirm they were consulted)
+8. If REJECT: the one-paragraph redesign note (replaces the legacy SEND FEEDBACK)
 
 Task path: tasks/<task-name>
 ```

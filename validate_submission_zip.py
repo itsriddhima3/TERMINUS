@@ -34,6 +34,19 @@ FORBIDDEN_ROOT_FILES = (
     # upstream platform's "no AI-scaffolding files" policy treats it as
     # repo-internal metadata that must not ship in the submission archive.
     "construction_manifest.json",
+    # .step2b-checksum is local generated state written by
+    # scripts/check-task.sh Phase C and verified by approve_task.py before
+    # packaging. Already excluded from the source manifest by the dotfile
+    # filter in approve_task.should_skip_packaged_path; listed here as a
+    # belt-and-suspenders explicit ban (see REPO_CONVENTIONS.md
+    # § "Local generated state").
+    ".step2b-checksum",
+    # .step2b-metrics.jsonl is the per-task authoring metrics counter
+    # (see docs/exec-plans/instrumentation.md). Same defense-in-depth
+    # rationale as .step2b-checksum: the dotfile filter already excludes
+    # it from the packaged manifest, but listing it explicitly here makes
+    # the rejection survive any future change to the implicit filter.
+    ".step2b-metrics.jsonl",
 )
 # Filenames that look like AI agent scaffolding to the upstream platform's
 # instruction-eval. Banned at any archive depth (not just the root) and

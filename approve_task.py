@@ -40,14 +40,18 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import time
 import zipfile
 from pathlib import Path, PurePosixPath
 from typing import Any
 
 import collapse_check
+import metrics_collector
 import quality_check_adjudicate
 import run_static_checks
+import task_integrity
 import validate_submission_zip
+import validation_log
 
 
 REPO_ROOT = Path(__file__).resolve().parent
@@ -97,6 +101,20 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         ),
     )
     parser.add_argument("--json", action="store_true", help="Emit machine-readable JSON")
+    parser.add_argument(
+        "--no-emit-metrics",
+        dest="no_emit_metrics",
+        action="store_true",
+        help=(
+            "Skip the per-task authoring metrics block emission to "
+            "specs/<task-name>-validation-log.md. CLI default is to "
+            "emit the block on successful approval; pass this flag "
+            "for CI smoke-tests or one-shot reviewer approvals where "
+            "the spec log is not the relevant artifact. The "
+            "underlying counter file (.step2b-metrics.jsonl) is "
+            "unaffected."
+        ),
+    )
     args = parser.parse_args(argv)
     if args.verifier_health_path is not None and args.skip_verifier_health:
         parser.error(
@@ -540,6 +558,9 @@ def build_report(
     verifier_health_path: Path | None = None,
     quality_check_adjudication_path: Path | None = None,
     skip_verifier_health: bool = False,
+    *,
+    spec_path: Path | None = None,
+    emit_metrics: bool = False,
 ) -> dict[str, Any]:
     """Run the full approval gate.
 
@@ -550,9 +571,42 @@ def build_report(
     caller actually attaches them (or, for quality-check, when a per-task
     waiver file triggers strict adjudication). Every active check
     contributes to `blocking_failures` directly.
+
+    `emit_metrics` controls whether a per-task authoring metrics block
+    is appended to specs/<task-name>-validation-log.md on successful
+    approval. Defaults to False so library callers / existing fixtures
+    are not forced into the log-write path; the CLI entry point passes
+    True (overridable with --no-emit-metrics). `spec_path` overrides
+    the default REPO_ROOT/specs/<task-name>.md location used to derive
+    the validation log; when None the default is used. See
+    docs/exec-plans/instrumentation.md.
     """
     task_dir = task_dir.expanduser().resolve()
     zip_path = zip_path.expanduser().resolve()
+
+    # Step 2b sentinel — written by scripts/check-task.sh Phase C, verified
+    # here. A missing or stale sentinel is the rollout's mechanical
+    # dirty-flag: it proves the contributor ran preflight on the current
+    # task tree, not on a previous version of it.
+    if task_dir.is_dir():
+        checksum_ok, checksum_msg = task_integrity.verify_step2b_checksum(task_dir)
+        if not checksum_ok:
+            # Increment the dirty-flag counter via metrics_collector
+            # before the failure propagates into blocking_failures. The
+            # record is best-effort: a failed write must never surface
+            # as a tool failure (see docs/exec-plans/instrumentation.md
+            # § False-positive risk).
+            try:
+                metrics_collector.record_exit(
+                    "approve_task", "dirty_flag", task_dir=task_dir
+                )
+            except Exception:
+                pass
+    else:
+        checksum_ok, checksum_msg = (
+            False,
+            f"task directory does not exist: {task_dir}",
+        )
 
     if task_dir.is_dir():
         static_reporter = run_static_checks.run_checks(task_dir)
@@ -597,6 +651,9 @@ def build_report(
 
     warnings: list[str] = []
     blocking_failures: list[str] = []
+
+    if not checksum_ok:
+        blocking_failures.append(f"step2b checksum: {checksum_msg}")
 
     if static_report["warnings"]:
         warnings.extend(f"static check warning: {message}" for message in static_report["warnings"])
@@ -678,7 +735,7 @@ def build_report(
     )
     approved = not blocking_failures
 
-    return {
+    payload: dict[str, Any] = {
         "task_dir": str(task_dir),
         "zip_path": str(zip_path),
         "approved": approved,
@@ -686,6 +743,7 @@ def build_report(
         "mechanical_status": mechanical_status,
         "blocking_failures": blocking_failures,
         "warnings": warnings,
+        "step2b_checksum": {"ok": checksum_ok, "message": checksum_msg},
         "static_checks": static_report,
         "collapse_check": {
             "status": collapse_status,
@@ -697,6 +755,83 @@ def build_report(
         "verifier_health": verifier_health_report,
         "quality_check_adjudication": quality_check_adjudication_report,
     }
+
+    # Successful-approval emission: aggregate counters, render the
+    # plan §12 metrics block, and append it to the spec validation
+    # log. Best-effort — a render or log-write failure must not
+    # convert an otherwise-approved task into a refusal.
+    if emit_metrics and approved:
+        try:
+            target_spec = spec_path
+            if target_spec is None:
+                target_spec = REPO_ROOT / "specs" / f"{task_dir.name}.md"
+            aggregated = metrics_collector.aggregate(task_dir)
+            block_text = render_metrics_block(
+                aggregated, now_ns=time.time_ns()
+            )
+            validation_log.append_metrics_block(target_spec, block_text)
+        except Exception:
+            pass
+
+    return payload
+
+
+def _format_duration_ns(ns: int) -> str:
+    """Render a nanosecond duration as human-readable seconds with two
+    decimals. The block is for human review; sub-millisecond precision
+    has no signal value at the demotion-review timescale."""
+    return f"{ns / 1_000_000_000:.2f}s"
+
+
+def render_metrics_block(
+    aggregated: dict[str, Any], *, now_ns: int
+) -> str:
+    """Render the per-task authoring metrics block per
+    docs/exec-plans/instrumentation.md § metrics block.
+
+    Eight bullets, one line each. The two wall-clock fields surface
+    `metrics_collector.NO_PASS_SENTINEL` literal when the relevant
+    Phase C marker is absent (Step 2b never went green during the
+    captured window). The deferred fields `cni_references_fired` and
+    `draft_commitments_diff` always render as `[]` and `null`
+    respectively until follow-up exec-plans ship parsers.
+    """
+    static_fail = aggregated.get("run_static_checks_fail", 0)
+    static_warn = aggregated.get("run_static_checks_warn", 0)
+    collapse_fail = aggregated.get("collapse_check_fail", 0)
+    dirty = aggregated.get("dirty_flag", 0)
+
+    wc_first = aggregated.get(
+        "wall_clock_first_preflight_to_first_pass_ns"
+    )
+    if isinstance(wc_first, int):
+        wc_first_str = _format_duration_ns(wc_first)
+    else:
+        wc_first_str = str(wc_first or metrics_collector.NO_PASS_SENTINEL)
+
+    first_pass_ns = aggregated.get("t_first_step2b_pass_ns")
+    if not isinstance(first_pass_ns, int):
+        wc_second_str = metrics_collector.NO_PASS_SENTINEL
+    else:
+        wc_second_str = _format_duration_ns(now_ns - first_pass_ns)
+
+    cni = aggregated.get("cni_references_fired") or []
+    diff = aggregated.get("draft_commitments_diff")
+    diff_str = "null" if diff is None else json.dumps(diff)
+
+    lines = [
+        "## Per-task authoring metrics",
+        "",
+        f"- count of run_static_checks.py FAIL exits before first PASS: {static_fail}",
+        f"- count of run_static_checks.py WARN-only exits before approval: {static_warn}",
+        f"- count of collapse_check.py FAIL exits before first PASS: {collapse_fail}",
+        f"- count of dirty-flag triggers (approve_task.py refused due to checksum mismatch): {dirty}",
+        f"- wall-clock time from first preflight to first preflight PASS: {wc_first_str}",
+        f"- wall-clock time from first Step 2b PASS to approve_task.py exit 0: {wc_second_str}",
+        f"- list of CNI references that fired during the authoring: {json.dumps(cni)}",
+        f"- whether the spec's Initial Draft Commitments matched the final file set (draft_commitments_diff): {diff_str}",
+    ]
+    return "\n".join(lines) + "\n"
 
 
 def _format_verifier_health_status(report: dict[str, Any]) -> str:
@@ -717,6 +852,7 @@ def format_text_report(payload: dict[str, Any]) -> str:
         f"Submission zip: {payload['zip_path']}",
         "",
         "Check summary (mechanical gate is authoritative):",
+        "  - .step2b-checksum: " + ("PASS" if payload["step2b_checksum"]["ok"] else "FAIL"),
         "  - static checks: "
         + ("FAIL" if payload["static_checks"]["failures"] else "WARN" if payload["static_checks"]["warnings"] else "PASS"),
         f"  - collapse_check.py: {payload['collapse_check']['status']}",
@@ -749,6 +885,7 @@ def main(argv: list[str] | None = None) -> int:
         verifier_health_path=args.verifier_health_path,
         quality_check_adjudication_path=args.quality_check_adjudication_path,
         skip_verifier_health=args.skip_verifier_health,
+        emit_metrics=not args.no_emit_metrics,
     )
     if args.json:
         print(json.dumps(payload, indent=2))

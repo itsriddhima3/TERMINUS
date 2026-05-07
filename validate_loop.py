@@ -10,6 +10,7 @@ Usage (called by Cursor during Step 2a):
     python validate_loop.py init <task-name>
     python validate_loop.py record <task-name> --evidence /tmp/<task-name>-validation-evidence.json
     python validate_loop.py select <task-name> --winner N|specs/<task-name>.md
+    python validate_loop.py finalize <task-name>
     python validate_loop.py status <task-name>
     python validate_loop.py reset <task-name>
 
@@ -35,6 +36,8 @@ try:
 except ModuleNotFoundError:
     jsonschema_exceptions = None
     jsonschema_validators = None
+
+import lint_spec
 
 SPECS_DIR = Path("specs")
 SCHEMA_PATH = SPECS_DIR / "validation_schema.json"
@@ -365,6 +368,219 @@ def _validate_collapse_audit(
     }
 
 
+def _validate_naming_pass(
+    evidence: dict[str, Any],
+    errors: list[str],
+    hard_fail_reasons: list[str],
+    counts: dict[str, int],
+) -> dict[str, Any]:
+    """Validate the naming-pass record and recompute concentration math.
+
+    Schema-level structural checks already ran in `_validate_schema`; this
+    function adds the cross-field invariants the schema cannot express:
+    (a) `instruction_nouns_extracted` and
+    `construction_manifest.code_forbidden_tokens` must agree as sets
+    (case-insensitive); (b) no entry in `test_names_audited` may contain
+    any token from the noun list as a case-insensitive substring; (c) the
+    agent-supplied `concentration_math` must match the validator's own
+    arithmetic over `flipping_point_contract.locations`, and no
+    per-location ratio may exceed `concentration_cap`. An empty
+    `renames_during_drafting` list is acceptable but emits a WARN — the
+    intent is to make the agent state explicitly that first-pass naming
+    was already clean rather than skipping the audit silently.
+    """
+    naming_pass = evidence.get("naming_pass")
+    if not isinstance(naming_pass, dict):
+        errors.append("naming_pass must be an object.")
+        return {}
+
+    nouns_raw = naming_pass.get("instruction_nouns_extracted", [])
+    renames_raw = naming_pass.get("renames_during_drafting", [])
+    test_names_raw = naming_pass.get("test_names_audited", [])
+    concentration_raw = naming_pass.get("concentration_math", {})
+
+    nouns = [str(noun).strip() for noun in nouns_raw if isinstance(noun, str) and str(noun).strip()]
+    test_names = [
+        str(name).strip()
+        for name in test_names_raw
+        if isinstance(name, str) and str(name).strip()
+    ]
+
+    construction_manifest = evidence.get("construction_manifest") or {}
+    forbidden_tokens_raw = construction_manifest.get("code_forbidden_tokens", []) or []
+    forbidden_tokens = [
+        str(token).strip()
+        for token in forbidden_tokens_raw
+        if isinstance(token, str) and str(token).strip()
+    ]
+
+    nouns_set = {noun.lower() for noun in nouns}
+    tokens_set = {token.lower() for token in forbidden_tokens}
+    if nouns_set != tokens_set:
+        extra_in_nouns = sorted(nouns_set - tokens_set)
+        extra_in_tokens = sorted(tokens_set - nouns_set)
+        errors.append(
+            "naming_pass.instruction_nouns_extracted disagrees with "
+            "construction_manifest.code_forbidden_tokens "
+            f"(extra in nouns: {extra_in_nouns}; extra in tokens: {extra_in_tokens})."
+        )
+
+    for test_name in test_names:
+        lower_name = test_name.lower()
+        for noun in nouns:
+            if not noun:
+                continue
+            if noun.lower() in lower_name:
+                errors.append(
+                    f"test name {test_name!r} contains forbidden instruction noun "
+                    f"{noun!r}."
+                )
+
+    flipping_contract = construction_manifest.get("flipping_point_contract") or {}
+    locations = flipping_contract.get("locations") or []
+    concentration_cap = flipping_contract.get("concentration_cap")
+
+    union_tests: set[str] = set()
+    per_location_computed: list[dict[str, Any]] = []
+    for location in locations:
+        if not isinstance(location, dict):
+            continue
+        loc_id = location.get("id")
+        controls_tests = location.get("controls_tests") or []
+        if not isinstance(controls_tests, list):
+            controls_tests = []
+        loc_tests = [t for t in controls_tests if isinstance(t, str) and t.strip()]
+        union_tests.update(loc_tests)
+        per_location_computed.append(
+            {
+                "location_id": str(loc_id).strip() if isinstance(loc_id, str) else "",
+                "test_count": len(loc_tests),
+                "_controls_tests": loc_tests,
+            }
+        )
+
+    total_tests_computed = len(union_tests)
+    for entry in per_location_computed:
+        if total_tests_computed > 0:
+            entry["ratio"] = entry["test_count"] / total_tests_computed
+        else:
+            entry["ratio"] = 0.0
+
+    supplied_total = concentration_raw.get("total_tests") if isinstance(concentration_raw, dict) else None
+    supplied_per_location = (
+        concentration_raw.get("per_location") if isinstance(concentration_raw, dict) else None
+    )
+    supplied_per_location = supplied_per_location if isinstance(supplied_per_location, list) else []
+
+    mismatch_messages: list[str] = []
+    if isinstance(supplied_total, int) and supplied_total != total_tests_computed:
+        mismatch_messages.append(
+            f"total_tests supplied={supplied_total} computed={total_tests_computed}"
+        )
+
+    supplied_by_id = {}
+    for entry in supplied_per_location:
+        if not isinstance(entry, dict):
+            continue
+        loc_id = entry.get("location_id")
+        if isinstance(loc_id, str):
+            supplied_by_id[loc_id.strip()] = entry
+
+    computed_by_id = {entry["location_id"]: entry for entry in per_location_computed}
+    for loc_id, computed in computed_by_id.items():
+        supplied = supplied_by_id.get(loc_id)
+        if supplied is None:
+            mismatch_messages.append(
+                f"location {loc_id!r} missing from naming_pass.concentration_math.per_location"
+            )
+            continue
+        supplied_count = supplied.get("test_count")
+        if isinstance(supplied_count, int) and supplied_count != computed["test_count"]:
+            mismatch_messages.append(
+                f"location {loc_id!r} test_count supplied={supplied_count} "
+                f"computed={computed['test_count']}"
+            )
+        supplied_ratio = supplied.get("ratio")
+        if isinstance(supplied_ratio, (int, float)):
+            if abs(float(supplied_ratio) - computed["ratio"]) > 1e-6:
+                mismatch_messages.append(
+                    f"location {loc_id!r} ratio supplied={supplied_ratio} "
+                    f"computed={computed['ratio']:.6f}"
+                )
+
+    for loc_id in supplied_by_id:
+        if loc_id not in computed_by_id:
+            mismatch_messages.append(
+                f"location {loc_id!r} listed in naming_pass.concentration_math.per_location "
+                f"but not present in construction_manifest.flipping_point_contract.locations"
+            )
+
+    if mismatch_messages:
+        errors.append(
+            "naming_pass.concentration_math disagrees with computed values: "
+            + "; ".join(mismatch_messages)
+        )
+
+    if isinstance(concentration_cap, (int, float)):
+        for entry in per_location_computed:
+            if entry["ratio"] > float(concentration_cap) + 1e-9:
+                errors.append(
+                    f"location {entry['location_id']!r} controls "
+                    f"{entry['test_count']}/{total_tests_computed} = "
+                    f"{entry['ratio']:.4f} tests, exceeds concentration_cap "
+                    f"{concentration_cap}."
+                )
+
+    renames_normalized: list[dict[str, str]] = []
+    for entry in renames_raw:
+        if not isinstance(entry, dict):
+            continue
+        renames_normalized.append(
+            {
+                "original": str(entry.get("original", "")).strip(),
+                "renamed_to": str(entry.get("renamed_to", "")).strip(),
+                "reason": str(entry.get("reason", "")).strip(),
+            }
+        )
+
+    if len(renames_normalized) == 0:
+        counts["WARN"] += 1
+
+    return {
+        "instruction_nouns_extracted": nouns,
+        "renames_during_drafting": renames_normalized,
+        "test_names_audited": test_names,
+        "concentration_math": {
+            "total_tests": (
+                int(supplied_total)
+                if isinstance(supplied_total, int)
+                else total_tests_computed
+            ),
+            "per_location": [
+                {
+                    "location_id": entry.get("location_id", ""),
+                    "test_count": entry.get("test_count", 0),
+                    "ratio": float(entry.get("ratio", 0.0)),
+                }
+                for entry in supplied_per_location
+                if isinstance(entry, dict)
+            ],
+        },
+        "recomputed_concentration": {
+            "total_tests": total_tests_computed,
+            "concentration_cap": concentration_cap,
+            "per_location": [
+                {
+                    "location_id": entry["location_id"],
+                    "test_count": entry["test_count"],
+                    "ratio": entry["ratio"],
+                }
+                for entry in per_location_computed
+            ],
+        },
+    }
+
+
 def _load_validation_schema() -> tuple[dict[str, Any] | None, list[str]]:
     if jsonschema_exceptions is None or jsonschema_validators is None:
         return None, [
@@ -484,6 +700,9 @@ def validate_evidence(raw_evidence: Any) -> dict[str, Any]:
         raw_evidence, "smallest_plausible_patch", errors
     )
     normalized["collapse_audit"] = _validate_collapse_audit(raw_evidence, errors, counts)
+    normalized["naming_pass"] = _validate_naming_pass(
+        raw_evidence, errors, hard_fail_reasons, counts
+    )
 
     anti_map = {
         entry["id"]: entry for entry in normalized["anti_trivialization_checks"] if isinstance(entry, dict)
@@ -639,6 +858,7 @@ def cmd_record(args: argparse.Namespace) -> None:
         print("ACTION: GO")
         print(f"SAVE_TO: {authoring_spec_path(task_name).as_posix()}")
         print(f"REVIEWER_SAVE_TO: {reviewer_spec_path(task_name).as_posix()}")
+        print(f"THEN_RUN: python3 validate_loop.py finalize {task_name}")
         print("REASON: Structured evidence is complete and every scored check passed.")
         return
 
@@ -817,6 +1037,31 @@ def _resolve_winner(task_name: str, state: dict[str, Any], winner: str) -> dict[
     return None
 
 
+def _enforce_lint_spec_or_exit(spec_path: Path) -> None:
+    """Run lint_spec on `spec_path` in strict mode; exit non-zero on any failure.
+
+    Step 2a's final gate before the spec becomes the canonical drafting
+    input for Step 2b. By the time `select` runs, all candidate specs
+    are freshly-authored under the v2 contract: a missing `version:`
+    line is itself a defect, not a license to skip the v2 sub-section
+    requirements. The lint enforces three sub-sections under
+    `## Authoring Brief` (Triviality Ledger, Per-gate Pitfall Inventory,
+    Initial Draft Commitments). See `lint_spec.py` for the detailed
+    contract.
+    """
+    failures = lint_spec.run(spec_path, strict=True)
+    if not failures:
+        return
+    print(f"ERROR: lint_spec rejected the picked spec ({spec_path}):")
+    for failure in failures:
+        print(f"  - {failure}")
+    print(
+        "REASON: v2 spec is missing one or more mandatory sub-sections under "
+        "`## Authoring Brief`. Fix the spec and re-run `validate_loop.py select`."
+    )
+    sys.exit(1)
+
+
 def cmd_select(args: argparse.Namespace) -> None:
     task_name = args.task_name
     state = load_state(task_name)
@@ -842,6 +1087,7 @@ def cmd_select(args: argparse.Namespace) -> None:
         if missing:
             print(f"ERROR: Canonical spec files are missing: {', '.join(missing)}")
             sys.exit(1)
+        _enforce_lint_spec_or_exit(canonical_authoring)
         print(
             f"Winner is the pre-plateau best (attempt {winner_attempt}), "
             f"already at {canonical_authoring.name} and {canonical_reviewer.name}."
@@ -860,6 +1106,7 @@ def cmd_select(args: argparse.Namespace) -> None:
                 f"{', '.join(missing)}"
             )
             sys.exit(1)
+        _enforce_lint_spec_or_exit(winner_authoring)
 
         canonical_authoring.write_text(
             winner_authoring.read_text(encoding="utf-8"),
@@ -903,6 +1150,49 @@ def cmd_reset(args: argparse.Namespace) -> None:
     print(f"Reset '{task_name}'.")
 
 
+def cmd_finalize(args: argparse.Namespace) -> None:
+    """Strictly lint the canonical authoring spec after Step 2a save.
+
+    Step 2a's `record` GO path prints SAVE_TO/REVIEWER_SAVE_TO and
+    the agent writes the files next. This subcommand is the gate
+    the agent runs after saving: it confirms the canonical files
+    exist and that the authoring spec satisfies the v2 contract
+    under strict mode (missing `version:` line is a failure, not a
+    grandfather signal). Exits 0 on pass, 1 on lint failure with
+    actionable detail.
+    """
+    task_name = args.task_name
+    canonical_authoring = authoring_spec_path(task_name)
+    canonical_reviewer = reviewer_spec_path(task_name)
+    missing = [
+        path.as_posix()
+        for path in (canonical_authoring, canonical_reviewer)
+        if not path.exists()
+    ]
+    if missing:
+        print(f"ERROR: Canonical spec files are missing: {', '.join(missing)}")
+        print(
+            "REASON: Run `validate_loop.py record` first and save the spec "
+            "to the printed SAVE_TO / REVIEWER_SAVE_TO paths."
+        )
+        sys.exit(1)
+    failures = lint_spec.run(canonical_authoring, strict=True)
+    if not failures:
+        print(f"OK: {canonical_authoring.as_posix()} passes strict lint.")
+        return
+    print(f"ERROR: lint_spec --strict rejected {canonical_authoring.as_posix()}:")
+    for failure in failures:
+        print(f"  - {failure}")
+    print(
+        "REASON: v2 spec contract not satisfied. Add `version: 2` to "
+        "`### Metadata` and ensure `## Authoring Brief` contains "
+        "`### Triviality Ledger`, `### Per-gate Pitfall Inventory`, and "
+        "`### Initial Draft Commitments` subsections, each with at least "
+        "one bullet. Then re-run `validate_loop.py finalize <task>`."
+    )
+    sys.exit(1)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     sub = parser.add_subparsers(dest="command")
@@ -920,6 +1210,9 @@ def main() -> None:
     select_parser.add_argument("task_name")
     select_parser.add_argument("--winner", required=True)
 
+    finalize_parser = sub.add_parser("finalize")
+    finalize_parser.add_argument("task_name")
+
     status_parser = sub.add_parser("status")
     status_parser.add_argument("task_name")
 
@@ -935,6 +1228,7 @@ def main() -> None:
         "init": cmd_init,
         "record": cmd_record,
         "select": cmd_select,
+        "finalize": cmd_finalize,
         "status": cmd_status,
         "reset": cmd_reset,
     }[args.command](args)

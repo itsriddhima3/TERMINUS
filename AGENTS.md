@@ -1,52 +1,24 @@
 # AGENTS.md
 
-## Cursor-specific instructions
+Terminal-Bench 3.0 Edition 2 task-authoring harness. Unit of work: a task
+under `tasks/<task-name>/`. New here? Read `docs/ARCHITECTURE.md` first.
 
-This is a **Terminal-Bench 3.0 Edition 2** benchmark task collection repository. There is no single application — the repo contains independent benchmark tasks, each with its own Docker-based environment, tested via the `harbor` CLI.
+## Where to look
 
-### Required tools
+- Layout: `docs/ARCHITECTURE.md`.
+- Before any task edit: pull `.cursor/rules/00-authoring-critical.mdc`.
+- Authoring: `task-creation.mdc`. Idea validation: `idea-validation.mdc`.
+- Review: `review-and-submit.mdc`. Hardness: `difficulty-calibration.mdc`.
+- Commands: `commands.md`. Workflow: `workflow-prompts.md`. Conventions: `REPO_CONVENTIONS.md`.
 
-- **uv** — Python package manager (`uv tool install harbor`)
-- **harbor** — CLI for initializing, building, testing, and running tasks
-- **Docker** — Each task runs inside a Docker container
+## Must-fire bullets (every interaction)
 
-### Source of truth
+1. Never claim PASS / READY / APPROVED / SUBMIT without command output as evidence.
+2. Cheap gates first: `run_static_checks.py` → `collapse_check.py` → oracle 1x → NOP. No oracle 10x in Step 2b.
+3. Don't invent paths, `task.toml` fields, or commands from memory; open the file or `commands.md`.
+4. After any task-file edit, prior Step 2b evidence is stale. Rerun cheap gates. `approve_task.py` refuses to package on checksum mismatch.
+5. One-command preflight: `./scripts/check-task.sh tasks/<task-name>`. Preflight only — oracle 1x and NOP still required for Step 2b PASS.
 
-All behavioral rules live in `.cursor/rules/`. Do not restate rules from those files here — reference them.
+## Forbidden in submissions
 
-| File | Purpose | Auto-applied? |
-|---|---|---|
-| `.cursor/rules/task-creation.mdc` | File layout, metadata, templates (standard + UI), Dockerfile, tests, oracle, packaging | Yes |
-| `.cursor/rules/review-and-submit.mdc` | Review checklist, decision criteria, blocking conditions, static checks | Yes |
-| `.cursor/rules/difficulty-calibration.mdc` | Collapse audit (too easy), per-test feasibility (too hard), verifier health | Yes |
-| `.cursor/rules/idea-validation.mdc` | Anti-trivialization checks, rubric axes, spec format. Reference with `@idea-validation.mdc` | No |
-
-### Other references
-
-| File | Purpose |
-|---|---|
-| `commands.md` | All harbor, CI, collapse-check, validation-loop, git, and debug commands |
-| `workflow-prompts.md` | Ready-to-paste prompts for each workflow step (Steps 1 → 2a → 2b → 3a → 3b) |
-| `Task_Ready_To_Submit/REFERENCE.md` | **Reference (golden) task catalog.** Five worked-out hard tasks across debugging / scientific-computing / software-engineering / build-and-dependency-management / games. Read the catalog and the matching `.zip` before authoring a similar task. The shipping zips, not the regression-fixture copies, are the authoritative reference. |
-| `specs/validation_schema.json` | Required JSON contract for Step 2a validation evidence |
-| `collapse_check.py` | Mechanical collapse/discoverability checker — RC1-RC7, including the instruction-specificity and oracle-triviality gates |
-| `instruction_audit.py` | Mechanical spec-completeness audit of `instruction.md` (powers RC6). Runnable standalone. |
-| `validate_loop.py` | Validation loop state machine for Step 2a (tracks attempts, early stopping, candidate selection) |
-| `CNI.md` | Currently Not Implementing — ideas deliberately on the back burner, with the reason why. Read before proposing any of: platform-agnostic hard-task pattern library, instruction-diversity repo-wide lint, per-model calibration heuristics, static oracle-tests parity check. |
-| `REPO_CONVENTIONS.md` | Documents intentional repo-specific conventions that external reviewers recurrently flag as "non-standard" (e.g., `output_contract.toml` at task root, `test.sh` without `set -euo pipefail`, varied instruction prose density). Link reviewers here instead of "fixing" the task in ways that would contradict `.cursor/rules/`. |
-
-### Key principles
-
-- **Rules in `.cursor/rules/` are authoritative.** When creating new tasks, follow those rules, not patterns from existing tasks in `tasks/`.
-- **`tasks/` is the active authoring workspace.** Checked-in tooling/regression fixtures live under `repo_tests/fixtures/tasks/` so contributors do not learn from negative examples.
-- **The default Edition 2 authoring/review path is hard-only.** If the repo ever adds another acceptance profile, it must be named explicitly instead of implied by mixed docs.
-- **`task-creation.mdc` covers both standard and UI tasks.** Check it for the correct test.sh template, oracle structure, and verifier requirements for your task type.
-- **`commands.md` is the canonical CLI reference.** Do not rely on command syntax from other documents.
-
-### Specs folder
-
-Step 2a saves validated specs to `specs/<task-name>.md`. The validation loop is managed by `validate_loop.py`. The `specs/` folder is a working directory — its contents are not submitted.
-
-### Cloud VM Docker gotcha
-
-In the Cursor Cloud VM (Docker-in-Docker inside Firecracker), containers fail to start with cgroup v2 errors if Docker Compose applies resource limits. See `commands.md` § Docker Troubleshooting for the fix.
+`output_contract.toml`, `quality_check_adjudication.json`, `construction_manifest.json`, `rubric*.txt`, `.step2b-checksum`, and any AI-scaffolding filename (`CLAUDE.md`, `AGENTS.md`, `skills.md`, `.cursor/`, `.aider/`, `.continue/`, `.claude/`) at any archive depth. See `REPO_CONVENTIONS.md`.
