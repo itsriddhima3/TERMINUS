@@ -8,6 +8,15 @@ alwaysApply: false
 Reference this file when validating a task idea and producing a spec. It is NOT auto-applied — use `@idea-validation.mdc` explicitly.
 The default Edition 2 acceptance profile in this repo is hard-only. If the best honest label is medium, the idea does not advance.
 
+## Task types we no longer accept
+
+Reject ideas that would land as either of the following before drafting any spec:
+
+- **Multi-container** tasks (anything that would set `is_multi_container = true` or ship `environment/docker-compose.yaml` with multiple services).
+- **UI building** tasks (anything that would slot under subcategory `ui_building` or rely on a UI test harness).
+
+In-progress tasks of these types may be completed and submitted; new starts are disallowed. If a candidate idea would naturally land here, REJECT with a redesign note rather than producing a GO spec.
+
 ## 5 Hardness Axes
 
 A task is hard when solving it requires the agent to do ALL of these. If the task fails on any axis, it is at best medium — not hard.
@@ -197,7 +206,7 @@ When the winning variant is GO, produce two physical files using these exact str
 [component-level map only. Name the major directories/subsystems/data domains that must exist and what role they play. Do NOT provide an exact file-by-file scaffold or call out likely fix files.]
 
 ### Required artifacts
-[what Step 2b must create at a high level: instruction, tests, Dockerfile, solve.sh, environment components, milestone/UI-specific artifacts if any, and any scale constraints such as 20+ environment files]
+[what Step 2b must create at a high level: instruction, tests, Dockerfile, solve.sh, environment components, milestone-specific artifacts if any (UI building tasks are no longer accepted), and any scale constraints such as 20+ environment files. Milestone tasks must follow the canonical `steps/milestone_N/{instruction.md, tests/{test.sh, test_mN.py}, solution/{solve.sh, solveN.sh}}` shape — no top-level `instruction.md` / `tests/` / `solution/` / `milestones.md`. See `task-creation.mdc`.]
 
 ### Test plan
 [what each test checks — at least 6 tests]

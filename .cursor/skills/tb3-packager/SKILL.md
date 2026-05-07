@@ -79,7 +79,20 @@ cp tasks/<task-name>/task.toml \
    repo_tests/fixtures/tasks/<task-name>/
 ```
 
-Verbatim copy of those two files only — no checksums, state
+For milestone tasks (no root-level `instruction.md`), mirror
+`task.toml` plus each milestone's `instruction.md`:
+
+```bash
+mkdir -p repo_tests/fixtures/tasks/<task-name>/steps
+cp tasks/<task-name>/task.toml repo_tests/fixtures/tasks/<task-name>/
+for d in tasks/<task-name>/steps/milestone_*/; do
+  m="$(basename "$d")"
+  mkdir -p repo_tests/fixtures/tasks/<task-name>/steps/"$m"
+  cp "$d"instruction.md repo_tests/fixtures/tasks/<task-name>/steps/"$m"/
+done
+```
+
+Verbatim copy of those files only — no checksums, state
 JSONs, manifests, logs, or zips.
 
 Verify baseline:

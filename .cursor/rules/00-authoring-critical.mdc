@@ -76,8 +76,14 @@ Before claiming READY / APPROVED / SUBMIT:
 - Editing tests to fit a broken solution.
 - Hiding golden answers under `environment/`.
 - Putting answer-shaped values into `instruction.md`.
+- Hidden instructions to the agent in environment files (HINT:/STEP N: walkthroughs, "to solve this...", prescriptive TODOs aimed at the solver).
+- AI-specific filenames anywhere in the archive (`CLAUDE.md`, `skills.md`, `AGENTS.md`, `.cursor/`, `.aider/`, …).
+- Replacing anonymous author placeholders (`"your-name"` / `"your-email"` / `"anonymous"`) with real identifiers.
 - Decorative code or empty files to satisfy size requirements.
 - Padding `solve.sh` with cosmetic operations (sed substitutions on comment markers, AST or heredoc rewrites whose only effect is whitespace or comment shuffling) to push GX3 / A16 line counts above the threshold. A WARN-band GX3 means the oracle is genuinely small — expand the substantive fix logic or accept the WARN with documented Step 3b justification. See `difficulty-calibration.mdc` A16 WARN-band policy.
+- Starting a new multi-container or UI building task (both no longer accepted; in-progress instances may be completed).
+- Using the deprecated root-level milestone layout (top-level `instruction.md` / `tests/` / `solution/` / `milestones.md` / `milestone_X.md`). Use `steps/milestone_N/` per `task-creation.mdc`.
+- Using Harbor-framework-only `task.toml` fields we do not adopt (`schema_version`, `[task]`, `min_reward`, `[steps.healthcheck]`, `[steps.verifier.env]`, `artifacts`, `multi_step_reward_strategy`, `workdir/setup.sh`).
 - Claiming a command passed without its output.
 - Bypassing the dirty-flag by deleting `.step2b-checksum`.
 

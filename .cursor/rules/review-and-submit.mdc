@@ -29,7 +29,7 @@ alwaysApply: false
 - All paths are absolute in-container references.
 - Does not include the task name or legacy canary strings.
 - Does not surface `internal_harness_files` in instruction.md unless that same path is also declared in `user_visible_outputs`.
-- Milestone tasks: includes overall intro + every milestone description + "signal completion" instruction.
+- Milestone tasks: each `steps/milestone_N/instruction.md` covers only that milestone's prompt with a "signal completion" directive; milestone 1's instruction additionally carries the overall task context. No top-level `instruction.md`, no `milestones.md` / `milestone_X.md` at the task root, and no preview/spoiler of later milestones inside earlier ones.
 
 ## 2. Environment (HIGH unless noted)
 
@@ -37,6 +37,10 @@ alwaysApply: false
 - `environment/Dockerfile` sets a real `WORKDIR` (e.g., `/app`).
 - Every `FROM` stage pinned by digest, including builder stages.
 - Apt packages pinned to specific versions.
+- Environment file names are diverse and realistic (e.g., `README.md`, `architecture.md`, API docs, schema files, sample configs). Variety is encouraged; uniformity across tasks trains shape rather than substance.
+- No AI-specific filenames anywhere under the archive (`CLAUDE.md`, `skills.md`, `AGENTS.md`, `.cursor/`, etc.) — banned at any depth by `validate_submission_zip.py`. (HIGH)
+- No hidden agent instructions in environment files. Step-by-step walkthroughs, "to solve this..." phrases, prescriptive TODOs aimed at the solver, and `STEP N:` / `HINT:` markers are forbidden. The litmus test: an environment file should look like something a human engineer would plausibly find in a real repo, not a guide written for the agent. `run_static_checks.py --only environment_hidden_instructions` enforces this. (HIGH)
+- LICENSE policy. Minimal / small codebases: licenses should almost never be included; omit by default. Large codebases: use the repos we provide (which already carry copyright licenses with explicit dataset-inclusion permission). If sourcing your own, the upstream repo MUST be MIT, Apache 2.0, or BSD; anything else is not allowed. (HIGH)
 - Every `COPY` / `ADD` source path resolves inside the build context. Dead references (e.g., `COPY .cargo /app/.cargo` when no `.cargo/` directory exists) are a HIGH failure — the image won't build and the oracle won't reach any test. `run_static_checks.py --only dockerfile_copy_sources` enforces this.
 - Does not copy `solution/`, `tests/`, or oracle answers into the image.
 - Does not create reserved paths (`/tests`, `/solution`, `/oracle`).
@@ -52,7 +56,7 @@ alwaysApply: false
 - Oracle passes consistently — no randomization or hardware-sensitive flakiness.
 - Does not require internet access at runtime.
 - Solves everything in `instruction.md` — real implementation, not hardcoded answers.
-- Milestone tasks: chained `solve1.sh ... solveN.sh`, top-level `solve.sh` runs them in order.
+- Milestone tasks: each `steps/milestone_N/solution/solve.sh` is a thin wrapper that calls `solveN.sh` containing only that milestone's commands. There is no top-level `solution/` directory and no root-level `solve.sh` chaining `solve1.sh ... solveN.sh`. Because the container filesystem persists across milestones, `solveN.sh` should reset per-path state explicitly when needed rather than assume a clean slate.
 
 ## 4. Verifiers (HIGH unless noted)
 
@@ -73,29 +77,31 @@ alwaysApply: false
 - No wall-clock, latency, throughput, or memory assertions. Use deterministic proxies.
 - Verifier modules and any Python under `environment/` pass `ruff` (enforced by `run_static_checks.py`; non-Python sources there are out of scope for ruff).
 - `test_outputs.py` exposes discoverable `test_...` functions. (MEDIUM)
-- Milestone tasks: one `test_mN.py` per milestone, each scores only its own milestone.
-- UI tasks: both unit and E2E verifiers run from `test.sh`.
+- Milestone tasks: one `steps/milestone_N/tests/test_mN.py` per milestone with assertions in a single `TestMilestoneN` class, plus a per-milestone `steps/milestone_N/tests/test.sh` runner. Each milestone's test file scores only that milestone (not future work) and tolerates state left behind by previous milestones. No root-level `tests/` directory.
+- UI tasks: both unit and E2E verifiers run from `test.sh`. **NEW UI tasks are no longer accepted** — see § 8 Task types below.
 
 ## 5. Task Metadata (HIGH unless noted)
 
-- `task.toml` uses `version = "2.0"` with all required fields under `[metadata]`.
+- `task.toml` uses `version = "2.0"` with all required fields under `[metadata]`. No Harbor-framework-only fields (`schema_version`, `[task]`, `min_reward`, `[steps.healthcheck]`, `[steps.verifier.env]`, `artifacts`, `multi_step_reward_strategy`, `workdir/setup.sh`).
 - Difficulty, codebase size, and languages satisfy acceptance gates.
 - `codebase_size` matches actual file count under `environment/` (excluding Dockerfile/docker-compose): 20-200 = `small`, 200+ = `large`. Under 20 files = `minimal` and is a blocking failure on the default Edition 2 path. (HIGH)
 - `[environment]` includes `cpus`, `memory_mb`, `storage_mb` (positive integers).
 - `tags` contains 3–6 descriptive values without redundant filler.
 - No `task_subtypes` — use `subcategories`. (MEDIUM)
 - Tool-driven tasks include `tool_specific` in `subcategories`. (MEDIUM)
-- `number_of_milestones` matches actual milestone count (0 for non-milestone).
-- Docker compose tasks flagged: `custom_docker_compose = true`, `is_multi_container = true` if applicable.
+- `number_of_milestones` matches actual milestone count (0 for non-milestone). For milestone tasks, it MUST equal the number of `[[steps]]` blocks.
+- Author placeholders kept anonymous (`"your-name"` / `"your-email"` / `"anonymous"`). Real author identifiers are a HIGH failure.
+- Milestone tasks: one `[[steps]]` block per milestone, `name = "milestone_N"` matching the folder under `steps/`, per-step `[steps.agent]` and `[steps.verifier]` timeout blocks, no top-level `[agent]` / `[verifier]` blocks. `[environment]` stays global (one container shared across all milestones).
+- Docker compose tasks flagged: `custom_docker_compose = true`, `is_multi_container = true` if applicable. **NEW multi-container tasks are no longer accepted** — see § 8 Task types below.
 
 ## 6. Task Structure (HIGH unless noted)
 
 - All required files present (varies by task type — see `task-creation.mdc`):
   - **Standard:** `instruction.md`, `task.toml`, `output_contract.toml` (authoring metadata, not shipped in zip), `environment/Dockerfile`, `solution/solve.sh`, `tests/test.sh`, `tests/test_outputs.py`.
-  - **Milestone:** same as standard but `tests/test_m1.py ... test_mN.py` instead of `test_outputs.py`.
-  - **UI:** same as standard plus UI test files under `tests/` per the UI template in `task-creation.mdc`.
+  - **Milestone:** `task.toml` (with `[[steps]]` blocks), `output_contract.toml`, `environment/Dockerfile`, and one `steps/milestone_N/` directory per milestone — each containing `instruction.md`, `tests/{test.sh, test_mN.py}`, and `solution/{solve.sh, solveN.sh}`. NO top-level `instruction.md`, `tests/`, `solution/`, or `milestones.md` / `milestone_X.md`. The deprecated root-level milestone shape is rejected for new and in-progress submissions.
+  - **UI:** same as standard plus UI test files under `tests/` per the UI template in `task-creation.mdc`. **New UI tasks are no longer accepted** — see § 8.
 - Submission zip has files at archive root (no wrapping folder).
-- Milestone tasks: `milestone_1.md ... milestone_N.md` present, no legacy `milestones.md`.
+- For milestone tasks: every `[[steps]].name` matches a `steps/<name>/` folder, and every `steps/milestone_N/` folder is referenced by exactly one `[[steps]]` block. No deprecated `milestone_X.md` / `milestones.md` at any depth.
 - No `rubrics.txt` at task root or zip root.
 - No stray artifacts (`jobs/`, root `README.md`, root `data/`). (LOW)
 
@@ -109,6 +115,19 @@ alwaysApply: false
 - `verifier_health.py` is an **opt-in diagnostic** (Step 3a-V). When run, it must PASS with a behavioral partial-oracle failure. Routine tasks can approve with `--skip-verifier-health`.
 - Oracle passes and NOP fails (Step 2b preflight, 10/10 and 0.0 respectively). Post-upload evaluation on the platform is outside this repo-local gate.
 
+## 8. Task types (HIGH)
+
+- We are NO LONGER accepting new **multi-container** tasks (`is_multi_container = true` or any `environment/docker-compose.yaml` declaring multiple services).
+- We are NO LONGER accepting new **UI building** tasks (subcategory `ui_building` or use of the UI test template).
+- In-progress tasks of these types may be completed; they will not be rejected solely for type. Reviewers should prioritize moving in-progress instances to submission before the block goes live.
+- New starts in either category are blocked. If a candidate idea would naturally land as multi-container or UI building, the right move is REJECT with a redesign note (or, in Step 2a, reject before drafting).
+
+## 9. Rubric (milestone tasks) (HIGH)
+
+- Each milestone gets **10–40 points** of maximum cumulative score (sum of positive criteria for that milestone). Scaling: 1 milestone → 10–40 pts; 2 → 20–80 pts; 3 → 30–120 pts; N → between (N × 10) and (N × 40) pts.
+- The non-milestone rubric range (10–40 maximum cumulative score from positive criteria) still applies to standard tasks.
+- See `TASK_PROPOSAL_RUBRIC.md` for the line-item rubric authoring rules.
+
 ---
 
 ## Common Issues to Flag
@@ -118,7 +137,7 @@ alwaysApply: false
 - Tests check files not mentioned in instruction
 - Relative paths instead of absolute
 - Task name leaked in instruction.md
-- Milestone task missing intro, descriptions, or "signal completion" rule
+- Milestone task: any preview/spoiler of later milestones inside an earlier milestone's `instruction.md`; missing "signal completion" rule in any per-milestone instruction; root-level `instruction.md` / `milestones.md` / `milestone_X.md` present (deprecated)
 - Prescribed function signatures, file layouts, library names, or build commands the agent should derive
 - GPT-style verbose, polite, or exhaustively structured prose; roleplay intros; emojis
 - Bold markers emphasizing solution-adjacent values or thresholds
@@ -145,7 +164,10 @@ alwaysApply: false
 - Missing WORKDIR in Dockerfile
 - Dockerfile copies tests/solution/oracle into image
 - `rubrics.txt` included in zip
-- Milestone files missing or using legacy names
+- Milestone tasks using deprecated root-level layout (top-level `instruction.md` / `tests/` / `solution/` / `milestones.md` / `milestone_X.md`); per-milestone content not under `steps/milestone_N/`
+- AI-specific filenames present anywhere in the archive (`CLAUDE.md`, `skills.md`, `AGENTS.md`, `.cursor/`, …)
+- Hidden agent instructions in environment files (HINT:/STEP N: walkthroughs, "to solve this..." phrasing)
+- LICENSE file included on a small/minimal codebase, or a license other than MIT / Apache 2.0 / BSD on a large codebase
 - Unpinned apt packages in Dockerfile
 
 ### Metadata problems
@@ -153,6 +175,10 @@ alwaysApply: false
 - Missing `tool_specific` when task depends on specialized tools
 - Blocked acceptance gate (easy, medium, minimal, Python + not hard)
 - Tags outside 3–6 range or padded with filler
+- Milestone task: `number_of_milestones` does not equal the number of `[[steps]]` blocks; top-level `[agent]` / `[verifier]` blocks present; `[[steps]].name` does not match the `steps/<name>/` folder
+- Harbor-framework-only fields used (`schema_version`, `[task]`, `min_reward`, `[steps.healthcheck]`, `[steps.verifier.env]`, `artifacts`, `multi_step_reward_strategy`, `workdir/setup.sh`)
+- Author identifiers replaced with real names/emails instead of anonymous placeholders (`"your-name"` / `"your-email"` / `"anonymous"`)
+- New task is multi-container or UI building (no longer accepted)
 
 ---
 

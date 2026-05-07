@@ -7,6 +7,7 @@ globs:
   - "tasks/*/environment/**"
   - "tasks/*/solution/**"
   - "tasks/*/tests/**"
+  - "tasks/*/steps/**"
 alwaysApply: false
 ---
 # Task Creation
@@ -119,7 +120,15 @@ Fixed values: `author_name = "anonymous"`, `author_email = "anonymous"`, `versio
 - `minimal` codebase size: blocked on platform and treated as a blocking authoring failure in this repo. Count files under `environment/` EXCLUDING Dockerfile/docker-compose — must be 20+ for `small`. Treat this as a minimum realism floor, not as evidence of hardness. If you are below it, add genuine supporting modules, data, configs, or headers that the task actually needs; do not hover at exactly 20 or pad with empty files.
 - `easy` and `medium` difficulty: blocked on the default Edition 2 path. Use `hard`.
 - Python tasks: accepted only when empirical difficulty is `hard`.
-- Avoid FastAPI. Avoid multi-container unless genuinely required.
+- Avoid FastAPI.
+
+## Task types we no longer accept
+
+- We are NO LONGER accepting new **multi-container** tasks.
+- We are NO LONGER accepting new **UI building** tasks (i.e., tasks whose `subcategories` includes `ui_building` or which use the UI test template).
+- Do not start new tasks in either category.
+
+This applies to construction (Step 2b) and to idea validation (Step 2a) — when validating an idea that would naturally land as multi-container or UI building, the right move is to redesign or reject rather than carry it forward.
 
 ## File Layout
 
@@ -139,21 +148,88 @@ Fixed values: `author_name = "anonymous"`, `author_email = "anonymous"`, `versio
 ```
 
 ### Milestone task
+
+**Authoritative milestone shape** — this is the canonical layout for milestone (multi-step) tasks. Our internal "Understanding Milestones" doc is the source of truth and overrides any wider Harbor framework documentation: the framework supports more features than we use; do not introduce them here.
+
 ```
 <task-folder>/
-├── instruction.md
-├── task.toml
-├── output_contract.toml
-├── milestone_1.md ... milestone_N.md
+├── task.toml                       ← uses [[steps]] blocks; version = "2.0"
 ├── environment/
-│   └── Dockerfile
-├── solution/
-│   ├── solve.sh
-│   ├── solve1.sh ... solveN.sh
-└── tests/
-    ├── test.sh
-    ├── test_m1.py ... test_mN.py
+│   ├── Dockerfile
+│   └── ...                         ← any environment files
+└── steps/                          ← all per-milestone content lives here
+    ├── milestone_1/
+    │   ├── instruction.md          ← prompt the agent sees for milestone 1
+    │   ├── tests/
+    │   │   ├── test.sh             ← pytest runner; writes /logs/verifier/reward.txt
+    │   │   └── test_m1.py          ← pytest assertions in class TestMilestone1
+    │   └── solution/
+    │       ├── solve.sh            ← wrapper that calls solve1.sh
+    │       └── solve1.sh           ← oracle solution for milestone 1 only
+    ├── milestone_2/
+    │   └── ...                     ← same structure (test_m2.py, solve2.sh, ...)
+    └── milestone_3/
+        └── ...
 ```
+
+**Mandatory naming.**
+- Step folders MUST be `milestone_1`, `milestone_2`, ... (snake_case, sequential).
+- `[[steps]].name` in `task.toml` MUST match the folder name.
+- The per-milestone test file MUST be `test_mN.py` with assertions in a `TestMilestoneN` class.
+- The per-milestone oracle script MUST be `solveN.sh`, called by that milestone's `solve.sh` wrapper.
+
+**Forbidden at the task root for milestone tasks.**
+- No top-level `instruction.md` (it will be ignored).
+- No top-level `tests/` directory.
+- No top-level `solution/` directory.
+- No top-level `milestones.md` or `milestone_X.md` files.
+- No top-level `[agent]` or `[verifier]` blocks in `task.toml` — those are per-step only.
+
+**Filesystem persistence note.** The container filesystem is shared across milestones, so files left by milestone N (by the agent or by `solveN.sh`) are visible to milestone N+1. This is intentional — milestones are designed to build on each other — but the author must avoid clobbering files an earlier milestone created. If milestone 2 needs a clean state for some path, have `solve2.sh` reset that path explicitly rather than assuming a clean slate.
+
+#### Per-milestone instruction.md
+
+Each milestone has its own `instruction.md` containing ONLY that milestone's prompt. The agent sees only the current milestone's instruction while working on it.
+- Milestone 1's `instruction.md` should include the overall task context the agent needs to get oriented (it is the first thing the agent reads).
+- Subsequent milestones can be shorter — describe only the new requirements, building on what is done.
+- Do NOT preview, hint at, or "spoil" later milestones.
+
+#### Per-milestone tests/
+
+Each milestone's `tests/` contains:
+- `test.sh` — runs pytest on that milestone's test file, then writes `1` or `0` to `/logs/verifier/reward.txt` based on the result.
+- `test_mN.py` — pytest assertions for milestone N, organised in a single `TestMilestoneN` class.
+
+Each milestone's tests must:
+- Score only that milestone's completion (not future milestones).
+- Be deterministic (clean pass/fail).
+- Tolerate any state left behind by previous milestones.
+
+#### Per-milestone solution/
+
+Each milestone's `solution/` contains:
+- `solve.sh` — a small wrapper that runs the milestone's oracle script. Pattern:
+  ```bash
+  #!/bin/bash
+  set -euo pipefail
+  SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+  bash "$SCRIPT_DIR/solve1.sh"
+  ```
+- `solveN.sh` — the actual oracle, containing ONLY the commands required for milestone N.
+
+Keep the existing canary string convention in `solveN.sh` files (Terminal-Bench Canary header).
+
+#### Best practices
+
+- **No leaky milestones.** Ensure milestone N+1 cannot pass if milestone N fails. Each milestone must depend on the previous one being correctly completed.
+- **Clear boundaries.** An agent should know exactly when a milestone is finished from its own `instruction.md`.
+- **Balance — aim for 2–5 milestones.** Avoid over-segmenting. If a task seems to require 10 milestones, combine closely-related ones or focus on the most challenging parts.
+- **Mind the shared filesystem.** Files persist across milestones; have `solveN.sh` reset state explicitly when needed instead of assuming a clean slate.
+- **Nothing at the task root.** No top-level `instruction.md`, `tests/`, `solution/`, or `milestone_x.md` — everything per-milestone lives under `steps/milestone_N/`.
+
+#### Deprecated milestone layout (do not use for new or in-progress tasks)
+
+The old shape — root-level `instruction.md` plus `milestone_1.md ... milestone_N.md`, root-level `tests/` with `test_m1.py ... test_mN.py`, root-level `solution/` chaining `solve1.sh ... solveN.sh` — is deprecated. New submissions and in-progress submissions must migrate to the `steps/milestone_N/` layout above. The migration steps are listed under "Migration checklist for existing milestone tasks" below.
 
 ### UI task
 ```
@@ -229,23 +305,29 @@ Vary the style across tasks. Some terse, some conversational, some structured. N
 - Do not include the task name or legacy canary strings
 
 ### Milestone-specific
-- instruction.md must include overall intro + every milestone description
-- Must tell agent to signal completion before advancing; `run_static_checks.py` fails milestone tasks that omit an explicit signal-completion directive
-- milestone_1.md includes intro + Milestone 1 description
-- milestone_2.md through milestone_N.md contain only their milestone description
-- Keep milestone files concise (3–5 lines, up to 10–12 for milestone_1.md)
+
+The canonical milestone layout is described under "Milestone task" in the File Layout section above. Key per-milestone instruction rules:
+
+- Each milestone has its OWN `steps/milestone_N/instruction.md` containing only that milestone's prompt. The agent sees only the current milestone's instruction while working on it.
+- `steps/milestone_1/instruction.md` should include the overall task context (it is the first thing the agent sees).
+- `steps/milestone_2/instruction.md` through `steps/milestone_N/instruction.md` describe only the new requirements for their milestone, building on what previous milestones established.
+- Do NOT preview, hint at, or "spoil" later milestones from an earlier milestone's instruction.
+- Keep milestone instructions concise. Milestone 1's instruction may be longer because it carries the task introduction; subsequent milestones should be shorter.
+- Tell the agent to signal completion before advancing. `run_static_checks.py` fails milestone tasks that omit a signal-completion directive (the rule fires per-milestone-instruction now). Use neutral wording such as `signal completion`, `let me know when … done`, or `mark … complete` — none of those require the literal word "milestone".
+- There is NO top-level `instruction.md` or root-level `milestones.md` / `milestone_X.md` file. Anything at the task root is ignored. See `REPO_CONVENTIONS.md` § "The literal word 'milestone' in instruction.md is a (non-blocking) warning" for the prose-only nuance: per-milestone instructions should still avoid the word "milestone" itself in agent-facing prose.
 
 ## task.toml
 
 **Construction-time constraints this section enforces.** `task.toml` is validated by `run_static_checks.py --only task_toml` and related checks. The rules below are all enforced:
 
-- `version = "2.0"` required
+- `version = "2.0"` required. Do NOT use `schema_version`, a top-level `[task]` block, or any other Harbor-framework-only fields (`min_reward`, `[steps.healthcheck]`, `[steps.verifier.env]`, `artifacts`, `multi_step_reward_strategy`, `workdir/setup.sh`). These are not part of our convention even when the wider framework supports them.
 - All `[metadata]` fields present with valid values
 - `timeout_coherence`: `verifier.timeout_sec ≥ environment.build_timeout_sec` when `tests/` invokes a build step; `verifier.timeout_sec ≤ 1800` and `agent.timeout_sec ≤ 1800` (hard platform cap)
 - `codebase_size` must match actual env file count: `minimal` (0-19, blocked), `small` (20-200), `large` (200+)
 - 3-6 `tags`, no filler padding
 - `subcategories` (not `task_subtypes`); subcategory values restricted to `long_context`, `tool_specific`, `api_integration`, `db_interaction`, `ui_building`
-- `number_of_milestones` must match actual milestone count (0 for non-milestone)
+- `number_of_milestones` must match actual milestone count (0 for non-milestone) AND must equal the number of `[[steps]]` blocks for milestone tasks
+- For milestone tasks: no top-level `[agent]` or `[verifier]` blocks — those are per-milestone (`[steps.agent]` / `[steps.verifier]`) only. `[environment]` stays global (one container shared across all milestones).
 
 ```toml
 version = "2.0"
@@ -276,14 +358,99 @@ memory_mb = 4096
 storage_mb = 10240
 ```
 
+### Milestone task.toml shape
+
+Milestone tasks use the same top-level metadata, but add per-step `[[steps]]` blocks (one per milestone) and remove the top-level `[agent]` / `[verifier]` blocks. `[metadata].number_of_milestones` MUST equal the number of `[[steps]]` blocks.
+
+```toml
+# Task configuration schema version
+version = "2.0"
+
+[metadata]
+author_name = "your-name"
+author_email = "your-email"
+difficulty = "hard"
+category = "software-engineering"
+subcategories = []
+# Total milestone count — must match the number of [[steps]] blocks below
+number_of_milestones = 2
+codebase_size = "minimal"
+languages = ["python", "bash"]
+tags = ["..."]
+expert_time_estimate_min = 60
+junior_time_estimate_min = 120
+
+# Sandbox environment limits — applied across all milestones
+[environment]
+build_timeout_sec = 600.0
+cpus = 2
+memory_mb = 4096
+storage_mb = 10240
+workdir = "/app"
+
+# Milestone 1
+[[steps]]
+name = "milestone_1"
+
+[steps.agent]
+timeout_sec = 1200.0
+
+[steps.verifier]
+timeout_sec = 450.0
+
+# Milestone 2
+[[steps]]
+name = "milestone_2"
+
+[steps.agent]
+timeout_sec = 1200.0
+
+[steps.verifier]
+timeout_sec = 450.0
+```
+
+Milestone task.toml rules:
+- `version = "2.0"`. Do not use `schema_version`, `[task]`, or any Harbor-framework-only fields (`min_reward`, `[steps.healthcheck]`, `[steps.verifier.env]`, `artifacts`, `multi_step_reward_strategy`, `workdir/setup.sh`).
+- `[metadata].number_of_milestones` MUST equal the number of `[[steps]]` blocks. Set to `0` for non-milestone tasks.
+- `[[steps]].name` MUST be `milestone_1`, `milestone_2`, ... and match the folder under `steps/`.
+- No top-level `[verifier]` or `[agent]` — those are per-milestone (`[steps.verifier]` / `[steps.agent]`) only.
+- `[environment]` is still global — one container shared across all milestones.
+- Keep author placeholders anonymous (`"your-name"` / `"your-email"`, or equivalents like `"anonymous"`). Do not substitute real author identifiers.
+
 Accepted `subcategories` values: `long_context`, `tool_specific`, `api_integration`, `db_interaction`, `ui_building`. Do not use `task_subtypes`.
 
 **Subcategory guardrails (do not label a task with a subcategory unless it meets the criteria):**
 - `long_context`: only when the task truly depends on at least 50k tokens of reading (roughly 50-150 pages) AND semantic reasoning. Simple parsing, filtering, or keyword search does not qualify.
 - `api_integration`: only when the API is mocked locally in Docker with no external web access. Tasks that depend on a live remote API do not qualify.
-- `ui_building`: only for genuine UI tasks that use the UI verifier stack (unit + E2E). Ordinary pytest-only backend validation does not qualify.
+- `ui_building`: only for genuine UI tasks that use the UI verifier stack (unit + E2E). Ordinary pytest-only backend validation does not qualify. **NOTE:** New `ui_building` tasks are NOT being accepted — see "Task types we no longer accept" below.
 
-If `environment/docker-compose.yaml` exists: set `custom_docker_compose = true`. If multiple services: also set `is_multi_container = true`.
+If `environment/docker-compose.yaml` exists: set `custom_docker_compose = true`. If multiple services: also set `is_multi_container = true`. **NOTE:** New multi-container tasks are NOT being accepted — see "Task types we no longer accept" above.
+
+### Rubric requirements (milestone tasks)
+
+Each milestone must be represented in the rubric with **10–40 points** allocated to it. This is the maximum cumulative score, calculated by summing all positive criteria for that milestone. Scaling:
+
+- 1 milestone → 10–40 pts
+- 2 milestones → 20–80 pts
+- 3 milestones → 30–120 pts
+- N milestones → between (N × 10) and (N × 40) pts
+
+The non-milestone rubric range (10–40 maximum cumulative score, calculated from positive criteria only) still applies to standard and UI tasks. See `TASK_PROPOSAL_RUBRIC.md` for the line-item rubric authoring rules.
+
+### Migration checklist for existing milestone tasks (old format → new)
+
+Apply this checklist to every in-progress and new milestone submission. Existing tasks that ship in the deprecated layout will be rejected for structure.
+
+1. Bump `task.toml` to `version = "2.0"`. Remove any top-level `[agent]` / `[verifier]` blocks.
+2. Add `[metadata].number_of_milestones` equal to the milestone count.
+3. Create `steps/`. For each milestone N, create `steps/milestone_N/`.
+4. Split the monolithic `instruction.md` and `milestones.md` into per-milestone `steps/milestone_N/instruction.md` files, stripping any preview of later milestones. Keep overall task context in `steps/milestone_1/instruction.md`.
+5. Move `tests/test_mN.py` → `steps/milestone_N/tests/test_mN.py` (rename pytest class to `TestMilestoneN` if needed). Add a per-milestone `steps/milestone_N/tests/test.sh` that runs pytest and writes `reward.txt`.
+6. Move `solution/solveN.sh` → `steps/milestone_N/solution/solveN.sh`. Add the per-milestone `solve.sh` wrapper that calls `solveN.sh`.
+7. Delete the old root-level `instruction.md`, `milestones.md`, `tests/`, and `solution/`.
+8. Add `[[steps]]` blocks to `task.toml`, one per milestone, with `name = "milestone_N"` and per-step `[steps.agent]` / `[steps.verifier]` timeouts.
+9. Audit relative paths in moved scripts — container-absolute paths (`/app/...`, `/logs/verifier/reward.txt`) stay the same; anything resolving relative to the old task root must be rewritten.
+10. Confirm the rubric allocates 10–40 points per milestone.
 
 ## output_contract.toml
 
@@ -310,6 +477,23 @@ Rules:
 - Every `structured_outputs.<name>.target` must also appear in `user_visible_outputs`
 - `instruction_checks` must list the schema strings or contract tokens that instruction.md explicitly mentions
 - Do not smuggle internal helper paths into `user_visible_outputs`; put them in `internal_harness_files` instead
+
+## Environment files (general policy)
+
+**Allowed.**
+- Files that provide realistic environment context: `README.md`, `architecture.md`, API documentation, schema files, sample configs, etc.
+- Diverse, realistic file names. Variety is encouraged — a dataset of tasks that all use the same handful of filenames trains the model on the shape, not the substance.
+
+**Not allowed.**
+- **AI-specific filenames.** `CLAUDE.md`, `skills.md`, and similar names that signal AI scaffolding are banned. The submission validator enforces a closed list of these names at any archive depth (see `REPO_CONVENTIONS.md` § "AI-scaffolding filenames are banned anywhere in the submission archive").
+- **Hidden instructions to the agent.** Environment files must NOT contain step-by-step walkthroughs, solution hints, or prescriptive TODOs. The task must remain a multi-step reasoning challenge; files that leak the answer defeat the project's purpose. `run_static_checks.py --only environment_hidden_instructions` enforces this.
+
+**Litmus test.** An environment file should look like something a human engineer would plausibly find in a real repo, not a guide written for the agent.
+
+## LICENSE files
+
+- **Minimal / small codebases:** licenses should almost never be included. Omit by default.
+- **Large codebases:** use the repos we provide — they already carry copyright licenses with explicit permission for dataset inclusion. If sourcing your own, the repo MUST be licensed under MIT, Apache 2.0, or BSD. Anything else is not allowed.
 
 ## environment/Dockerfile
 
@@ -394,7 +578,14 @@ Notes:
 - Can call Python/other scripts in the `solution/` folder
 - Must pass ALL tests when run inside the container
 - Write like a human (standard keyboard characters only)
-- For milestone tasks: `solve.sh` chains `solve1.sh ... solveN.sh` in order
+- **For milestone tasks:** there is no top-level `solution/` directory. Each milestone has its own `steps/milestone_N/solution/solve.sh` wrapper that calls `solveN.sh` containing only that milestone's commands. The wrapper pattern is:
+  ```bash
+  #!/bin/bash
+  set -euo pipefail
+  SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+  bash "$SCRIPT_DIR/solveN.sh"
+  ```
+  The container filesystem persists across milestones, so `solveN.sh` should reset state explicitly when needed rather than assume a clean slate. Keep the existing canary string convention in `solveN.sh` files (Terminal-Bench Canary header).
 
 ### Determinism discipline (for Step 4's 10x flakiness check)
 `solve.sh` runs once in Step 2b as a sanity check and ten times in Step 4 as a flakiness check. A single pass is not evidence of determinism. While writing `solve.sh`:
@@ -481,7 +672,7 @@ fi
 **What you MAY change** (only these, nothing else):
 1. The `apt-get install` block — add/remove/pin packages the verifier needs; multi-line continuations, `--no-install-recommends`, and optional `rm -rf /var/lib/apt/lists/*` cleanup are allowed
 2. Additional `-w` flags on the `uvx` call — e.g., `-w pytest-randomly==3.16.0`
-3. The test file path — e.g., `/tests/test_m1.py /tests/test_m2.py` for milestone tasks
+3. The test file path — for standard tasks, `/tests/test_outputs.py`. For milestone tasks, each milestone has its OWN `test.sh` under `steps/milestone_N/tests/test.sh` that points at that milestone's test file (e.g. `/tests/test_m1.py` for milestone 1, `/tests/test_m2.py` for milestone 2). There is no shared root-level `tests/test.sh` for milestone tasks.
 
 **What you MUST NOT change:**
 - Do not add `set -euo pipefail` or `set -e` — it breaks `$?` capture. (The solve.sh section above says to use it for the oracle — that does NOT apply here.)
@@ -539,7 +730,7 @@ fi
 - `instruction_test_vocabulary` static check → every exact-value assertion on an instruction-named field has that value grounded somewhere in `instruction.md` text
 
 ### Structural rules
-- Use exact filename `test_outputs.py` (or `test_m1.py ... test_mN.py` for milestones)
+- Use exact filename `test_outputs.py` for standard tasks. For milestone tasks, each milestone has its own `steps/milestone_N/tests/test_mN.py` with assertions in a single `TestMilestoneN` class. There is no root-level `tests/` directory for milestone tasks.
 - Write normal pytest tests with informative docstrings
 - Test behavior, not implementation. Do not parse source code.
 - Every requirement in instruction.md → at least one test
@@ -614,9 +805,14 @@ Before concluding Step 2b, walk this construction checklist. Each item correspon
 
 **File layout**
 - [ ] All required files present for the task type (standard / milestone / UI)
-- [ ] No forbidden files at task root (`rubric.txt`, `rubrics.txt`, legacy `milestones.md`)
+- [ ] No forbidden files at task root (`rubric.txt`, `rubrics.txt`, legacy `milestones.md`, AI-scaffolding filenames like `CLAUDE.md` / `skills.md` at any depth)
+- [ ] For milestone tasks: no top-level `instruction.md`, `tests/`, `solution/`, `milestone_X.md`; everything per-milestone lives under `steps/milestone_N/{instruction.md, tests/{test.sh, test_mN.py}, solution/{solve.sh, solveN.sh}}`
+- [ ] For milestone tasks: `[metadata].number_of_milestones` matches the count of `[[steps]]` blocks; no top-level `[agent]` / `[verifier]` blocks in `task.toml`
 - [ ] `output_contract.toml` present at task root (required; excluded from zip later)
 - [ ] Env file count under `environment/` (excluding Dockerfile and docker-compose) is ≥ 20
+- [ ] No banned task types started: not multi-container, not UI building (in-progress instances of these may be completed but new starts are not accepted)
+- [ ] No `LICENSE` file unless the codebase is `large`; if present, license is one of MIT, Apache 2.0, or BSD
+- [ ] No environment files contain hidden agent instructions (HINT:/STEP N: walkthroughs, "to solve this..."), and no AI-specific filenames (`CLAUDE.md`, `skills.md`, …) anywhere under the archive
 
 **Instruction (RC6 + §1)**
 - [ ] No named algorithms, schema enumerations, CLI/flag lists, numeric thresholds, binding phrases, scope closures, file/function locations, or cause statements
@@ -630,8 +826,11 @@ Before concluding Step 2b, walk this construction checklist. Each item correspon
 
 **task.toml (§5 + static checks)**
 - [ ] `version = "2.0"`, all required `[metadata]` fields present
+- [ ] No Harbor-framework-only fields (`schema_version`, `[task]`, `min_reward`, `[steps.healthcheck]`, `[steps.verifier.env]`, `artifacts`, `multi_step_reward_strategy`, `workdir/setup.sh`)
+- [ ] Author placeholders kept anonymous (`"your-name"` / `"your-email"` / `"anonymous"` — never a real identifier)
 - [ ] `codebase_size` matches actual env file count
 - [ ] 3-6 tags, no padding; `subcategories` (not `task_subtypes`)
+- [ ] For milestone tasks: `number_of_milestones` matches the count of `[[steps]]` blocks; each `[[steps]].name` is `milestone_N`; per-step `[steps.agent]` / `[steps.verifier]` timeouts present; no top-level `[agent]` / `[verifier]` blocks
 - [ ] `verifier.timeout_sec` ≥ `environment.build_timeout_sec` if tests build anything; both ≤ 1800
 
 **Environment / Dockerfile (§2 + static checks)**
@@ -656,7 +855,7 @@ Before concluding Step 2b, walk this construction checklist. Each item correspon
 - [ ] Non-boilerplate LOC ≥ 30 (target 80+)
 - [ ] Adds real logic; no pure `sed -i '/BUG/d'` reverts
 - [ ] No randomness, no network, no timing dependencies, no filesystem-ordering assumptions (10x-ready)
-- [ ] For milestone tasks, chains `solve1.sh ... solveN.sh`
+- [ ] For milestone tasks: each milestone has its own `steps/milestone_N/solution/solve.sh` wrapper that calls `solveN.sh`; `solveN.sh` contains only that milestone's commands; no root-level `solve.sh` chaining `solve1.sh ... solveN.sh`
 
 **Solver-visible surfaces (RC2/RC5 + discoverability)**
 - [ ] No `broken_*`, `buggy_*`, `fix_me_*`, `golden_*`, `expected_*` tokens in file or directory names

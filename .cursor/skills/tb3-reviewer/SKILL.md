@@ -13,15 +13,30 @@ Construction is `tb3-task-author`; packaging is `tb3-packager`.
 
 Stop if any fails.
 
-- `tasks/<task-name>/` exists with required files (`instruction.md`,
-  `task.toml`, `output_contract.toml`, `environment/`,
-  `solution/solve.sh`, `tests/`).
+- `tasks/<task-name>/` exists with required files. Required shape
+  depends on task type:
+  - **Single-step task:** `instruction.md`, `task.toml`,
+    `output_contract.toml`, `environment/`, `solution/solve.sh`,
+    `tests/`.
+  - **Milestone task** (`task.toml` `version = "2.0"` with `[[steps]]`
+    blocks): `task.toml`, `output_contract.toml`, `environment/`,
+    `steps/milestone_N/{instruction.md, tests/{test.sh, test_mN.py},
+    solution/{solve.sh, solveN.sh}}` per milestone. There must be
+    NO root-level `instruction.md`, `tests/`, `solution/`,
+    `milestones.md`, or `milestone_X.md` for milestone tasks. See
+    `task-creation.mdc` "Milestone task" — the deprecated
+    root-level layout is rejected.
 - `tasks/<task-name>/.step2b-checksum` exists (Step 2b passed at
   some point).
 - Run `python3 task_integrity.py verify tasks/<task-name>`. If exit
   is 1 (dirty / missing / mismatch), stop and tell the user to
   re-run `./scripts/check-task.sh tasks/<task-name>` and repeat
   oracle 1x + NOP before review.
+- **Task type sanity:** new starts of multi-container or UI
+  building tasks are no longer accepted. If the task is one of
+  these AND review history shows it was started fresh under the new
+  policy, surface that as a Hard FAIL. In-progress instances are
+  exempt; check the spec / commit history before flagging.
 
 ## 2. Pull deeper rules
 
@@ -32,11 +47,15 @@ Stop if any fails.
   always-applied bucket, pull it explicitly.
 - `difficulty-calibration.mdc` is agent-requested — pull it
   explicitly before reviewing.
-- Read the full review surface before judging: `instruction.md`,
-  `task.toml`, `output_contract.toml`, `construction_manifest.json`,
-  every file under `solution/` and `tests/`, plus every fix-path
-  file in the manifest's `symbol_table`. Partial reads (6-8 files)
-  miss defects a 25-file read catches.
+- Read the full review surface before judging: `task.toml`,
+  `output_contract.toml`, `construction_manifest.json`, every file
+  under `environment/`, plus every fix-path file in the manifest's
+  `symbol_table`. For single-step tasks, also read root-level
+  `instruction.md`, `solution/`, and `tests/`. For milestone tasks,
+  read each milestone's content under `steps/milestone_N/`
+  (`instruction.md`, `tests/{test.sh, test_mN.py}`, and
+  `solution/{solve.sh, solveN.sh}`). Partial reads (6-8 files) miss
+  defects a 25-file read catches.
 
 ## 3. Review against the deeper rules
 

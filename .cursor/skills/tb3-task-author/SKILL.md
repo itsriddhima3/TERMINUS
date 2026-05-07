@@ -42,6 +42,28 @@ Stop if any fails — do not start drafting.
   later gates check (RC1-RC7, `review-and-submit.mdc` §1-7,
   `difficulty-calibration.mdc` Part A and Part B) is documented
   upstream. Apply each rule while writing the file, not after.
+- **Milestone tasks** (`number_of_milestones > 0`): the canonical
+  layout is `steps/milestone_N/{instruction.md, tests/{test.sh,
+  test_mN.py}, solution/{solve.sh, solveN.sh}}`. Do not create a
+  top-level `instruction.md`, `tests/`, `solution/`, `milestones.md`,
+  or `milestone_X.md` for a milestone task — that shape is
+  deprecated. `task.toml` must use `version = "2.0"` with `[[steps]]`
+  blocks (one per milestone, `name = "milestone_N"`), per-step
+  `[steps.agent]` / `[steps.verifier]` timeouts, no top-level
+  `[agent]` / `[verifier]`, and `[metadata].number_of_milestones`
+  equal to the number of `[[steps]]` blocks. See
+  `task-creation.mdc` "Milestone task" for the full layout, naming,
+  and rubric requirements (each milestone gets 10–40 points).
+- **Task types we no longer accept:** new starts of multi-container
+  or UI building tasks must not be drafted. If the spec implies
+  either, stop and return to Step 2a for a redesign.
+- **Environment files & licensing:** no AI-specific filenames
+  (`CLAUDE.md`, `skills.md`, `AGENTS.md`, `.cursor/`, …) anywhere in
+  the archive; no hidden agent instructions in environment files
+  (HINT:/STEP N: walkthroughs, "to solve this..." phrasing, or
+  prescriptive TODOs aimed at the solver). LICENSE files: omit on
+  minimal/small codebases; on large codebases use the
+  project-provided repos or MIT/Apache 2.0/BSD only.
 
 ## 4. Preflight
 

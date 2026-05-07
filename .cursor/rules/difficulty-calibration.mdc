@@ -320,7 +320,7 @@ Every individual test must be independently feasible and accept any valid soluti
 
 ### B1. Per-test feasibility check
 
-For each test function in `test_outputs.py` (or `test_mN.py`), answer:
+For each test function in `tests/test_outputs.py` (single-step) or in each milestone's `steps/milestone_N/tests/test_mN.py` (milestone tasks — see `task-creation.mdc` for the canonical layout), answer:
 
 1. What does this test check? (one sentence)
 2. Is there only one valid approach that passes it, or could multiple reasonable implementations pass?
