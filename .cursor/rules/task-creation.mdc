@@ -1,8 +1,14 @@
 ---
-description: Terminal-Bench 3.0 Edition 2 — task creation. File layout, metadata, instruction styling, Dockerfile, tests, oracle, and packaging.
-alwaysApply: true
+description: Construction discipline for Step 2b — file layout, instruction.md / task.toml / output_contract.toml / Dockerfile / test.sh / solve.sh / test_outputs.py rules. Pull whenever editing files inside tasks/.
+globs:
+  - "tasks/*/instruction.md"
+  - "tasks/*/task.toml"
+  - "tasks/*/output_contract.toml"
+  - "tasks/*/environment/**"
+  - "tasks/*/solution/**"
+  - "tasks/*/tests/**"
+alwaysApply: false
 ---
-
 # Task Creation
 
 ## Construction-to-Spec: the primary authoring discipline
@@ -29,6 +35,8 @@ Before touching any file, internalize the full rule set:
 | RC5 | Reference artifacts    | No answer-shaped golden/reference/broken fixtures on solver-visible surfaces (`instruction.md`, `tests/`, `environment/`). Embed expected values in test code. |
 | RC6 | Instruction specificity| `instruction.md` stays symptoms-only. No algorithm names, schema enumerations, CLI flag lists, numeric thresholds, file/function locations, cause statements, recipes, binding phrases. |
 | RC7 | Oracle triviality      | `solve.sh` non-boilerplate LOC ≥ 30 (≥ 80 is comfortable). If the genuine fix is <30 LOC, the task is too simple — redesign the concept, do not pad.         |
+
+RC6 catches the over-specification direction (instruction names the fix). The under-specification direction (instruction points at a hints file under `environment/`) is governed by Instruction honesty rule 4 — see the "Instruction prose rules" section below.
 
 Construction is spec-aware, not spec-discovering. While writing each file, pre-validate against the rules relevant to that file. If a rule would force you off the authoring spec's design, revise the draft — the rule is from a constraint the spec already assumed.
 
@@ -65,6 +73,10 @@ CR1-CR9 govern the **code**: symbol names, file topology, comments, test-to-code
 2. **Standard domain language, not synthetic jargon.** Terms like "live-read path," "reread-from-disk path," "post-rebuild cleanup" are fine — they are real distinctions a systems engineer recognizes. Terms like "outward slot strings," "material value," "wire family," "barrier view," "durable frontier" are made-up vocabulary that forces the agent to decode from code rather than from the spec. If a term would need a glossary for a domain expert to understand it, replace it with the standard term.
 
 3. **Synthetic data tokens are OK if the instruction names them explicitly.** "The first row maps to `Acme-Crate`, the second to `Beta-Tote`, the third to `Delta-Bin`" is specification. Embedding those values in tests without naming them in the instruction is hidden-spec and CR9 FAILs it.
+
+4. **No instruction by reference.** Every operational fact a solver needs to run the system — the entrypoint command, environment variables required to invoke it, the input/output paths, the schema of the output object — must live inline in `instruction.md`. Pointing the solver at a `.txt`, `.md`, `README`, `hints`, or `notes` file under `environment/` and saying "follow the instructions there" is the same defect as a short instruction with the contract hidden in test code: the solver-visible system no longer has a single source of truth. The dishonest variant often hides behind length-cap reasoning ("instruction.md is getting too long, move the mechanics elsewhere"). Instruction by reference is not a length-cap workaround — it is a `task-creation.mdc` Instruction honesty rule 4 violation. If `instruction.md` would otherwise exceed the static-check length WARN band, accept the WARN with reviewer documentation rather than splitting the contract across files. Files under `environment/` may contain *implementation hints* the solver discovers (a docstring on a function explaining its expected behavior, a comment in a config file, a `README.md` describing one subsystem's responsibility) — those are part of the codebase the solver reads to diagnose the bug. They must not contain the *operational contract* (how to run the system, what output to produce, what the output schema is) that belongs in `instruction.md`.
+
+   The diagnostic test for instruction by reference: if a fresh solver had only `instruction.md` and the `environment/` source code (no `.txt`/`.md` hint files at all), could they figure out how to run the system and produce the expected output? If no, the operational contract is split. Move it back into `instruction.md`.
 
 **What "instruction honesty" does NOT mean.** It does not mean naming the fix location — that is a RC6 violation. It does not mean listing algorithm names or implementation details — those are RC6-forbidden. Honest means "anyone reading this can verify correctness from the output"; it does not mean "anyone reading this can infer the fix site."
 
@@ -362,7 +374,17 @@ Notes:
 
 **Construction-time constraints this section enforces.** `solve.sh` is the primary source of RC1 and RC7 signals:
 - RC1 (oracle simplification): must ADD real logic, not just delete/revert/flip flags
-- RC7 (oracle triviality): non-boilerplate LOC ≥ 30 floor, ≥ 80 for comfortable PASS
+- RC7 / A16 (oracle triviality + edit distance): non-boilerplate
+  semantic-delta LOC ≥ 30 floor, ≥ 80 for comfortable PASS. The
+  measurement is *substantive* fix logic; cosmetic operations
+  (comment-marker rewrites, whitespace shuffles, AST padding
+  outside the fix locus) do not count toward the threshold. If
+  the genuine fix is < 30 LOC the task is too simple — redesign
+  the concept, do not pad. If the genuine fix is in the 30-79
+  WARN band, either expand substantively or accept the WARN with
+  Step 3b documented justification. See `difficulty-calibration.mdc`
+  A16 WARN-band policy. Padding is a `00-authoring-critical.mdc`
+  §6 Forbidden shortcut.
 - Oracle-1x plumbing: outputs exactly what tests assert, deterministically
 
 - Must solve the entire instruction deterministically

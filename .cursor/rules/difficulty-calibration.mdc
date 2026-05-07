@@ -1,8 +1,7 @@
 ---
-description: Difficulty calibration — collapse audit and per-test feasibility. Run after task creation and before packaging.
-alwaysApply: true
+description: Task hardness rules — collapse audit (Part A) and per-test feasibility risks (Part B). Pull during Step 2a design or Step 3b paper review when assessing or designing for difficulty.
+alwaysApply: false
 ---
-
 # Difficulty Calibration
 
 Use this rule whenever you are reviewing, repairing, or approving a task for submission. It covers both failure modes:
@@ -195,6 +194,41 @@ For every heredoc / `Path.write_text` / install-replace, run `difflib.SequenceMa
 **A16. GX3 Oracle Edit Distance** — supersedes RC7's transitive-LOC sum.
 
 Replaces RC7's body-size sum with comment-stripped, language-aware edit distance summed across all writes / patches / inplace edits. Same A12 thresholds (FAIL < 30, WARN 30-79, PASS ≥ 80) but on real numerator. New files (no env baseline) count as full body LOC after comment stripping.
+
+**A16 WARN-band policy (anti-gaming).** A WARN-band GX3 score
+(30-79 LOC) reflects an oracle whose substantive fix logic is
+genuinely small. There are exactly two correct responses:
+
+(a) **Expand the substantive fix logic in `solution/solve.sh`** so
+the real semantic delta clears the 80-LOC PASS floor. Real means
+the new lines do real work the task requires — additional
+coordination, defensive checks the test plan demands, error paths
+the oracle covers — not boilerplate.
+
+(b) **Accept the WARN with documented justification** in the Step
+3b reviewer hand-off, naming why the oracle's true scope is small
+and acceptable for this task class (e.g., the fix is a precise
+3-function coordination across distinct subsystems where each
+function body is naturally short, and expansion would dilute
+rather than strengthen the oracle).
+
+What is **never** acceptable: adding cosmetic comment markers to
+env files solely so `solve.sh` can sed them and inflate the diff
+count; AST padding that touches lines outside the substantive fix
+locus; heredoc rewrites of files whose only change is whitespace
+or comment shuffling. Such operations count as **gaming A16**,
+even when the markers exist on disk and the substitutions produce
+real diffs — they are not the substantive fix logic A16 exists to
+measure. `tb3-reviewer` classifies any solve.sh operation whose
+sole purpose is to satisfy A16's line-count floor as a Hard FAIL
+pattern, regardless of whether `collapse_check.py` flagged it
+mechanically (the mechanical check counts diff bytes; it cannot
+distinguish substantive from cosmetic).
+
+The right diagnostic for borderline GX3 is: "if I removed this
+operation from solve.sh, would oracle still score 1.0?" If yes,
+the operation is cosmetic and either belongs deleted (with the
+WARN documented and accepted) or replaced with substantive logic.
 
 **A17. GX4 No-Op Frontier Rewrite** — frontier-padding via byte-identical writes.
 

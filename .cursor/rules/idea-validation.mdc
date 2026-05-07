@@ -100,6 +100,23 @@ The validation loop is managed by `validate_loop.py`, not by the LLM. The script
 
 **Your job per attempt:** run the 5 hardness axes, 20 anti-trivialization checks, 6 rubric axes, instruction completeness test, and collapse audit. Output two clean docs (authoring spec + reviewer appendix) plus a structured evidence JSON that matches `specs/validation_schema.json`. The script handles scoring, state transitions, and gating.
 
+**Naming-pass requirement:** before building the evidence JSON,
+draft the symptoms-only instruction prose and extract its nouns.
+That noun list IS `construction_manifest.code_forbidden_tokens`
+and `naming_pass.instruction_nouns_extracted` — both must agree.
+For every fix-path symbol, file path, and test name you plan,
+audit it against the noun list. If a token from the list appears
+as a substring, rename it and record the rename in
+`naming_pass.renames_during_drafting`. Empty rename lists are
+allowed but flagged WARN — the loop surfaces it to make sure you
+actually looked.
+
+**Concentration math:** `flipping_point_contract.concentration_cap`
+is enforced arithmetically. The loop computes per-location ratios
+from `controls_tests` and rejects any location whose ratio exceeds
+the cap. Your `naming_pass.concentration_math` must agree with
+that computation; disagreement is a hard failure.
+
 ## Structured Evidence Contract
 
 Every Step 2a attempt must produce a JSON evidence sidecar matching `specs/validation_schema.json`.
@@ -114,12 +131,22 @@ Required top-level fields:
 - `attack_path`
 - `smallest_plausible_patch`
 - `collapse_audit`
+- `naming_pass`
 
 Default-workflow blocking rules:
 - `discovery_budget` must list at least 3 non-trivial solver discoveries the finished task will force from the codebase/runtime
 - each `discovery_budget` item must name the discovery, where it should live after Step 2b, and why instruction.md must not reveal it
 - `instruction_specificity.level` must be `symptoms-only` for any GO outcome
 - GO is forbidden if required evidence is missing, malformed, or contradicts those blocking checks
+- `naming_pass.instruction_nouns_extracted` must equal
+  `construction_manifest.code_forbidden_tokens` as sets
+  (case-insensitive). Disagreement is blocking.
+- No entry in `naming_pass.test_names_audited` may contain any
+  token from `instruction_nouns_extracted` as a substring
+  (case-insensitive). Hits are blocking.
+- `naming_pass.concentration_math` must match the validator's
+  recomputation from `flipping_point_contract`. Mismatch or any
+  per-location ratio over `concentration_cap` is blocking.
 
 The loop stores this evidence with each attempt. Integer FAIL/WARN counts are secondary summaries, not the source of truth.
 
@@ -137,7 +164,7 @@ See `workflow-prompts.md` Step 2a for the automated loop prompt.
 
 ## Spec Output Format
 
-When the winning variant is GO, produce two physical files using these exact structures:
+When the winning variant is GO, produce two physical files using these exact structures. Every Step 2a authoring spec produced after the v2 rollout MUST declare `version: 2` in `### Metadata`; specs without it are rejected by `validate_loop.py finalize` (the strict post-save gate). v2 specs MUST also include the three subsections under `## Authoring Brief` named below (Triviality Ledger, Per-gate Pitfall Inventory, Initial Draft Commitments) — each with at least one bullet.
 
 ### Authoring Spec (`specs/<task-name>.md` or `specs/<task-name>-candidate-N.md`)
 
@@ -146,6 +173,7 @@ When the winning variant is GO, produce two physical files using these exact str
 [GO / STOP] — Attempt [N]. [1-3 bullets explaining what changed, e.g., "GO — Attempt 2. Scattered code across 3 roots, split persistence layer, neutralized API naming."]
 
 ### Metadata
+- version: 2
 - Task name: [kebab-case slug]
 - Title: [3-4 word human title]
 - Category: [one of 9 accepted values]
@@ -177,6 +205,24 @@ When the winning variant is GO, produce two physical files using these exact str
 
 ### Drafting guardrails
 [1 short paragraph on what Step 2b must avoid leaking through instructions, names, tests, comments, fixtures, or structure]
+
+### Triviality Ledger
+
+- (one bullet per known triviality risk: name the trap and the structural reason it's blocked. e.g. "naive global flush passes cross-session test but fails handle-lifetime test because <reason>")
+
+[Required for v2 specs. At least one bullet. Each entry should name a concrete trivialization the future drafter or solver could fall into and the structural reason — invariant, test coupling, cross-file coordination — that the spec already prevents it. The Triviality Ledger is the spec's evidence that named hardness survives construction; an empty or hand-waving ledger is a v2 contract violation.]
+
+### Per-gate Pitfall Inventory
+
+- (one bullet per gate the spec must clear: RC1-RC7, GX1/GX3/GX9/GX10, static checks. Name the pitfall and the construction-time countermeasure for each.)
+
+[Required for v2 specs. At least one bullet per checked gate. The drafter must be able to read a gate's name and immediately know the specific construction risk this spec faces and what the spec's design already does to neutralize it. This subsection turns gate names into actionable construction constraints rather than abstract verifications.]
+
+### Initial Draft Commitments
+
+- (exhaustive list of task-relative paths the Step 2b drafter will create. This is the authoritative file inventory for `tb3-task-author` §3 — every path here must be created, no path outside this list may be added without amending the spec.)
+
+[Required for v2 specs. At least one bullet, but realistic specs will have 20+ entries (env file count floor). The drafter treats this as the canonical file plan: any divergence (added files, missing files, renames) requires a spec amendment, not a quiet drafter improvisation. This subsection closes the loop from the construction manifest's symbol-level commitments to the file-tree level.]
 
 ### Construction manifest (BLOCKING — Step 2b must follow this verbatim)
 
@@ -331,6 +377,34 @@ Residual hardness:
 [one paragraph — what remains genuinely hard after the file tree is visible]
 
 Collapse verdict: [PASS / WARN / FAIL]
+
+### Naming-pass record
+
+[Mirror of `naming_pass` evidence so a human reviewer can audit
+without opening the JSON. Four parts:]
+
+**Instruction nouns extracted:**
+[the list, comma-separated, in the order they appear in
+instruction.md prose]
+
+**Renames during drafting:**
+- [`original` → `renamed_to`: `reason`]
+- [...]
+- [or "None — first-pass naming was already clean against the
+  forbidden list" if empty]
+
+**Test names audited:**
+- [final test name 1]
+- [final test name 2]
+- [...]
+
+**Concentration math:**
+- Total tests across `flipping_point_contract`: [N]
+- Per location:
+  - L1 (`<path>`): [M]/[N] = [ratio]
+  - L2 (`<path>`): [M]/[N] = [ratio]
+  - L3 (`<path>`): [M]/[N] = [ratio]
+- Cap: 0.5. Max ratio observed: [X]. Status: [PASS/FAIL]
 
 ### Per-test feasibility pre-check
 [for each planned test]

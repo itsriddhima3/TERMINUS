@@ -1,8 +1,11 @@
 ---
-description: Terminal-Bench 3.0 Edition 2 — review checklist, static checks, and submission readiness. Run before approving or packaging any task.
-alwaysApply: true
+description: Step 3b paper-review checklist and Step 4 final-approval / packaging discipline. Pull when reviewing a constructed task or preparing submission.
+globs:
+  - "tasks/*/instruction.md"
+  - "tasks/*/tests/test_outputs.py"
+  - "tasks/*/output_contract.toml"
+alwaysApply: false
 ---
-
 # Review & Submit
 
 ## Severity Guide
