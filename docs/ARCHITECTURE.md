@@ -20,15 +20,26 @@ any of those.
 ## Task implementation layer (Step 2b)
 
 - `tasks/<task>/` — the task itself.
-  - `instruction.md` — symptoms-only public contract.
-  - `task.toml` — metadata (category, difficulty, milestones, ...).
-  - `output_contract.toml` — declared outputs and schema. Local-only;
-    banned in submission zips.
-  - `environment/` — code under test. No golden answers, no hints,
-    no walkthroughs (enforced by `environment_hidden_instructions`
-    static check).
-  - `solution/solve.sh` — oracle implementation.
-  - `tests/test.sh` and `tests/test_*.py` — verifier.
+  - **Single-step task layout:**
+    - `instruction.md` — symptoms-only public contract.
+    - `task.toml` — metadata (category, difficulty, `number_of_milestones = 0`, ...).
+    - `output_contract.toml` — declared outputs and schema. Local-only;
+      banned in submission zips.
+    - `environment/` — code under test. No golden answers, no hints,
+      no walkthroughs (enforced by `environment_hidden_instructions`
+      static check). No AI-specific filenames (`CLAUDE.md`, `skills.md`, …).
+    - `solution/solve.sh` — oracle implementation.
+    - `tests/test.sh` and `tests/test_*.py` — verifier.
+  - **Milestone task layout** (canonical, `task.toml` `version = "2.0"`
+    with `[[steps]]` blocks; see `task-creation.mdc` "Milestone task"):
+    - `task.toml` — metadata + `[[steps]]` blocks (one per milestone).
+    - `environment/` — shared across all milestones.
+    - `steps/milestone_N/` — per-milestone content. Contains
+      `instruction.md`, `tests/{test.sh, test_mN.py}`, and
+      `solution/{solve.sh, solveN.sh}`. The container filesystem
+      persists across milestones.
+    - NO root-level `instruction.md` / `tests/` / `solution/` /
+      `milestones.md` / `milestone_X.md` (deprecated layout).
   - `.step2b-checksum` — local generated state (see
     REPO_CONVENTIONS.md § "Local generated state").
 

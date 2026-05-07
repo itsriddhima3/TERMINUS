@@ -156,6 +156,8 @@ This document is a historical reference for Terminus task creation, evaluation, 
 
 ## **5\. environment/docker-compose.yaml**
 
+> **⚠️ POLICY UPDATE (supersedes the historical text below):** New starts of multi-container tasks are no longer accepted in this repo. In-progress multi-container tasks may finish; do not begin new ones. The historical "below 10% of your dataset submissions" guidance is therefore obsolete for new work. See `task-creation.mdc` "Task types we no longer accept" and `REPO_CONVENTIONS.md` "Task types we no longer accept" for the current rule.
+
 **CRITICAL RULE:** Multi-container orchestration is the exception. Keep multi-container tasks below 10% of your dataset submissions.
 
 **Rule:** environment/docker-compose.yaml MAY be used only when a single container is genuinely insufficient.
@@ -171,6 +173,13 @@ This document is a historical reference for Terminus task creation, evaluation, 
 **Consequence of Violation:** High-severity harness collision failure.
 
 ## **6\. environment/\[additional build files and task assets\]**
+
+> **⚠️ POLICY UPDATE — environment files & licensing:** The current rule (see `task-creation.mdc` "Environment files (general policy)" and `REPO_CONVENTIONS.md` "environment/ files cannot give the agent the 'how'") adds two explicit bans on top of the historical guidance below:
+>
+> 1. **AI-specific filenames are banned.** `CLAUDE.md`, `skills.md`, `AGENTS.md`, `.cursor/`, `.aider/`, etc. are rejected anywhere in the archive. Use realistic engineering filenames (`README.md`, `architecture.md`, API docs, schemas, sample configs).
+> 2. **No hidden instructions to the agent.** Environment files must NOT contain step-by-step walkthroughs, solution hints, or prescriptive TODOs aimed at the solver. Litmus test: an environment file should look like something a human engineer would plausibly find in a real repo, not a guide written for the agent.
+>
+> **LICENSE files:** for minimal/small codebases, omit by default. For large codebases, prefer the repos provided by the project (already permission-cleared); if sourcing your own, the repo MUST be licensed under MIT, Apache 2.0, or BSD — anything else is rejected.
 
 **Rule:** Assets needed at runtime SHOULD live inside environment/, NOT at the root level (data/).
 
@@ -202,6 +211,8 @@ This document is a historical reference for Terminus task creation, evaluation, 
 
 ## **8\. solution/solve1.sh ... solution/solveN.sh**
 
+> **⚠️ POLICY UPDATE — DEPRECATED LAYOUT (supersedes the historical text below):** The root-level `solution/solve1.sh ... solution/solveN.sh` chained-from-`solve.sh` shape is **deprecated** for both new and in-progress submissions. In the canonical milestone layout, each milestone's oracle lives at `steps/milestone_N/solution/solveN.sh` and is invoked by a per-milestone `steps/milestone_N/solution/solve.sh` wrapper. There is no longer a top-level `solution/` for milestone tasks. See `task-creation.mdc` "Milestone task" for the canonical layout and migration steps.
+
 **Rule:** Milestone tasks MUST include one milestone-scoped oracle script per milestone, assuming previous milestones are complete.
 
 **Consequence of Violation:** Milestone-structure rejection.
@@ -217,6 +228,12 @@ This document is a historical reference for Terminus task creation, evaluation, 
 **Consequence of Violation:** Structural failure if solve.sh is missing.
 
 ## **10\. Milestone Definitions (milestone\_N.md files)**
+
+> **⚠️ POLICY UPDATE — DEPRECATED LAYOUT (supersedes ALL of the historical text in this section):** The root-level `milestone_1.md ... milestone_N.md` shape is **deprecated** for both new and in-progress submissions. The canonical milestone layout has no root-level `milestone_X.md`, no `milestones.md`, no top-level `instruction.md`, no top-level `tests/` or `solution/` for milestone tasks. Each milestone's prompt now lives at `steps/milestone_N/instruction.md` and contains ONLY that milestone's prompt (milestone 1 carries the overall task context; later milestones describe only the new requirements; never preview later milestones).
+>
+> See `task-creation.mdc` "Milestone task" for the canonical structure (`steps/milestone_N/{instruction.md, tests/{test.sh, test_mN.py}, solution/{solve.sh, solveN.sh}}`), naming rules (`[[steps]].name = "milestone_N"`, `TestMilestoneN` class, `solveN.sh` called by per-milestone `solve.sh` wrapper), and the `task.toml` `version = "2.0"` shape with `[[steps]]` blocks and matching `[metadata].number_of_milestones`. The "no leaky milestones" / "clear boundaries" / "2-5 milestones" / "shared filesystem" best practices still apply.
+>
+> The historical rules below are kept for context. They are NOT current.
 
 **CRITICAL RULE:** Milestone tasks MUST include one root-level milestone\_N.md file per milestone. Do NOT include a legacy milestones.md file.
 
@@ -318,6 +335,8 @@ This document is a historical reference for Terminus task creation, evaluation, 
 
 ## **13\. tests/test\_m1.py ... tests/test\_mN.py**
 
+> **⚠️ POLICY UPDATE — DEPRECATED PATHS (supersedes the historical text below):** The root-level `tests/test_m1.py ... tests/test_mN.py` paths are deprecated for milestone tasks. In the canonical layout, each milestone's test file lives at `steps/milestone_N/tests/test_mN.py` and is run by a per-milestone `steps/milestone_N/tests/test.sh`. There is no longer a root-level `tests/` directory for milestone tasks. The `TestMilestoneN` class convention and the milestone-scoping/state-tolerance rules still apply. See `task-creation.mdc` "Milestone task".
+
 **Rule:** Milestone tasks MUST include one scoped test file per milestone (e.g., containing a single class TestMilestone1).
 
 **Consequence of Violation:** Milestone-structure rejection.
@@ -331,6 +350,8 @@ This document is a historical reference for Terminus task creation, evaluation, 
 **Consequence of Violation:** Automated test-quality failure or milestone verifier rejection.
 
 ## **14\. UI Verifier Stack**
+
+> **⚠️ POLICY UPDATE (supersedes the historical text below):** New starts of UI building tasks (subcategory `ui_building`) are no longer accepted. In-progress UI tasks may finish; do not begin new ones. The historical UI verifier stack rules remain useful for in-progress UI work but should not be used to bootstrap new UI tasks. See `task-creation.mdc` "Task types we no longer accept" and `REPO_CONVENTIONS.md` "Task types we no longer accept".
 
 **Rule (tests/README.md):** Documents the UI structure. If adding React/Vue, authors must add the correct @testing-library packages.
 

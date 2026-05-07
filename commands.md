@@ -326,7 +326,12 @@ zip -rq ../../Task_Ready_To_Submit/<task-name>.zip . \
 python3 ../../validate_submission_zip.py ../../Task_Ready_To_Submit/<task-name>.zip
 ```
 
-Verify: `instruction.md`, `task.toml`, `environment/`, `solution/`, and `tests/` at archive root. The validator additionally rejects `output_contract.toml` / `construction_manifest.json` / `quality_check_adjudication.json` / `rubric*.txt` / `.step2b-checksum` at archive root and any AI-scaffolding filename (CLAUDE.md, AGENTS.md, skills.md, .cursor/, .aider/, .continue/, .claude/) at any archive depth, case-insensitively. See `REPO_CONVENTIONS.md` § "AI-scaffolding filenames are banned anywhere in the submission archive" for the full ban list and rationale.
+Verify the archive root shape:
+
+- **Single-step task:** `instruction.md`, `task.toml`, `environment/`, `solution/`, and `tests/` at archive root.
+- **Milestone task** (`task.toml` `version = "2.0"` with `[[steps]]` blocks): `task.toml`, `environment/`, and `steps/` at archive root, with each milestone's `instruction.md` / `tests/{test.sh, test_mN.py}` / `solution/{solve.sh, solveN.sh}` under `steps/milestone_N/`. There must be NO root-level `instruction.md`, `tests/`, `solution/`, `milestones.md`, or `milestone_X.md` for milestone tasks. See `REPO_CONVENTIONS.md` § "Milestone tasks live under `steps/milestone_N/`, not at the task root" and `task-creation.mdc` for the canonical layout.
+
+The validator additionally rejects `output_contract.toml` / `construction_manifest.json` / `quality_check_adjudication.json` / `rubric*.txt` / `.step2b-checksum` at archive root and any AI-scaffolding filename (CLAUDE.md, AGENTS.md, skills.md, .cursor/, .aider/, .continue/, .claude/) at any archive depth, case-insensitively. See `REPO_CONVENTIONS.md` § "AI-scaffolding filenames are banned anywhere in the submission archive" for the full ban list and rationale.
 
 ## Docker Troubleshooting
 

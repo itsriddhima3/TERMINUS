@@ -18,6 +18,8 @@ under `tasks/<task-name>/`. New here? Read `docs/ARCHITECTURE.md` first.
 3. Don't invent paths, `task.toml` fields, or commands from memory; open the file or `commands.md`.
 4. After any task-file edit, prior Step 2b evidence is stale. Rerun cheap gates. `approve_task.py` refuses to package on checksum mismatch.
 5. One-command preflight: `./scripts/check-task.sh tasks/<task-name>`. Preflight only — oracle 1x and NOP still required for Step 2b PASS.
+6. Milestone tasks use the canonical `steps/milestone_N/{instruction.md, tests/, solution/}` layout with `task.toml` `version = "2.0"` and matching `[[steps]]` blocks. The deprecated root-level `instruction.md` / `tests/` / `solution/` / `milestones.md` shape is rejected — see `task-creation.mdc`.
+7. New starts of multi-container or UI building tasks are no longer accepted; in-progress instances may finish.
 
 ## Forbidden in submissions
 
