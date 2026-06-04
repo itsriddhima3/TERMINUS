@@ -1,0 +1,7 @@
+digraph gamma_pack {
+  severed=true;
+  anchor [role=anchor, cert="certs/root.pem"];
+  gamma_leaf [row=true, cert="certs/broken_leaf.pem"];
+
+  gamma_leaf -> anchor [label="issued_by"];
+}

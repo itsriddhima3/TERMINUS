@@ -1,0 +1,5 @@
+Bench ships a C++ `arcctl` CLI against sample EAD finding aids under `/app/data/ead/`. Run `/app/bin/arcctl parse ARC-2024-Q2` to emit `/app/var/records.jsonl` and `/app/var/records.csv`. Each JSONL line carries `collection_id`, `title`, `date_span`, and a `creators` array. Entries use `type` (`corp` or `pers`) and `name`; when both body types appear in the same controlaccess block, corporate comes before personal. Full shapes are in `/app/docs/jsonl_layout.md`. CSV uses the same leading columns (`collection_id`, `title`, `date_span`) per `/app/docs/csv_layout.md`.
+
+Batch `ARC-2024-Q2` holds three finding aids. Parsed output today drops nested personal names from `<controlaccess>`, truncates century digits from `<unitdate>` spans, and permutes CSV columns relative to the layout doc. Curator policy for date wire form, name retention, and export layout lives in `/app/docs/handbook/`; `/app/docs/bench_precedence.md` states which handbook sections override bench defaults when chapters disagree.
+
+Repair parse for `ARC-2024-Q2`. When you're done, signal completion and include the command you used.

@@ -1,0 +1,442 @@
+# Validation Log: cpp-ead-authority-reconcile
+
+## Attempt 1
+- Derived score: 70 FAILs, 0 WARNs
+- Evidence: cpp-ead-authority-reconcile-attempt-1-evidence.json
+- Evidence errors:
+  - Schema validation failed at $.anti_trivialization_checks[0].id: 1 is not of type 'string'
+  - Schema validation failed at $.anti_trivialization_checks[10].id: 11 is not of type 'string'
+  - Schema validation failed at $.anti_trivialization_checks[11].id: 12 is not of type 'string'
+  - Schema validation failed at $.anti_trivialization_checks[12].id: 13 is not of type 'string'
+  - Schema validation failed at $.anti_trivialization_checks[13].id: 14 is not of type 'string'
+  - Schema validation failed at $.anti_trivialization_checks[14].id: 15 is not of type 'string'
+  - Schema validation failed at $.anti_trivialization_checks[15].id: 16 is not of type 'string'
+  - Schema validation failed at $.anti_trivialization_checks[16].id: 17 is not of type 'string'
+  - Schema validation failed at $.anti_trivialization_checks[17].id: 18 is not of type 'string'
+  - Schema validation failed at $.anti_trivialization_checks[18].id: 19 is not of type 'string'
+  - Schema validation failed at $.anti_trivialization_checks[19].id: 20 is not of type 'string'
+  - Schema validation failed at $.anti_trivialization_checks[1].id: 2 is not of type 'string'
+  - Schema validation failed at $.anti_trivialization_checks[20].id: 21 is not of type 'string'
+  - Schema validation failed at $.anti_trivialization_checks[2].id: 3 is not of type 'string'
+  - Schema validation failed at $.anti_trivialization_checks[3].id: 4 is not of type 'string'
+  - Schema validation failed at $.anti_trivialization_checks[4].id: 5 is not of type 'string'
+  - Schema validation failed at $.anti_trivialization_checks[5].id: 6 is not of type 'string'
+  - Schema validation failed at $.anti_trivialization_checks[6].id: 7 is not of type 'string'
+  - Schema validation failed at $.anti_trivialization_checks[7].id: 8 is not of type 'string'
+  - Schema validation failed at $.anti_trivialization_checks[8].id: 9 is not of type 'string'
+  - Schema validation failed at $.anti_trivialization_checks[9].id: 10 is not of type 'string'
+  - Schema validation failed at $.attack_path: Additional properties are not allowed ('verdict' was unexpected)
+  - Schema validation failed at $.construction_manifest.symbol_table[0]: 'purpose' is a required property
+  - Schema validation failed at $.construction_manifest.symbol_table[0]: 'signature' is a required property
+  - Schema validation failed at $.construction_manifest.symbol_table[1]: 'purpose' is a required property
+  - Schema validation failed at $.construction_manifest.symbol_table[1]: 'signature' is a required property
+  - Schema validation failed at $.construction_manifest.symbol_table[2]: 'purpose' is a required property
+  - Schema validation failed at $.construction_manifest.symbol_table[2]: 'signature' is a required property
+  - Schema validation failed at $.construction_manifest.symbol_table[3]: 'purpose' is a required property
+  - Schema validation failed at $.construction_manifest.symbol_table[3]: 'signature' is a required property
+  - Schema validation failed at $.construction_manifest.symbol_table[4]: 'purpose' is a required property
+  - Schema validation failed at $.construction_manifest.symbol_table[4]: 'signature' is a required property
+  - Schema validation failed at $.construction_manifest.symbol_table[5]: 'purpose' is a required property
+  - Schema validation failed at $.construction_manifest.symbol_table[5]: 'signature' is a required property
+  - Schema validation failed at $.construction_manifest.symbol_table[6]: 'purpose' is a required property
+  - Schema validation failed at $.construction_manifest.symbol_table[6]: 'signature' is a required property
+  - Schema validation failed at $.construction_manifest.symbol_table[7]: 'purpose' is a required property
+  - Schema validation failed at $.construction_manifest.symbol_table[7]: 'signature' is a required property
+  - Schema validation failed at $.construction_manifest.symbol_table[8]: 'purpose' is a required property
+  - Schema validation failed at $.construction_manifest.symbol_table[8]: 'signature' is a required property
+  - Schema validation failed at $.discovery_budget[0]: 'why_instruction_must_not_reveal' is a required property
+  - Schema validation failed at $.discovery_budget[0]: Additional properties are not allowed ('why_hidden' was unexpected)
+  - Schema validation failed at $.discovery_budget[1]: 'why_instruction_must_not_reveal' is a required property
+  - Schema validation failed at $.discovery_budget[1]: Additional properties are not allowed ('why_hidden' was unexpected)
+  - Schema validation failed at $.discovery_budget[2]: 'why_instruction_must_not_reveal' is a required property
+  - Schema validation failed at $.discovery_budget[2]: Additional properties are not allowed ('why_hidden' was unexpected)
+  - Schema validation failed at $.hardness_axes[0]: 'id' is a required property
+  - Schema validation failed at $.hardness_axes[1]: 'id' is a required property
+  - Schema validation failed at $.hardness_axes[2]: 'id' is a required property
+  - Schema validation failed at $.hardness_axes[3]: 'id' is a required property
+  - Schema validation failed at $.hardness_axes[4]: 'id' is a required property
+  - Schema validation failed at $.rubric_axes[0]: 'id' is a required property
+  - Schema validation failed at $.rubric_axes[1]: 'id' is a required property
+  - Schema validation failed at $.rubric_axes[2]: 'id' is a required property
+  - Schema validation failed at $.rubric_axes[3]: 'id' is a required property
+  - Schema validation failed at $.rubric_axes[4]: 'id' is a required property
+  - Schema validation failed at $.rubric_axes[5]: 'id' is a required property
+  - Schema validation failed at $.smallest_plausible_patch: Additional properties are not allowed ('verdict' was unexpected)
+  - Schema validation failed at $.topology_enumeration[0]: 'id' is a required property
+  - Schema validation failed at $.topology_enumeration[0]: 'summary' is a required property
+  - Schema validation failed at $.topology_enumeration[0]: 'why_no_single_location_suffices' is a required property
+  - Schema validation failed at $.topology_enumeration[0]: Additional properties are not allowed ('insufficient_because', 'topology' were unexpected)
+  - Schema validation failed at $.topology_enumeration[1]: 'id' is a required property
+  - Schema validation failed at $.topology_enumeration[1]: 'summary' is a required property
+  - Schema validation failed at $.topology_enumeration[1]: 'why_no_single_location_suffices' is a required property
+  - Schema validation failed at $.topology_enumeration[1]: Additional properties are not allowed ('insufficient_because', 'topology' were unexpected)
+  - Schema validation failed at $.topology_enumeration[2]: 'id' is a required property
+  - Schema validation failed at $.topology_enumeration[2]: 'summary' is a required property
+  - Schema validation failed at $.topology_enumeration[2]: 'why_no_single_location_suffices' is a required property
+  - Schema validation failed at $.topology_enumeration[2]: Additional properties are not allowed ('insufficient_because', 'topology' were unexpected)
+- Blocking evidence failures:
+  - Schema validation failed at $.anti_trivialization_checks[0].id: 1 is not of type 'string'
+  - Schema validation failed at $.anti_trivialization_checks[10].id: 11 is not of type 'string'
+  - Schema validation failed at $.anti_trivialization_checks[11].id: 12 is not of type 'string'
+  - Schema validation failed at $.anti_trivialization_checks[12].id: 13 is not of type 'string'
+  - Schema validation failed at $.anti_trivialization_checks[13].id: 14 is not of type 'string'
+  - Schema validation failed at $.anti_trivialization_checks[14].id: 15 is not of type 'string'
+  - Schema validation failed at $.anti_trivialization_checks[15].id: 16 is not of type 'string'
+  - Schema validation failed at $.anti_trivialization_checks[16].id: 17 is not of type 'string'
+  - Schema validation failed at $.anti_trivialization_checks[17].id: 18 is not of type 'string'
+  - Schema validation failed at $.anti_trivialization_checks[18].id: 19 is not of type 'string'
+  - Schema validation failed at $.anti_trivialization_checks[19].id: 20 is not of type 'string'
+  - Schema validation failed at $.anti_trivialization_checks[1].id: 2 is not of type 'string'
+  - Schema validation failed at $.anti_trivialization_checks[20].id: 21 is not of type 'string'
+  - Schema validation failed at $.anti_trivialization_checks[2].id: 3 is not of type 'string'
+  - Schema validation failed at $.anti_trivialization_checks[3].id: 4 is not of type 'string'
+  - Schema validation failed at $.anti_trivialization_checks[4].id: 5 is not of type 'string'
+  - Schema validation failed at $.anti_trivialization_checks[5].id: 6 is not of type 'string'
+  - Schema validation failed at $.anti_trivialization_checks[6].id: 7 is not of type 'string'
+  - Schema validation failed at $.anti_trivialization_checks[7].id: 8 is not of type 'string'
+  - Schema validation failed at $.anti_trivialization_checks[8].id: 9 is not of type 'string'
+  - Schema validation failed at $.anti_trivialization_checks[9].id: 10 is not of type 'string'
+  - Schema validation failed at $.attack_path: Additional properties are not allowed ('verdict' was unexpected)
+  - Schema validation failed at $.construction_manifest.symbol_table[0]: 'purpose' is a required property
+  - Schema validation failed at $.construction_manifest.symbol_table[0]: 'signature' is a required property
+  - Schema validation failed at $.construction_manifest.symbol_table[1]: 'purpose' is a required property
+  - Schema validation failed at $.construction_manifest.symbol_table[1]: 'signature' is a required property
+  - Schema validation failed at $.construction_manifest.symbol_table[2]: 'purpose' is a required property
+  - Schema validation failed at $.construction_manifest.symbol_table[2]: 'signature' is a required property
+  - Schema validation failed at $.construction_manifest.symbol_table[3]: 'purpose' is a required property
+  - Schema validation failed at $.construction_manifest.symbol_table[3]: 'signature' is a required property
+  - Schema validation failed at $.construction_manifest.symbol_table[4]: 'purpose' is a required property
+  - Schema validation failed at $.construction_manifest.symbol_table[4]: 'signature' is a required property
+  - Schema validation failed at $.construction_manifest.symbol_table[5]: 'purpose' is a required property
+  - Schema validation failed at $.construction_manifest.symbol_table[5]: 'signature' is a required property
+  - Schema validation failed at $.construction_manifest.symbol_table[6]: 'purpose' is a required property
+  - Schema validation failed at $.construction_manifest.symbol_table[6]: 'signature' is a required property
+  - Schema validation failed at $.construction_manifest.symbol_table[7]: 'purpose' is a required property
+  - Schema validation failed at $.construction_manifest.symbol_table[7]: 'signature' is a required property
+  - Schema validation failed at $.construction_manifest.symbol_table[8]: 'purpose' is a required property
+  - Schema validation failed at $.construction_manifest.symbol_table[8]: 'signature' is a required property
+  - Schema validation failed at $.discovery_budget[0]: 'why_instruction_must_not_reveal' is a required property
+  - Schema validation failed at $.discovery_budget[0]: Additional properties are not allowed ('why_hidden' was unexpected)
+  - Schema validation failed at $.discovery_budget[1]: 'why_instruction_must_not_reveal' is a required property
+  - Schema validation failed at $.discovery_budget[1]: Additional properties are not allowed ('why_hidden' was unexpected)
+  - Schema validation failed at $.discovery_budget[2]: 'why_instruction_must_not_reveal' is a required property
+  - Schema validation failed at $.discovery_budget[2]: Additional properties are not allowed ('why_hidden' was unexpected)
+  - Schema validation failed at $.hardness_axes[0]: 'id' is a required property
+  - Schema validation failed at $.hardness_axes[1]: 'id' is a required property
+  - Schema validation failed at $.hardness_axes[2]: 'id' is a required property
+  - Schema validation failed at $.hardness_axes[3]: 'id' is a required property
+  - Schema validation failed at $.hardness_axes[4]: 'id' is a required property
+  - Schema validation failed at $.rubric_axes[0]: 'id' is a required property
+  - Schema validation failed at $.rubric_axes[1]: 'id' is a required property
+  - Schema validation failed at $.rubric_axes[2]: 'id' is a required property
+  - Schema validation failed at $.rubric_axes[3]: 'id' is a required property
+  - Schema validation failed at $.rubric_axes[4]: 'id' is a required property
+  - Schema validation failed at $.rubric_axes[5]: 'id' is a required property
+  - Schema validation failed at $.smallest_plausible_patch: Additional properties are not allowed ('verdict' was unexpected)
+  - Schema validation failed at $.topology_enumeration[0]: 'id' is a required property
+  - Schema validation failed at $.topology_enumeration[0]: 'summary' is a required property
+  - Schema validation failed at $.topology_enumeration[0]: 'why_no_single_location_suffices' is a required property
+  - Schema validation failed at $.topology_enumeration[0]: Additional properties are not allowed ('insufficient_because', 'topology' were unexpected)
+  - Schema validation failed at $.topology_enumeration[1]: 'id' is a required property
+  - Schema validation failed at $.topology_enumeration[1]: 'summary' is a required property
+  - Schema validation failed at $.topology_enumeration[1]: 'why_no_single_location_suffices' is a required property
+  - Schema validation failed at $.topology_enumeration[1]: Additional properties are not allowed ('insufficient_because', 'topology' were unexpected)
+  - Schema validation failed at $.topology_enumeration[2]: 'id' is a required property
+  - Schema validation failed at $.topology_enumeration[2]: 'summary' is a required property
+  - Schema validation failed at $.topology_enumeration[2]: 'why_no_single_location_suffices' is a required property
+  - Schema validation failed at $.topology_enumeration[2]: Additional properties are not allowed ('insufficient_because', 'topology' were unexpected)
+
+## Attempt 2
+- Derived score: 144 FAILs, 0 WARNs
+- Evidence: cpp-ead-authority-reconcile-attempt-2-evidence.json
+- Evidence errors:
+  - Schema validation failed at $.anti_trivialization_checks[0]: 'name' is a required property
+  - Schema validation failed at $.anti_trivialization_checks[0].id: 1 is not of type 'string'
+  - Schema validation failed at $.anti_trivialization_checks[0].verdict: 'pass' is not one of ['PASS', 'WARN', 'FAIL']
+  - Schema validation failed at $.anti_trivialization_checks[10]: 'name' is a required property
+  - Schema validation failed at $.anti_trivialization_checks[10].id: 11 is not of type 'string'
+  - Schema validation failed at $.anti_trivialization_checks[10].verdict: 'pass' is not one of ['PASS', 'WARN', 'FAIL']
+  - Schema validation failed at $.anti_trivialization_checks[11]: 'name' is a required property
+  - Schema validation failed at $.anti_trivialization_checks[11].id: 12 is not of type 'string'
+  - Schema validation failed at $.anti_trivialization_checks[11].verdict: 'pass' is not one of ['PASS', 'WARN', 'FAIL']
+  - Schema validation failed at $.anti_trivialization_checks[12]: 'name' is a required property
+  - Schema validation failed at $.anti_trivialization_checks[12].id: 13 is not of type 'string'
+  - Schema validation failed at $.anti_trivialization_checks[12].verdict: 'pass' is not one of ['PASS', 'WARN', 'FAIL']
+  - Schema validation failed at $.anti_trivialization_checks[13]: 'name' is a required property
+  - Schema validation failed at $.anti_trivialization_checks[13].id: 14 is not of type 'string'
+  - Schema validation failed at $.anti_trivialization_checks[13].verdict: 'pass' is not one of ['PASS', 'WARN', 'FAIL']
+  - Schema validation failed at $.anti_trivialization_checks[14]: 'name' is a required property
+  - Schema validation failed at $.anti_trivialization_checks[14].id: 15 is not of type 'string'
+  - Schema validation failed at $.anti_trivialization_checks[14].verdict: 'pass' is not one of ['PASS', 'WARN', 'FAIL']
+  - Schema validation failed at $.anti_trivialization_checks[15]: 'name' is a required property
+  - Schema validation failed at $.anti_trivialization_checks[15].id: 16 is not of type 'string'
+  - Schema validation failed at $.anti_trivialization_checks[15].verdict: 'pass' is not one of ['PASS', 'WARN', 'FAIL']
+  - Schema validation failed at $.anti_trivialization_checks[16]: 'name' is a required property
+  - Schema validation failed at $.anti_trivialization_checks[16].id: 17 is not of type 'string'
+  - Schema validation failed at $.anti_trivialization_checks[16].verdict: 'pass' is not one of ['PASS', 'WARN', 'FAIL']
+  - Schema validation failed at $.anti_trivialization_checks[17]: 'name' is a required property
+  - Schema validation failed at $.anti_trivialization_checks[17].id: 18 is not of type 'string'
+  - Schema validation failed at $.anti_trivialization_checks[17].verdict: 'pass' is not one of ['PASS', 'WARN', 'FAIL']
+  - Schema validation failed at $.anti_trivialization_checks[18]: 'name' is a required property
+  - Schema validation failed at $.anti_trivialization_checks[18].id: 19 is not of type 'string'
+  - Schema validation failed at $.anti_trivialization_checks[18].verdict: 'pass' is not one of ['PASS', 'WARN', 'FAIL']
+  - Schema validation failed at $.anti_trivialization_checks[19]: 'name' is a required property
+  - Schema validation failed at $.anti_trivialization_checks[19].id: 20 is not of type 'string'
+  - Schema validation failed at $.anti_trivialization_checks[19].verdict: 'pass' is not one of ['PASS', 'WARN', 'FAIL']
+  - Schema validation failed at $.anti_trivialization_checks[1]: 'name' is a required property
+  - Schema validation failed at $.anti_trivialization_checks[1].id: 2 is not of type 'string'
+  - Schema validation failed at $.anti_trivialization_checks[1].verdict: 'pass' is not one of ['PASS', 'WARN', 'FAIL']
+  - Schema validation failed at $.anti_trivialization_checks[20]: 'name' is a required property
+  - Schema validation failed at $.anti_trivialization_checks[20].id: 21 is not of type 'string'
+  - Schema validation failed at $.anti_trivialization_checks[20].verdict: 'pass' is not one of ['PASS', 'WARN', 'FAIL']
+  - Schema validation failed at $.anti_trivialization_checks[2]: 'name' is a required property
+  - Schema validation failed at $.anti_trivialization_checks[2].id: 3 is not of type 'string'
+  - Schema validation failed at $.anti_trivialization_checks[2].verdict: 'pass' is not one of ['PASS', 'WARN', 'FAIL']
+  - Schema validation failed at $.anti_trivialization_checks[3]: 'name' is a required property
+  - Schema validation failed at $.anti_trivialization_checks[3].id: 4 is not of type 'string'
+  - Schema validation failed at $.anti_trivialization_checks[3].verdict: 'pass' is not one of ['PASS', 'WARN', 'FAIL']
+  - Schema validation failed at $.anti_trivialization_checks[4]: 'name' is a required property
+  - Schema validation failed at $.anti_trivialization_checks[4].id: 5 is not of type 'string'
+  - Schema validation failed at $.anti_trivialization_checks[4].verdict: 'pass' is not one of ['PASS', 'WARN', 'FAIL']
+  - Schema validation failed at $.anti_trivialization_checks[5]: 'name' is a required property
+  - Schema validation failed at $.anti_trivialization_checks[5].id: 6 is not of type 'string'
+  - Schema validation failed at $.anti_trivialization_checks[5].verdict: 'pass' is not one of ['PASS', 'WARN', 'FAIL']
+  - Schema validation failed at $.anti_trivialization_checks[6]: 'name' is a required property
+  - Schema validation failed at $.anti_trivialization_checks[6].id: 7 is not of type 'string'
+  - Schema validation failed at $.anti_trivialization_checks[6].verdict: 'pass' is not one of ['PASS', 'WARN', 'FAIL']
+  - Schema validation failed at $.anti_trivialization_checks[7]: 'name' is a required property
+  - Schema validation failed at $.anti_trivialization_checks[7].id: 8 is not of type 'string'
+  - Schema validation failed at $.anti_trivialization_checks[7].verdict: 'pass' is not one of ['PASS', 'WARN', 'FAIL']
+  - Schema validation failed at $.anti_trivialization_checks[8]: 'name' is a required property
+  - Schema validation failed at $.anti_trivialization_checks[8].id: 9 is not of type 'string'
+  - Schema validation failed at $.anti_trivialization_checks[8].verdict: 'pass' is not one of ['PASS', 'WARN', 'FAIL']
+  - Schema validation failed at $.anti_trivialization_checks[9]: 'name' is a required property
+  - Schema validation failed at $.anti_trivialization_checks[9].id: 10 is not of type 'string'
+  - Schema validation failed at $.anti_trivialization_checks[9].verdict: 'pass' is not one of ['PASS', 'WARN', 'FAIL']
+  - Schema validation failed at $.attack_path: Additional properties are not allowed ('verdict' was unexpected)
+  - Schema validation failed at $.collapse_audit: 'reasoning' is a required property
+  - Schema validation failed at $.collapse_audit.verdict: 'pass' is not one of ['PASS', 'WARN', 'FAIL']
+  - Schema validation failed at $.construction_manifest.flipping_point_contract: 'no_single_location_flips_majority' is a required property
+  - Schema validation failed at $.construction_manifest.symbol_table[0]: 'purpose' is a required property
+  - Schema validation failed at $.construction_manifest.symbol_table[0]: 'signature' is a required property
+  - Schema validation failed at $.construction_manifest.symbol_table[1]: 'purpose' is a required property
+  - Schema validation failed at $.construction_manifest.symbol_table[1]: 'signature' is a required property
+  - Schema validation failed at $.construction_manifest.symbol_table[2]: 'purpose' is a required property
+  - Schema validation failed at $.construction_manifest.symbol_table[2]: 'signature' is a required property
+  - Schema validation failed at $.construction_manifest.symbol_table[3]: 'purpose' is a required property
+  - Schema validation failed at $.construction_manifest.symbol_table[3]: 'signature' is a required property
+  - Schema validation failed at $.construction_manifest.symbol_table[4]: 'purpose' is a required property
+  - Schema validation failed at $.construction_manifest.symbol_table[4]: 'signature' is a required property
+  - Schema validation failed at $.construction_manifest.symbol_table[5]: 'purpose' is a required property
+  - Schema validation failed at $.construction_manifest.symbol_table[5]: 'signature' is a required property
+  - Schema validation failed at $.construction_manifest.symbol_table[6]: 'purpose' is a required property
+  - Schema validation failed at $.construction_manifest.symbol_table[6]: 'signature' is a required property
+  - Schema validation failed at $.construction_manifest.symbol_table[7]: 'purpose' is a required property
+  - Schema validation failed at $.construction_manifest.symbol_table[7]: 'signature' is a required property
+  - Schema validation failed at $.construction_manifest.symbol_table[8]: 'purpose' is a required property
+  - Schema validation failed at $.construction_manifest.symbol_table[8]: 'signature' is a required property
+  - Schema validation failed at $.discovery_budget[0]: 'why_instruction_must_not_reveal' is a required property
+  - Schema validation failed at $.discovery_budget[0]: Additional properties are not allowed ('why_hidden' was unexpected)
+  - Schema validation failed at $.discovery_budget[1]: 'why_instruction_must_not_reveal' is a required property
+  - Schema validation failed at $.discovery_budget[1]: Additional properties are not allowed ('why_hidden' was unexpected)
+  - Schema validation failed at $.discovery_budget[2]: 'why_instruction_must_not_reveal' is a required property
+  - Schema validation failed at $.discovery_budget[2]: Additional properties are not allowed ('why_hidden' was unexpected)
+  - Schema validation failed at $.hardness_axes[0]: 'id' is a required property
+  - Schema validation failed at $.hardness_axes[0].verdict: 'pass' is not one of ['PASS', 'WARN', 'FAIL']
+  - Schema validation failed at $.hardness_axes[1]: 'id' is a required property
+  - Schema validation failed at $.hardness_axes[1].verdict: 'pass' is not one of ['PASS', 'WARN', 'FAIL']
+  - Schema validation failed at $.hardness_axes[2]: 'id' is a required property
+  - Schema validation failed at $.hardness_axes[2].verdict: 'pass' is not one of ['PASS', 'WARN', 'FAIL']
+  - Schema validation failed at $.hardness_axes[3]: 'id' is a required property
+  - Schema validation failed at $.hardness_axes[3].verdict: 'pass' is not one of ['PASS', 'WARN', 'FAIL']
+  - Schema validation failed at $.hardness_axes[4]: 'id' is a required property
+  - Schema validation failed at $.hardness_axes[4].verdict: 'pass' is not one of ['PASS', 'WARN', 'FAIL']
+  - Schema validation failed at $.instruction_completeness_test.verdict: 'pass' is not one of ['PASS', 'WARN', 'FAIL']
+  - Schema validation failed at $.naming_pass.concentration_math: Additional properties are not allowed ('cap', 'max_ratio', 'status' were unexpected)
+  - Schema validation failed at $.naming_pass.concentration_math.per_location[0]: 'location_id' is a required property
+  - Schema validation failed at $.naming_pass.concentration_math.per_location[0]: 'test_count' is a required property
+  - Schema validation failed at $.naming_pass.concentration_math.per_location[0]: Additional properties are not allowed ('id', 'count', 'path' were unexpected)
+  - Schema validation failed at $.naming_pass.concentration_math.per_location[1]: 'location_id' is a required property
+  - Schema validation failed at $.naming_pass.concentration_math.per_location[1]: 'test_count' is a required property
+  - Schema validation failed at $.naming_pass.concentration_math.per_location[1]: Additional properties are not allowed ('id', 'count', 'path' were unexpected)
+  - Schema validation failed at $.naming_pass.concentration_math.per_location[2]: 'location_id' is a required property
+  - Schema validation failed at $.naming_pass.concentration_math.per_location[2]: 'test_count' is a required property
+  - Schema validation failed at $.naming_pass.concentration_math.per_location[2]: Additional properties are not allowed ('id', 'count', 'path' were unexpected)
+  - Schema validation failed at $.naming_pass.concentration_math.per_location[3]: 'location_id' is a required property
+  - Schema validation failed at $.naming_pass.concentration_math.per_location[3]: 'test_count' is a required property
+  - Schema validation failed at $.naming_pass.concentration_math.per_location[3]: Additional properties are not allowed ('id', 'count', 'path' were unexpected)
+  - Schema validation failed at $.naming_pass.concentration_math.per_location[4]: 'location_id' is a required property
+  - Schema validation failed at $.naming_pass.concentration_math.per_location[4]: 'test_count' is a required property
+  - Schema validation failed at $.naming_pass.concentration_math.per_location[4]: Additional properties are not allowed ('id', 'count', 'path' were unexpected)
+  - Schema validation failed at $.rubric_axes[0]: 'id' is a required property
+  - Schema validation failed at $.rubric_axes[0].verdict: 'pass' is not one of ['PASS', 'WARN', 'FAIL']
+  - Schema validation failed at $.rubric_axes[1]: 'id' is a required property
+  - Schema validation failed at $.rubric_axes[1].verdict: 'pass' is not one of ['PASS', 'WARN', 'FAIL']
+  - Schema validation failed at $.rubric_axes[2]: 'id' is a required property
+  - Schema validation failed at $.rubric_axes[2].verdict: 'pass' is not one of ['PASS', 'WARN', 'FAIL']
+  - Schema validation failed at $.rubric_axes[3]: 'id' is a required property
+  - Schema validation failed at $.rubric_axes[3].verdict: 'pass' is not one of ['PASS', 'WARN', 'FAIL']
+  - Schema validation failed at $.rubric_axes[4]: 'id' is a required property
+  - Schema validation failed at $.rubric_axes[4].verdict: 'pass' is not one of ['PASS', 'WARN', 'FAIL']
+  - Schema validation failed at $.rubric_axes[5]: 'id' is a required property
+  - Schema validation failed at $.rubric_axes[5].verdict: 'pass' is not one of ['PASS', 'WARN', 'FAIL']
+  - Schema validation failed at $.smallest_plausible_patch: 'reasoning' is a required property
+  - Schema validation failed at $.smallest_plausible_patch: Additional properties are not allowed ('verdict' was unexpected)
+  - Schema validation failed at $.topology_enumeration[0]: 'id' is a required property
+  - Schema validation failed at $.topology_enumeration[0]: 'summary' is a required property
+  - Schema validation failed at $.topology_enumeration[0]: 'why_no_single_location_suffices' is a required property
+  - Schema validation failed at $.topology_enumeration[0]: Additional properties are not allowed ('insufficient_because', 'topology' were unexpected)
+  - Schema validation failed at $.topology_enumeration[1]: 'id' is a required property
+  - Schema validation failed at $.topology_enumeration[1]: 'summary' is a required property
+  - Schema validation failed at $.topology_enumeration[1]: 'why_no_single_location_suffices' is a required property
+  - Schema validation failed at $.topology_enumeration[1]: Additional properties are not allowed ('insufficient_because', 'topology' were unexpected)
+  - Schema validation failed at $.topology_enumeration[2]: 'id' is a required property
+  - Schema validation failed at $.topology_enumeration[2]: 'summary' is a required property
+  - Schema validation failed at $.topology_enumeration[2]: 'why_no_single_location_suffices' is a required property
+  - Schema validation failed at $.topology_enumeration[2]: Additional properties are not allowed ('insufficient_because', 'topology' were unexpected)
+- Blocking evidence failures:
+  - Schema validation failed at $.anti_trivialization_checks[0]: 'name' is a required property
+  - Schema validation failed at $.anti_trivialization_checks[0].id: 1 is not of type 'string'
+  - Schema validation failed at $.anti_trivialization_checks[0].verdict: 'pass' is not one of ['PASS', 'WARN', 'FAIL']
+  - Schema validation failed at $.anti_trivialization_checks[10]: 'name' is a required property
+  - Schema validation failed at $.anti_trivialization_checks[10].id: 11 is not of type 'string'
+  - Schema validation failed at $.anti_trivialization_checks[10].verdict: 'pass' is not one of ['PASS', 'WARN', 'FAIL']
+  - Schema validation failed at $.anti_trivialization_checks[11]: 'name' is a required property
+  - Schema validation failed at $.anti_trivialization_checks[11].id: 12 is not of type 'string'
+  - Schema validation failed at $.anti_trivialization_checks[11].verdict: 'pass' is not one of ['PASS', 'WARN', 'FAIL']
+  - Schema validation failed at $.anti_trivialization_checks[12]: 'name' is a required property
+  - Schema validation failed at $.anti_trivialization_checks[12].id: 13 is not of type 'string'
+  - Schema validation failed at $.anti_trivialization_checks[12].verdict: 'pass' is not one of ['PASS', 'WARN', 'FAIL']
+  - Schema validation failed at $.anti_trivialization_checks[13]: 'name' is a required property
+  - Schema validation failed at $.anti_trivialization_checks[13].id: 14 is not of type 'string'
+  - Schema validation failed at $.anti_trivialization_checks[13].verdict: 'pass' is not one of ['PASS', 'WARN', 'FAIL']
+  - Schema validation failed at $.anti_trivialization_checks[14]: 'name' is a required property
+  - Schema validation failed at $.anti_trivialization_checks[14].id: 15 is not of type 'string'
+  - Schema validation failed at $.anti_trivialization_checks[14].verdict: 'pass' is not one of ['PASS', 'WARN', 'FAIL']
+  - Schema validation failed at $.anti_trivialization_checks[15]: 'name' is a required property
+  - Schema validation failed at $.anti_trivialization_checks[15].id: 16 is not of type 'string'
+  - Schema validation failed at $.anti_trivialization_checks[15].verdict: 'pass' is not one of ['PASS', 'WARN', 'FAIL']
+  - Schema validation failed at $.anti_trivialization_checks[16]: 'name' is a required property
+  - Schema validation failed at $.anti_trivialization_checks[16].id: 17 is not of type 'string'
+  - Schema validation failed at $.anti_trivialization_checks[16].verdict: 'pass' is not one of ['PASS', 'WARN', 'FAIL']
+  - Schema validation failed at $.anti_trivialization_checks[17]: 'name' is a required property
+  - Schema validation failed at $.anti_trivialization_checks[17].id: 18 is not of type 'string'
+  - Schema validation failed at $.anti_trivialization_checks[17].verdict: 'pass' is not one of ['PASS', 'WARN', 'FAIL']
+  - Schema validation failed at $.anti_trivialization_checks[18]: 'name' is a required property
+  - Schema validation failed at $.anti_trivialization_checks[18].id: 19 is not of type 'string'
+  - Schema validation failed at $.anti_trivialization_checks[18].verdict: 'pass' is not one of ['PASS', 'WARN', 'FAIL']
+  - Schema validation failed at $.anti_trivialization_checks[19]: 'name' is a required property
+  - Schema validation failed at $.anti_trivialization_checks[19].id: 20 is not of type 'string'
+  - Schema validation failed at $.anti_trivialization_checks[19].verdict: 'pass' is not one of ['PASS', 'WARN', 'FAIL']
+  - Schema validation failed at $.anti_trivialization_checks[1]: 'name' is a required property
+  - Schema validation failed at $.anti_trivialization_checks[1].id: 2 is not of type 'string'
+  - Schema validation failed at $.anti_trivialization_checks[1].verdict: 'pass' is not one of ['PASS', 'WARN', 'FAIL']
+  - Schema validation failed at $.anti_trivialization_checks[20]: 'name' is a required property
+  - Schema validation failed at $.anti_trivialization_checks[20].id: 21 is not of type 'string'
+  - Schema validation failed at $.anti_trivialization_checks[20].verdict: 'pass' is not one of ['PASS', 'WARN', 'FAIL']
+  - Schema validation failed at $.anti_trivialization_checks[2]: 'name' is a required property
+  - Schema validation failed at $.anti_trivialization_checks[2].id: 3 is not of type 'string'
+  - Schema validation failed at $.anti_trivialization_checks[2].verdict: 'pass' is not one of ['PASS', 'WARN', 'FAIL']
+  - Schema validation failed at $.anti_trivialization_checks[3]: 'name' is a required property
+  - Schema validation failed at $.anti_trivialization_checks[3].id: 4 is not of type 'string'
+  - Schema validation failed at $.anti_trivialization_checks[3].verdict: 'pass' is not one of ['PASS', 'WARN', 'FAIL']
+  - Schema validation failed at $.anti_trivialization_checks[4]: 'name' is a required property
+  - Schema validation failed at $.anti_trivialization_checks[4].id: 5 is not of type 'string'
+  - Schema validation failed at $.anti_trivialization_checks[4].verdict: 'pass' is not one of ['PASS', 'WARN', 'FAIL']
+  - Schema validation failed at $.anti_trivialization_checks[5]: 'name' is a required property
+  - Schema validation failed at $.anti_trivialization_checks[5].id: 6 is not of type 'string'
+  - Schema validation failed at $.anti_trivialization_checks[5].verdict: 'pass' is not one of ['PASS', 'WARN', 'FAIL']
+  - Schema validation failed at $.anti_trivialization_checks[6]: 'name' is a required property
+  - Schema validation failed at $.anti_trivialization_checks[6].id: 7 is not of type 'string'
+  - Schema validation failed at $.anti_trivialization_checks[6].verdict: 'pass' is not one of ['PASS', 'WARN', 'FAIL']
+  - Schema validation failed at $.anti_trivialization_checks[7]: 'name' is a required property
+  - Schema validation failed at $.anti_trivialization_checks[7].id: 8 is not of type 'string'
+  - Schema validation failed at $.anti_trivialization_checks[7].verdict: 'pass' is not one of ['PASS', 'WARN', 'FAIL']
+  - Schema validation failed at $.anti_trivialization_checks[8]: 'name' is a required property
+  - Schema validation failed at $.anti_trivialization_checks[8].id: 9 is not of type 'string'
+  - Schema validation failed at $.anti_trivialization_checks[8].verdict: 'pass' is not one of ['PASS', 'WARN', 'FAIL']
+  - Schema validation failed at $.anti_trivialization_checks[9]: 'name' is a required property
+  - Schema validation failed at $.anti_trivialization_checks[9].id: 10 is not of type 'string'
+  - Schema validation failed at $.anti_trivialization_checks[9].verdict: 'pass' is not one of ['PASS', 'WARN', 'FAIL']
+  - Schema validation failed at $.attack_path: Additional properties are not allowed ('verdict' was unexpected)
+  - Schema validation failed at $.collapse_audit: 'reasoning' is a required property
+  - Schema validation failed at $.collapse_audit.verdict: 'pass' is not one of ['PASS', 'WARN', 'FAIL']
+  - Schema validation failed at $.construction_manifest.flipping_point_contract: 'no_single_location_flips_majority' is a required property
+  - Schema validation failed at $.construction_manifest.symbol_table[0]: 'purpose' is a required property
+  - Schema validation failed at $.construction_manifest.symbol_table[0]: 'signature' is a required property
+  - Schema validation failed at $.construction_manifest.symbol_table[1]: 'purpose' is a required property
+  - Schema validation failed at $.construction_manifest.symbol_table[1]: 'signature' is a required property
+  - Schema validation failed at $.construction_manifest.symbol_table[2]: 'purpose' is a required property
+  - Schema validation failed at $.construction_manifest.symbol_table[2]: 'signature' is a required property
+  - Schema validation failed at $.construction_manifest.symbol_table[3]: 'purpose' is a required property
+  - Schema validation failed at $.construction_manifest.symbol_table[3]: 'signature' is a required property
+  - Schema validation failed at $.construction_manifest.symbol_table[4]: 'purpose' is a required property
+  - Schema validation failed at $.construction_manifest.symbol_table[4]: 'signature' is a required property
+  - Schema validation failed at $.construction_manifest.symbol_table[5]: 'purpose' is a required property
+  - Schema validation failed at $.construction_manifest.symbol_table[5]: 'signature' is a required property
+  - Schema validation failed at $.construction_manifest.symbol_table[6]: 'purpose' is a required property
+  - Schema validation failed at $.construction_manifest.symbol_table[6]: 'signature' is a required property
+  - Schema validation failed at $.construction_manifest.symbol_table[7]: 'purpose' is a required property
+  - Schema validation failed at $.construction_manifest.symbol_table[7]: 'signature' is a required property
+  - Schema validation failed at $.construction_manifest.symbol_table[8]: 'purpose' is a required property
+  - Schema validation failed at $.construction_manifest.symbol_table[8]: 'signature' is a required property
+  - Schema validation failed at $.discovery_budget[0]: 'why_instruction_must_not_reveal' is a required property
+  - Schema validation failed at $.discovery_budget[0]: Additional properties are not allowed ('why_hidden' was unexpected)
+  - Schema validation failed at $.discovery_budget[1]: 'why_instruction_must_not_reveal' is a required property
+  - Schema validation failed at $.discovery_budget[1]: Additional properties are not allowed ('why_hidden' was unexpected)
+  - Schema validation failed at $.discovery_budget[2]: 'why_instruction_must_not_reveal' is a required property
+  - Schema validation failed at $.discovery_budget[2]: Additional properties are not allowed ('why_hidden' was unexpected)
+  - Schema validation failed at $.hardness_axes[0]: 'id' is a required property
+  - Schema validation failed at $.hardness_axes[0].verdict: 'pass' is not one of ['PASS', 'WARN', 'FAIL']
+  - Schema validation failed at $.hardness_axes[1]: 'id' is a required property
+  - Schema validation failed at $.hardness_axes[1].verdict: 'pass' is not one of ['PASS', 'WARN', 'FAIL']
+  - Schema validation failed at $.hardness_axes[2]: 'id' is a required property
+  - Schema validation failed at $.hardness_axes[2].verdict: 'pass' is not one of ['PASS', 'WARN', 'FAIL']
+  - Schema validation failed at $.hardness_axes[3]: 'id' is a required property
+  - Schema validation failed at $.hardness_axes[3].verdict: 'pass' is not one of ['PASS', 'WARN', 'FAIL']
+  - Schema validation failed at $.hardness_axes[4]: 'id' is a required property
+  - Schema validation failed at $.hardness_axes[4].verdict: 'pass' is not one of ['PASS', 'WARN', 'FAIL']
+  - Schema validation failed at $.instruction_completeness_test.verdict: 'pass' is not one of ['PASS', 'WARN', 'FAIL']
+  - Schema validation failed at $.naming_pass.concentration_math: Additional properties are not allowed ('cap', 'max_ratio', 'status' were unexpected)
+  - Schema validation failed at $.naming_pass.concentration_math.per_location[0]: 'location_id' is a required property
+  - Schema validation failed at $.naming_pass.concentration_math.per_location[0]: 'test_count' is a required property
+  - Schema validation failed at $.naming_pass.concentration_math.per_location[0]: Additional properties are not allowed ('id', 'count', 'path' were unexpected)
+  - Schema validation failed at $.naming_pass.concentration_math.per_location[1]: 'location_id' is a required property
+  - Schema validation failed at $.naming_pass.concentration_math.per_location[1]: 'test_count' is a required property
+  - Schema validation failed at $.naming_pass.concentration_math.per_location[1]: Additional properties are not allowed ('id', 'count', 'path' were unexpected)
+  - Schema validation failed at $.naming_pass.concentration_math.per_location[2]: 'location_id' is a required property
+  - Schema validation failed at $.naming_pass.concentration_math.per_location[2]: 'test_count' is a required property
+  - Schema validation failed at $.naming_pass.concentration_math.per_location[2]: Additional properties are not allowed ('id', 'count', 'path' were unexpected)
+  - Schema validation failed at $.naming_pass.concentration_math.per_location[3]: 'location_id' is a required property
+  - Schema validation failed at $.naming_pass.concentration_math.per_location[3]: 'test_count' is a required property
+  - Schema validation failed at $.naming_pass.concentration_math.per_location[3]: Additional properties are not allowed ('id', 'count', 'path' were unexpected)
+  - Schema validation failed at $.naming_pass.concentration_math.per_location[4]: 'location_id' is a required property
+  - Schema validation failed at $.naming_pass.concentration_math.per_location[4]: 'test_count' is a required property
+  - Schema validation failed at $.naming_pass.concentration_math.per_location[4]: Additional properties are not allowed ('id', 'count', 'path' were unexpected)
+  - Schema validation failed at $.rubric_axes[0]: 'id' is a required property
+  - Schema validation failed at $.rubric_axes[0].verdict: 'pass' is not one of ['PASS', 'WARN', 'FAIL']
+  - Schema validation failed at $.rubric_axes[1]: 'id' is a required property
+  - Schema validation failed at $.rubric_axes[1].verdict: 'pass' is not one of ['PASS', 'WARN', 'FAIL']
+  - Schema validation failed at $.rubric_axes[2]: 'id' is a required property
+  - Schema validation failed at $.rubric_axes[2].verdict: 'pass' is not one of ['PASS', 'WARN', 'FAIL']
+  - Schema validation failed at $.rubric_axes[3]: 'id' is a required property
+  - Schema validation failed at $.rubric_axes[3].verdict: 'pass' is not one of ['PASS', 'WARN', 'FAIL']
+  - Schema validation failed at $.rubric_axes[4]: 'id' is a required property
+  - Schema validation failed at $.rubric_axes[4].verdict: 'pass' is not one of ['PASS', 'WARN', 'FAIL']
+  - Schema validation failed at $.rubric_axes[5]: 'id' is a required property
+  - Schema validation failed at $.rubric_axes[5].verdict: 'pass' is not one of ['PASS', 'WARN', 'FAIL']
+  - Schema validation failed at $.smallest_plausible_patch: 'reasoning' is a required property
+  - Schema validation failed at $.smallest_plausible_patch: Additional properties are not allowed ('verdict' was unexpected)
+  - Schema validation failed at $.topology_enumeration[0]: 'id' is a required property
+  - Schema validation failed at $.topology_enumeration[0]: 'summary' is a required property
+  - Schema validation failed at $.topology_enumeration[0]: 'why_no_single_location_suffices' is a required property
+  - Schema validation failed at $.topology_enumeration[0]: Additional properties are not allowed ('insufficient_because', 'topology' were unexpected)
+  - Schema validation failed at $.topology_enumeration[1]: 'id' is a required property
+  - Schema validation failed at $.topology_enumeration[1]: 'summary' is a required property
+  - Schema validation failed at $.topology_enumeration[1]: 'why_no_single_location_suffices' is a required property
+  - Schema validation failed at $.topology_enumeration[1]: Additional properties are not allowed ('insufficient_because', 'topology' were unexpected)
+  - Schema validation failed at $.topology_enumeration[2]: 'id' is a required property
+  - Schema validation failed at $.topology_enumeration[2]: 'summary' is a required property
+  - Schema validation failed at $.topology_enumeration[2]: 'why_no_single_location_suffices' is a required property
+  - Schema validation failed at $.topology_enumeration[2]: Additional properties are not allowed ('insufficient_because', 'topology' were unexpected)
+

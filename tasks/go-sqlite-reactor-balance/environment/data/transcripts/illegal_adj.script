@@ -1,0 +1,3 @@
+# Illegal adjacent rod jump on edge-neighbors (0,1) and (1,1)
+init SCN-Alpha
+set 0 1 3

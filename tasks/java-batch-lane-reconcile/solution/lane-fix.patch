@@ -1,0 +1,199 @@
+--- a/api/src/main/java/k7m/cfg_p9.java	2026-06-04 09:38:23.652392961 +0530
++++ b/api/src/main/java/k7m/cfg_p9.java	2026-06-04 10:22:00.059921023 +0530
+@@ -21,7 +21,8 @@
+   @Primary
+   public DataSource cfg_p9(DataSourceProperties props) {
+     HikariDataSource ds = props.initializeDataSourceBuilder().type(HikariDataSource.class).build();
+-    ds.setConnectionInitSql("SET TRANSACTION ISOLATION LEVEL READ COMMITTED");
++    ds.setConnectionInitSql("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ");
++    ds.setConnectionTestQuery("SELECT 1");
+     return ds;
+   }
+ }
+--- a/api/src/main/java/r8p/op_n2.java	2026-06-04 09:29:38.474759441 +0530
++++ b/api/src/main/java/r8p/op_n2.java	2026-06-04 10:26:03.957301328 +0530
+@@ -43,48 +43,83 @@
+ 
+   @Transactional
+   public IngestResult op_n2(String label, BatchRequest chunk) {
+-    PartitionDim part =
+-        partitions.findById(label).orElseThrow(() -> new IllegalArgumentException("unknown label"));
+-    if (part.getActiveSlots() >= part.getCapSlots()) {
+-      recordAttempt(label, chunk, 0);
+-      return new IngestResult(0, part.getActiveSlots(), part.getRollupQty());
+-    }
+-    for (LinePayload row : chunk.getLines()) {
+-      if (row.getQty() <= 0 || env.getProperty("lane.fail-sku", "").equals(row.getSku())) {
+-        throw new IllegalArgumentException("abort");
++    synchronized ((label + ":" + chunk.getExternalBizId()).intern()) {
++      PartitionDim part =
++          partitions
++              .findById(label)
++              .orElseThrow(() -> new IllegalArgumentException("unknown label"));
++      if (part.getActiveSlots() >= part.getCapSlots()) {
++        recordAttempt(label, chunk, 0);
++        return new IngestResult(0, part.getActiveSlots(), part.getRollupQty());
+       }
++      for (LinePayload row : chunk.getLines()) {
++        if (row.getQty() <= 0 || env.getProperty("lane.fail-sku", "").equals(row.getSku())) {
++          throw new IllegalArgumentException("abort");
++        }
++      }
++      HeaderSlice hdr =
++          headers
++              .findByPartitionLabelAndExternalBizId(label, chunk.getExternalBizId())
++              .orElseGet(
++                  () -> {
++                    HeaderSlice h = new HeaderSlice();
++                    h.setPartitionLabel(label);
++                    h.setExternalBizId(chunk.getExternalBizId());
++                    return headers.save(h);
++                  });
++      var prior =
++          em.createQuery(
++                  "select l from LineSlice l where l.header.id = :hid order by l.id",
++                  LineSlice.class)
++              .setParameter("hid", hdr.getId())
++              .getResultList();
++      if (!prior.isEmpty()) {
++        boolean same = prior.size() == chunk.getLines().size();
++        if (same) {
++          for (int i = 0; i < prior.size(); i++) {
++            LinePayload want = chunk.getLines().get(i);
++            LineSlice got = prior.get(i);
++            if (!got.getSku().equals(want.getSku()) || got.getQty() != want.getQty()) {
++              same = false;
++              break;
++            }
++          }
++        }
++        if (same) {
++          recordAttempt(label, chunk, 0);
++          return new IngestResult(0, part.getActiveSlots(), part.getRollupQty());
++        }
++        em.createQuery("delete from LineSlice l where l.header.id = :hid")
++            .setParameter("hid", hdr.getId())
++            .executeUpdate();
++        em.createNativeQuery(
++                "DELETE FROM lane_attempt WHERE partition_label = ?1 AND external_biz_id = ?2")
++            .setParameter(1, label)
++            .setParameter(2, chunk.getExternalBizId())
++            .executeUpdate();
++        part.setActiveSlots(Math.max(0, part.getActiveSlots() - prior.size()));
++        partitions.save(part);
++      }
++      int accepted = 0;
++      for (LinePayload row : chunk.getLines()) {
++        LineSlice ln = new LineSlice();
++        ln.setHeader(hdr);
++        ln.setSku(row.getSku());
++        ln.setQty(row.getQty());
++        lines.save(ln);
++        accepted++;
++      }
++      part.setActiveSlots(part.getActiveSlots() + accepted);
++      partitions.save(part);
++      em.flush();
++      recordAttempt(label, chunk, accepted);
++      events.publishEvent(new LaneCommittedEvent(label, chunk.getExternalBizId(), accepted));
++      return new IngestResult(accepted, part.getActiveSlots(), part.getRollupQty());
+     }
+-    HeaderSlice hdr =
+-        headers
+-            .findByPartitionLabelAndExternalBizId(label, chunk.getExternalBizId())
+-            .orElseGet(
+-                () -> {
+-                  HeaderSlice h = new HeaderSlice();
+-                  h.setPartitionLabel(label);
+-                  h.setExternalBizId(chunk.getExternalBizId());
+-                  return headers.save(h);
+-                });
+-    em.flush();
+-    int accepted = 0;
+-    for (LinePayload row : chunk.getLines()) {
+-      LineSlice ln = new LineSlice();
+-      ln.setHeader(hdr);
+-      ln.setSku(row.getSku());
+-      ln.setQty(row.getQty());
+-      lines.save(ln);
+-      accepted++;
+-    }
+-    part.setActiveSlots(part.getActiveSlots() + accepted);
+-    partitions.save(part);
+-    em.flush();
+-    recordAttempt(label, chunk, accepted);
+-    events.publishEvent(new LaneCommittedEvent(label, chunk.getExternalBizId(), accepted));
+-    return new IngestResult(accepted, part.getActiveSlots(), part.getRollupQty());
+   }
+ 
+   public SnapshotView snapshot(String label) {
+-    long cnt =
+-        lines.countByHeaderPartitionLabel(label);
++    long cnt = lines.countByHeaderPartitionLabel(label);
+     PartitionDim part = partitions.findById(label).orElseThrow();
+     return new SnapshotView(label, cnt, part.getRollupQty(), part.getActiveSlots());
+   }
+--- a/api/src/main/java/r8p/phase_r8.java	2026-06-04 09:48:08.110135541 +0530
++++ b/api/src/main/java/r8p/phase_r8.java	2026-06-04 10:22:00.419748296 +0530
+@@ -18,13 +18,9 @@
+     this.lines = lines;
+   }
+ 
+-  @TransactionalEventListener(phase = TransactionPhase.BEFORE_COMMIT)
++  @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
++  @Transactional(propagation = Propagation.REQUIRES_NEW)
+   public void onCommitted(LaneCommittedEvent evt) {
+-    if (evt.getAccepted() <= 0) {
+-      return;
+-    }
+-    writer.op_n2(
+-        evt.getLabel(),
+-        new r8p.dto.BatchRequest(evt.getBizId(), java.util.List.of(new r8p.dto.LinePayload("retry", 1))));
++    return;
+   }
+ }
+--- a/api/src/main/java/r8p/entity/LineSlice.java	2026-06-04 09:29:38.474759441 +0530
++++ b/api/src/main/java/r8p/entity/LineSlice.java	2026-06-04 10:22:01.019460415 +0530
+@@ -9,6 +9,7 @@
+ import jakarta.persistence.JoinColumn;
+ import jakarta.persistence.ManyToOne;
+ import jakarta.persistence.Table;
++import jakarta.persistence.Version;
+ 
+ @Entity
+ @Table(name = "line_slice")
+@@ -24,6 +25,10 @@
+   private String sku;
+   private int qty;
+ 
++  @Version
++  @Column(name = "stamp_version")
++  private Long stampVersion;
++
+   public Long getId() { return id; }
+   public HeaderSlice getHeader() { return header; }
+   public void setHeader(HeaderSlice h) { this.header = h; }
+--- a/db/functions/step_w1.sql	2026-06-04 09:29:41.398640382 +0530
++++ b/db/functions/step_w1.sql	2026-06-04 10:22:05.597083354 +0530
+@@ -9,18 +9,18 @@
+   IF TG_OP = 'DELETE' THEN
+     SELECT h.partition_label INTO hdr FROM header_slice h WHERE h.id = OLD.header_id;
+     delta := -OLD.qty;
+-    PERFORM 1 FROM line_slice WHERE header_id = OLD.header_id FOR UPDATE;
+     PERFORM 1 FROM header_slice WHERE id = OLD.header_id FOR UPDATE;
++    PERFORM 1 FROM line_slice WHERE header_id = OLD.header_id FOR UPDATE;
+   ELSIF TG_OP = 'UPDATE' THEN
+     SELECT h.partition_label INTO hdr FROM header_slice h WHERE h.id = NEW.header_id;
+     delta := NEW.qty - OLD.qty;
+-    PERFORM 1 FROM line_slice WHERE id = NEW.id FOR UPDATE;
+     PERFORM 1 FROM header_slice WHERE id = NEW.header_id FOR UPDATE;
++    PERFORM 1 FROM line_slice WHERE id = NEW.id FOR UPDATE;
+   ELSE
+     SELECT h.partition_label INTO hdr FROM header_slice h WHERE h.id = NEW.header_id;
+     delta := NEW.qty;
+-    PERFORM 1 FROM line_slice WHERE id = NEW.id FOR UPDATE;
+     PERFORM 1 FROM header_slice WHERE id = NEW.header_id FOR UPDATE;
++    PERFORM 1 FROM line_slice WHERE id = NEW.id FOR UPDATE;
+   END IF;
+   UPDATE partition_dim SET rollup_qty = rollup_qty + delta WHERE label = hdr;
+   RETURN COALESCE(NEW, OLD);

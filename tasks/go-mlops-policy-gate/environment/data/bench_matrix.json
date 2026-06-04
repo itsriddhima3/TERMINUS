@@ -1,0 +1,132 @@
+{
+  "schema_version": 1,
+  "cases": {
+    "cls_clean_a1": {
+      "required_metrics": [
+        "ece",
+        "macro_f1",
+        "population_shift"
+      ]
+    },
+    "cls_drift_b4": {
+      "required_metrics": [
+        "ece",
+        "macro_f1",
+        "population_shift"
+      ]
+    },
+    "reg_exp_c2": {
+      "required_metrics": [
+        "baseline_rmse",
+        "mae_ratio",
+        "rmse"
+      ]
+    },
+    "emb_lane_e3": {
+      "required_metrics": [
+        "drift_score",
+        "ndcg_at_10",
+        "recall_at_10"
+      ]
+    },
+    "emb_prod_f5": {
+      "required_metrics": [
+        "ndcg_at_10",
+        "recall_at_10"
+      ]
+    },
+    "mix_g7": {
+      "required_metrics": [
+        "baseline_rmse",
+        "ece",
+        "macro_f1",
+        "population_shift",
+        "rmse"
+      ]
+    },
+    "hidden_h1": {
+      "required_metrics": [
+        "ece",
+        "macro_f1",
+        "population_shift"
+      ]
+    },
+    "hidden_h2": {
+      "required_metrics": [
+        "baseline_rmse",
+        "mae_ratio",
+        "rmse"
+      ]
+    },
+    "hidden_h3": {
+      "required_metrics": [
+        "baseline_rmse",
+        "mae_ratio",
+        "rmse"
+      ]
+    },
+    "reg_core_d1": {
+      "required_metrics": [
+        "baseline_rmse",
+        "mae_ratio",
+        "rmse"
+      ]
+    },
+    "reg_mae_warn_j6": {
+      "required_metrics": [
+        "baseline_rmse",
+        "mae_ratio",
+        "rmse"
+      ]
+    },
+    "reg_dual_slot_m8": {
+      "required_metrics": [
+        "baseline_rmse",
+        "mae_ratio",
+        "rmse"
+      ]
+    },
+    "emb_ndcg_only_p4": {
+      "required_metrics": [
+        "drift_score",
+        "ndcg_at_10",
+        "recall_at_10"
+      ]
+    },
+    "emb_stg_warn_q1": {
+      "required_metrics": [
+        "drift_score",
+        "ndcg_at_10",
+        "recall_at_10"
+      ]
+    },
+    "reg_stg_ratio_s3": {
+      "required_metrics": [
+        "baseline_rmse",
+        "mae_ratio",
+        "rmse"
+      ]
+    },
+    "cls_f1_band_t5": {
+      "required_metrics": [
+        "ece",
+        "macro_f1",
+        "population_shift"
+      ]
+    },
+    "cls_drift_cap_u7": {
+      "required_metrics": [
+        "ece",
+        "macro_f1",
+        "population_shift"
+      ]
+    },
+    "reg_exp_narrow_n3": {
+      "required_metrics": [
+        "baseline_rmse",
+        "mae_ratio",
+        "rmse"
+      ]
+    }
+  }
+}

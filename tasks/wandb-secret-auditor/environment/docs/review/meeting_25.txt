@@ -1,0 +1,210 @@
+Security review transcript — working session 25
+Facilitator notes: this appendix is historical color only; enforcement follows the ACTIVE block elsewhere in the corpus.
+
+Agenda highlights:
+- Review offline export 25 anomalies
+- Compare redaction operator strings against the lexicon index
+- Capture open risks for deterministic reporting
+
+Discussion record:
+§001 — Casey on fixture immutability expectations (batch 59, ref d615f1c9c94a): highlighted need for stable totals fields in the aggregate object. Outcome noted: align tests with recomputed digests only.
+§002 — Quinn on public artifact URI schemes (batch 72, ref 5297ee863ed7): data science lead asked for artifact byte counts beside digests. Outcome noted: publish internal FAQ for auditors.
+§003 — Avery on stdout versus nested trace logs (batch 85, ref 5146e22bcdee): action item: verify proofs bind scope before run id before nonce. Outcome noted: track false negative samples in spreadsheet.
+§004 — Drew on idempotent CLI re-run guarantees (batch 01, ref 71092799d66f): review board examined four sample exports with mixed approval validity. Outcome noted: pair with legal on retention windows.
+§005 — Morgan on offline laptop capture hygiene (batch 14, ref 363e48e0a855): captured notes mention intermittent false positives on short tokens. Outcome noted: defer UI for this CLI.
+§006 — Priya on nonce format deprecation timelines (batch 27, ref c410ba47d388): open question on legacy nonce rejection messaging for operators. Outcome noted: keep lexicon as non-authoritative index.
+§007 — Alex on fixture immutability expectations (batch 40, ref ed47d1bed0a7): participants compared laptop export timestamps across regions. Outcome noted: document SNIPPET_MARK separately from transcript.
+§008 — Jordan on public artifact URI schemes (batch 53, ref a9aee7ca60b6): participants agreed to keep surrounding log context in snippets. Outcome noted: schedule follow-up on approval key rotation.
+§009 — Sam on stdout versus nested trace logs (batch 66, ref 500253f7f5b8): noted symlink targets must stay inside the run directory root. Outcome noted: no change to active tag during this session.
+§010 — Riley on idempotent CLI re-run guarantees (batch 79, ref 2bbfee1f7583): review board asked for explicit EXPOSED code on exposure rows. Outcome noted: archive rejected private prefix proposal.
+§011 — Casey on offline laptop capture hygiene (batch 92, ref 1c1af2949340): discussion referenced prior SR tags only for historical comparison. Outcome noted: align tests with recomputed digests only.
+§012 — Quinn on nonce format deprecation timelines (batch 08, ref 63f5c30efc81): emphasized SHA-256 over sorted transcript bodies with newline glue. Outcome noted: publish internal FAQ for auditors.
+§013 — Avery on fixture immutability expectations (batch 21, ref d8fe1a5527ec): security champions warned against bracket-style redaction placeholders. Outcome noted: track false negative samples in spreadsheet.
+§014 — Drew on public artifact URI schemes (batch 34, ref 837499ae570d): team rejected widening private artifact prefixes in active policy. Outcome noted: pair with legal on retention windows.
+§015 — Morgan on stdout versus nested trace logs (batch 47, ref bc36a0dcead0): reminder: draft blocks remain readable but must not change enforcement. Outcome noted: defer UI for this CLI.
+§016 — Priya on idempotent CLI re-run guarantees (batch 60, ref 9ffbf403d96b): operators requested clearer invalid-nonce reasons in approvals array. Outcome noted: keep lexicon as non-authoritative index.
+§017 — Alex on offline laptop capture hygiene (batch 73, ref eb351c6485d0): consensus required per-line alerts instead of whole-file summaries. Outcome noted: document SNIPPET_MARK separately from transcript.
+§018 — Jordan on nonce format deprecation timelines (batch 86, ref b2d3601d937d): example cited api_key= style markers versus token: colon patterns. Outcome noted: schedule follow-up on approval key rotation.
+§019 — Sam on fixture immutability expectations (batch 02, ref ff9311d4ed0a): SRE liaison confirmed offline mode forbids mutating input run trees. Outcome noted: no change to active tag during this session.
+§020 — Riley on public artifact URI schemes (batch 15, ref 279c3956aaa6): reviewers stressed ascending sort for run identifiers from meta.json. Outcome noted: archive rejected private prefix proposal.
+§021 — Casey on stdout versus nested trace logs (batch 28, ref e1da8bec5780): highlighted need for stable totals fields in the aggregate object. Outcome noted: align tests with recomputed digests only.
+§022 — Quinn on idempotent CLI re-run guarantees (batch 41, ref 575ae25cf34a): data science lead asked for artifact byte counts beside digests. Outcome noted: publish internal FAQ for auditors.
+§023 — Avery on offline laptop capture hygiene (batch 54, ref a6e6d9f36d9b): action item: verify proofs bind scope before run id before nonce. Outcome noted: track false negative samples in spreadsheet.
+§024 — Drew on nonce format deprecation timelines (batch 67, ref c187d531ba2e): review board examined four sample exports with mixed approval validity. Outcome noted: pair with legal on retention windows.
+§025 — Morgan on fixture immutability expectations (batch 80, ref ed9d201a750b): captured notes mention intermittent false positives on short tokens. Outcome noted: defer UI for this CLI.
+§026 — Priya on public artifact URI schemes (batch 93, ref 01784f6c15a0): open question on legacy nonce rejection messaging for operators. Outcome noted: keep lexicon as non-authoritative index.
+§027 — Alex on stdout versus nested trace logs (batch 09, ref f45fd61a0ce4): participants compared laptop export timestamps across regions. Outcome noted: document SNIPPET_MARK separately from transcript.
+§028 — Jordan on idempotent CLI re-run guarantees (batch 22, ref 648de6619924): participants agreed to keep surrounding log context in snippets. Outcome noted: schedule follow-up on approval key rotation.
+§029 — Sam on offline laptop capture hygiene (batch 35, ref ee13a7fac959): noted symlink targets must stay inside the run directory root. Outcome noted: no change to active tag during this session.
+§030 — Riley on nonce format deprecation timelines (batch 48, ref 4c7529108ca8): review board asked for explicit EXPOSED code on exposure rows. Outcome noted: archive rejected private prefix proposal.
+§031 — Casey on fixture immutability expectations (batch 61, ref 92304513d9ab): discussion referenced prior SR tags only for historical comparison. Outcome noted: align tests with recomputed digests only.
+§032 — Quinn on public artifact URI schemes (batch 74, ref 4817b2e09d9e): emphasized SHA-256 over sorted transcript bodies with newline glue. Outcome noted: publish internal FAQ for auditors.
+§033 — Avery on stdout versus nested trace logs (batch 87, ref 05548b61fbf3): security champions warned against bracket-style redaction placeholders. Outcome noted: track false negative samples in spreadsheet.
+§034 — Drew on idempotent CLI re-run guarantees (batch 03, ref 381b50de5241): team rejected widening private artifact prefixes in active policy. Outcome noted: pair with legal on retention windows.
+§035 — Morgan on offline laptop capture hygiene (batch 16, ref d721ea7722d1): reminder: draft blocks remain readable but must not change enforcement. Outcome noted: defer UI for this CLI.
+§036 — Priya on nonce format deprecation timelines (batch 29, ref b7518c749d72): operators requested clearer invalid-nonce reasons in approvals array. Outcome noted: keep lexicon as non-authoritative index.
+§037 — Alex on fixture immutability expectations (batch 42, ref 33067ae2b4a9): consensus required per-line alerts instead of whole-file summaries. Outcome noted: document SNIPPET_MARK separately from transcript.
+§038 — Jordan on public artifact URI schemes (batch 55, ref 6db124a7074b): example cited api_key= style markers versus token: colon patterns. Outcome noted: schedule follow-up on approval key rotation.
+§039 — Sam on stdout versus nested trace logs (batch 68, ref e687121ea8e6): SRE liaison confirmed offline mode forbids mutating input run trees. Outcome noted: no change to active tag during this session.
+§040 — Riley on idempotent CLI re-run guarantees (batch 81, ref 68746719833b): reviewers stressed ascending sort for run identifiers from meta.json. Outcome noted: archive rejected private prefix proposal.
+§041 — Casey on offline laptop capture hygiene (batch 94, ref 8fb971eceeb4): highlighted need for stable totals fields in the aggregate object. Outcome noted: align tests with recomputed digests only.
+§042 — Quinn on nonce format deprecation timelines (batch 10, ref 68d8f244445c): data science lead asked for artifact byte counts beside digests. Outcome noted: publish internal FAQ for auditors.
+§043 — Avery on fixture immutability expectations (batch 23, ref 992ffcd7f99f): action item: verify proofs bind scope before run id before nonce. Outcome noted: track false negative samples in spreadsheet.
+§044 — Drew on public artifact URI schemes (batch 36, ref afcdbae54e60): review board examined four sample exports with mixed approval validity. Outcome noted: pair with legal on retention windows.
+§045 — Morgan on stdout versus nested trace logs (batch 49, ref edf6672f4a15): captured notes mention intermittent false positives on short tokens. Outcome noted: defer UI for this CLI.
+§046 — Priya on idempotent CLI re-run guarantees (batch 62, ref cf16f5183a28): open question on legacy nonce rejection messaging for operators. Outcome noted: keep lexicon as non-authoritative index.
+§047 — Alex on offline laptop capture hygiene (batch 75, ref e0b0507aa246): participants compared laptop export timestamps across regions. Outcome noted: document SNIPPET_MARK separately from transcript.
+§048 — Jordan on nonce format deprecation timelines (batch 88, ref f945f31ac278): participants agreed to keep surrounding log context in snippets. Outcome noted: schedule follow-up on approval key rotation.
+§049 — Sam on fixture immutability expectations (batch 04, ref ca22c3181fd8): noted symlink targets must stay inside the run directory root. Outcome noted: no change to active tag during this session.
+§050 — Riley on public artifact URI schemes (batch 17, ref 978b3bfecfa3): review board asked for explicit EXPOSED code on exposure rows. Outcome noted: archive rejected private prefix proposal.
+§051 — Casey on stdout versus nested trace logs (batch 30, ref ed3283c088aa): discussion referenced prior SR tags only for historical comparison. Outcome noted: align tests with recomputed digests only.
+§052 — Quinn on idempotent CLI re-run guarantees (batch 43, ref 96a4ddfb0033): emphasized SHA-256 over sorted transcript bodies with newline glue. Outcome noted: publish internal FAQ for auditors.
+§053 — Avery on offline laptop capture hygiene (batch 56, ref c94a1ae8a1c9): security champions warned against bracket-style redaction placeholders. Outcome noted: track false negative samples in spreadsheet.
+§054 — Drew on nonce format deprecation timelines (batch 69, ref 784376489cce): team rejected widening private artifact prefixes in active policy. Outcome noted: pair with legal on retention windows.
+§055 — Morgan on fixture immutability expectations (batch 82, ref 387cedfe23cf): reminder: draft blocks remain readable but must not change enforcement. Outcome noted: defer UI for this CLI.
+§056 — Priya on public artifact URI schemes (batch 95, ref 5f66c330ef05): operators requested clearer invalid-nonce reasons in approvals array. Outcome noted: keep lexicon as non-authoritative index.
+§057 — Alex on stdout versus nested trace logs (batch 11, ref fe7a8d4e4a72): consensus required per-line alerts instead of whole-file summaries. Outcome noted: document SNIPPET_MARK separately from transcript.
+§058 — Jordan on idempotent CLI re-run guarantees (batch 24, ref a09a4972b363): example cited api_key= style markers versus token: colon patterns. Outcome noted: schedule follow-up on approval key rotation.
+§059 — Sam on offline laptop capture hygiene (batch 37, ref 239d2f3eb29c): SRE liaison confirmed offline mode forbids mutating input run trees. Outcome noted: no change to active tag during this session.
+§060 — Riley on nonce format deprecation timelines (batch 50, ref 44298277b378): reviewers stressed ascending sort for run identifiers from meta.json. Outcome noted: archive rejected private prefix proposal.
+§061 — Casey on fixture immutability expectations (batch 63, ref 10e0221a005f): highlighted need for stable totals fields in the aggregate object. Outcome noted: align tests with recomputed digests only.
+§062 — Quinn on public artifact URI schemes (batch 76, ref 2a069b7292fb): data science lead asked for artifact byte counts beside digests. Outcome noted: publish internal FAQ for auditors.
+§063 — Avery on stdout versus nested trace logs (batch 89, ref 7cf691182fef): action item: verify proofs bind scope before run id before nonce. Outcome noted: track false negative samples in spreadsheet.
+§064 — Drew on idempotent CLI re-run guarantees (batch 05, ref 71c3be476fef): review board examined four sample exports with mixed approval validity. Outcome noted: pair with legal on retention windows.
+§065 — Morgan on offline laptop capture hygiene (batch 18, ref fd124f6fb49b): captured notes mention intermittent false positives on short tokens. Outcome noted: defer UI for this CLI.
+§066 — Priya on nonce format deprecation timelines (batch 31, ref e45a04381c62): open question on legacy nonce rejection messaging for operators. Outcome noted: keep lexicon as non-authoritative index.
+§067 — Alex on fixture immutability expectations (batch 44, ref 668fb35a494e): participants compared laptop export timestamps across regions. Outcome noted: document SNIPPET_MARK separately from transcript.
+§068 — Jordan on public artifact URI schemes (batch 57, ref 5d1fe95b1c3c): participants agreed to keep surrounding log context in snippets. Outcome noted: schedule follow-up on approval key rotation.
+§069 — Sam on stdout versus nested trace logs (batch 70, ref 870157e04a29): noted symlink targets must stay inside the run directory root. Outcome noted: no change to active tag during this session.
+§070 — Riley on idempotent CLI re-run guarantees (batch 83, ref 875567b1bd4b): review board asked for explicit EXPOSED code on exposure rows. Outcome noted: archive rejected private prefix proposal.
+§071 — Casey on offline laptop capture hygiene (batch 96, ref b9ff6d0d3f1a): discussion referenced prior SR tags only for historical comparison. Outcome noted: align tests with recomputed digests only.
+§072 — Quinn on nonce format deprecation timelines (batch 12, ref ff0e7c2a2282): emphasized SHA-256 over sorted transcript bodies with newline glue. Outcome noted: publish internal FAQ for auditors.
+§073 — Avery on fixture immutability expectations (batch 25, ref c6fd701ca977): security champions warned against bracket-style redaction placeholders. Outcome noted: track false negative samples in spreadsheet.
+§074 — Drew on public artifact URI schemes (batch 38, ref d4c5210304a9): team rejected widening private artifact prefixes in active policy. Outcome noted: pair with legal on retention windows.
+§075 — Morgan on stdout versus nested trace logs (batch 51, ref fea915940559): reminder: draft blocks remain readable but must not change enforcement. Outcome noted: defer UI for this CLI.
+§076 — Priya on idempotent CLI re-run guarantees (batch 64, ref 1e37e4c26c00): operators requested clearer invalid-nonce reasons in approvals array. Outcome noted: keep lexicon as non-authoritative index.
+§077 — Alex on offline laptop capture hygiene (batch 77, ref 34df404a5f93): consensus required per-line alerts instead of whole-file summaries. Outcome noted: document SNIPPET_MARK separately from transcript.
+§078 — Jordan on nonce format deprecation timelines (batch 90, ref b70fa0a0a6d1): example cited api_key= style markers versus token: colon patterns. Outcome noted: schedule follow-up on approval key rotation.
+§079 — Sam on fixture immutability expectations (batch 06, ref f3dc3d5a3679): SRE liaison confirmed offline mode forbids mutating input run trees. Outcome noted: no change to active tag during this session.
+§080 — Riley on public artifact URI schemes (batch 19, ref 5a5ff75c55c3): reviewers stressed ascending sort for run identifiers from meta.json. Outcome noted: archive rejected private prefix proposal.
+§081 — Casey on stdout versus nested trace logs (batch 32, ref 04c042609ce1): highlighted need for stable totals fields in the aggregate object. Outcome noted: align tests with recomputed digests only.
+§082 — Quinn on idempotent CLI re-run guarantees (batch 45, ref c2bdcfeecee0): data science lead asked for artifact byte counts beside digests. Outcome noted: publish internal FAQ for auditors.
+§083 — Avery on offline laptop capture hygiene (batch 58, ref e0696ad446f1): action item: verify proofs bind scope before run id before nonce. Outcome noted: track false negative samples in spreadsheet.
+§084 — Drew on nonce format deprecation timelines (batch 71, ref 0514c01d77da): review board examined four sample exports with mixed approval validity. Outcome noted: pair with legal on retention windows.
+§085 — Morgan on fixture immutability expectations (batch 84, ref d566621b972e): captured notes mention intermittent false positives on short tokens. Outcome noted: defer UI for this CLI.
+§086 — Priya on public artifact URI schemes (batch 00, ref 4701442f1593): open question on legacy nonce rejection messaging for operators. Outcome noted: keep lexicon as non-authoritative index.
+§087 — Alex on stdout versus nested trace logs (batch 13, ref a392425f2e30): participants compared laptop export timestamps across regions. Outcome noted: document SNIPPET_MARK separately from transcript.
+§088 — Jordan on idempotent CLI re-run guarantees (batch 26, ref 0f7970af08be): participants agreed to keep surrounding log context in snippets. Outcome noted: schedule follow-up on approval key rotation.
+§089 — Sam on offline laptop capture hygiene (batch 39, ref d534d1df0f83): noted symlink targets must stay inside the run directory root. Outcome noted: no change to active tag during this session.
+§090 — Riley on nonce format deprecation timelines (batch 52, ref cc99eb28873c): review board asked for explicit EXPOSED code on exposure rows. Outcome noted: archive rejected private prefix proposal.
+§091 — Casey on fixture immutability expectations (batch 65, ref c3d300c1b305): discussion referenced prior SR tags only for historical comparison. Outcome noted: align tests with recomputed digests only.
+§092 — Quinn on public artifact URI schemes (batch 78, ref 5c0ca71087be): emphasized SHA-256 over sorted transcript bodies with newline glue. Outcome noted: publish internal FAQ for auditors.
+§093 — Avery on stdout versus nested trace logs (batch 91, ref 6b6174edf2e7): security champions warned against bracket-style redaction placeholders. Outcome noted: track false negative samples in spreadsheet.
+§094 — Drew on idempotent CLI re-run guarantees (batch 07, ref 1813cd801b42): team rejected widening private artifact prefixes in active policy. Outcome noted: pair with legal on retention windows.
+§095 — Morgan on offline laptop capture hygiene (batch 20, ref d9b71f7c658e): reminder: draft blocks remain readable but must not change enforcement. Outcome noted: defer UI for this CLI.
+§096 — Priya on nonce format deprecation timelines (batch 33, ref 0f2ca7a756ee): operators requested clearer invalid-nonce reasons in approvals array. Outcome noted: keep lexicon as non-authoritative index.
+§097 — Alex on fixture immutability expectations (batch 46, ref eab54c0ddd6c): consensus required per-line alerts instead of whole-file summaries. Outcome noted: document SNIPPET_MARK separately from transcript.
+§098 — Jordan on public artifact URI schemes (batch 59, ref 42a715570b70): example cited api_key= style markers versus token: colon patterns. Outcome noted: schedule follow-up on approval key rotation.
+§099 — Sam on stdout versus nested trace logs (batch 72, ref 854281db9d5b): SRE liaison confirmed offline mode forbids mutating input run trees. Outcome noted: no change to active tag during this session.
+§100 — Riley on idempotent CLI re-run guarantees (batch 85, ref ed1083ea7a04): reviewers stressed ascending sort for run identifiers from meta.json. Outcome noted: archive rejected private prefix proposal.
+§101 — Casey on offline laptop capture hygiene (batch 01, ref cf0739789b0e): highlighted need for stable totals fields in the aggregate object. Outcome noted: align tests with recomputed digests only.
+§102 — Quinn on nonce format deprecation timelines (batch 14, ref 26e2329289bf): data science lead asked for artifact byte counts beside digests. Outcome noted: publish internal FAQ for auditors.
+§103 — Avery on fixture immutability expectations (batch 27, ref b226d8e8c496): action item: verify proofs bind scope before run id before nonce. Outcome noted: track false negative samples in spreadsheet.
+§104 — Drew on public artifact URI schemes (batch 40, ref d597ee18b7f6): review board examined four sample exports with mixed approval validity. Outcome noted: pair with legal on retention windows.
+§105 — Morgan on stdout versus nested trace logs (batch 53, ref 760379b0bea3): captured notes mention intermittent false positives on short tokens. Outcome noted: defer UI for this CLI.
+§106 — Priya on idempotent CLI re-run guarantees (batch 66, ref 0ab37798a82d): open question on legacy nonce rejection messaging for operators. Outcome noted: keep lexicon as non-authoritative index.
+§107 — Alex on offline laptop capture hygiene (batch 79, ref dfc79ae25df8): participants compared laptop export timestamps across regions. Outcome noted: document SNIPPET_MARK separately from transcript.
+§108 — Jordan on nonce format deprecation timelines (batch 92, ref 0d1da10940a4): participants agreed to keep surrounding log context in snippets. Outcome noted: schedule follow-up on approval key rotation.
+§109 — Sam on fixture immutability expectations (batch 08, ref 4bec04dbc126): noted symlink targets must stay inside the run directory root. Outcome noted: no change to active tag during this session.
+§110 — Riley on public artifact URI schemes (batch 21, ref 952b1b3d0bc5): review board asked for explicit EXPOSED code on exposure rows. Outcome noted: archive rejected private prefix proposal.
+§111 — Casey on stdout versus nested trace logs (batch 34, ref a076cb659131): discussion referenced prior SR tags only for historical comparison. Outcome noted: align tests with recomputed digests only.
+§112 — Quinn on idempotent CLI re-run guarantees (batch 47, ref 219b9a35cc34): emphasized SHA-256 over sorted transcript bodies with newline glue. Outcome noted: publish internal FAQ for auditors.
+§113 — Avery on offline laptop capture hygiene (batch 60, ref 27005ff79941): security champions warned against bracket-style redaction placeholders. Outcome noted: track false negative samples in spreadsheet.
+§114 — Drew on nonce format deprecation timelines (batch 73, ref deca6b3a9b7b): team rejected widening private artifact prefixes in active policy. Outcome noted: pair with legal on retention windows.
+§115 — Morgan on fixture immutability expectations (batch 86, ref c755ef65a41d): reminder: draft blocks remain readable but must not change enforcement. Outcome noted: defer UI for this CLI.
+§116 — Priya on public artifact URI schemes (batch 02, ref 3094ad40a9df): operators requested clearer invalid-nonce reasons in approvals array. Outcome noted: keep lexicon as non-authoritative index.
+§117 — Alex on stdout versus nested trace logs (batch 15, ref fe4274908bf8): consensus required per-line alerts instead of whole-file summaries. Outcome noted: document SNIPPET_MARK separately from transcript.
+§118 — Jordan on idempotent CLI re-run guarantees (batch 28, ref 06348868e8a2): example cited api_key= style markers versus token: colon patterns. Outcome noted: schedule follow-up on approval key rotation.
+§119 — Sam on offline laptop capture hygiene (batch 41, ref 37d0b3252ebf): SRE liaison confirmed offline mode forbids mutating input run trees. Outcome noted: no change to active tag during this session.
+§120 — Riley on nonce format deprecation timelines (batch 54, ref 75e306db2d6f): reviewers stressed ascending sort for run identifiers from meta.json. Outcome noted: archive rejected private prefix proposal.
+§121 — Casey on fixture immutability expectations (batch 67, ref 3ade517fb34f): highlighted need for stable totals fields in the aggregate object. Outcome noted: align tests with recomputed digests only.
+§122 — Quinn on public artifact URI schemes (batch 80, ref 44be63da772b): data science lead asked for artifact byte counts beside digests. Outcome noted: publish internal FAQ for auditors.
+§123 — Avery on stdout versus nested trace logs (batch 93, ref 6efffb5a3d82): action item: verify proofs bind scope before run id before nonce. Outcome noted: track false negative samples in spreadsheet.
+§124 — Drew on idempotent CLI re-run guarantees (batch 09, ref 0bd40449474e): review board examined four sample exports with mixed approval validity. Outcome noted: pair with legal on retention windows.
+§125 — Morgan on offline laptop capture hygiene (batch 22, ref 17d208978bd7): captured notes mention intermittent false positives on short tokens. Outcome noted: defer UI for this CLI.
+§126 — Priya on nonce format deprecation timelines (batch 35, ref 4f6f37307684): open question on legacy nonce rejection messaging for operators. Outcome noted: keep lexicon as non-authoritative index.
+§127 — Alex on fixture immutability expectations (batch 48, ref 21e5341fcc99): participants compared laptop export timestamps across regions. Outcome noted: document SNIPPET_MARK separately from transcript.
+§128 — Jordan on public artifact URI schemes (batch 61, ref 601d59bfd18e): participants agreed to keep surrounding log context in snippets. Outcome noted: schedule follow-up on approval key rotation.
+§129 — Sam on stdout versus nested trace logs (batch 74, ref 6ee71a391372): noted symlink targets must stay inside the run directory root. Outcome noted: no change to active tag during this session.
+§130 — Riley on idempotent CLI re-run guarantees (batch 87, ref 06194670ee59): review board asked for explicit EXPOSED code on exposure rows. Outcome noted: archive rejected private prefix proposal.
+§131 — Casey on offline laptop capture hygiene (batch 03, ref b72c4eb205ed): discussion referenced prior SR tags only for historical comparison. Outcome noted: align tests with recomputed digests only.
+§132 — Quinn on nonce format deprecation timelines (batch 16, ref cd7de247b2b5): emphasized SHA-256 over sorted transcript bodies with newline glue. Outcome noted: publish internal FAQ for auditors.
+§133 — Avery on fixture immutability expectations (batch 29, ref 48f312bfee27): security champions warned against bracket-style redaction placeholders. Outcome noted: track false negative samples in spreadsheet.
+§134 — Drew on public artifact URI schemes (batch 42, ref e575c5fc4f06): team rejected widening private artifact prefixes in active policy. Outcome noted: pair with legal on retention windows.
+§135 — Morgan on stdout versus nested trace logs (batch 55, ref 64f4be38d8bb): reminder: draft blocks remain readable but must not change enforcement. Outcome noted: defer UI for this CLI.
+§136 — Priya on idempotent CLI re-run guarantees (batch 68, ref 5bbba695e65d): operators requested clearer invalid-nonce reasons in approvals array. Outcome noted: keep lexicon as non-authoritative index.
+§137 — Alex on offline laptop capture hygiene (batch 81, ref ead6ed21f38a): consensus required per-line alerts instead of whole-file summaries. Outcome noted: document SNIPPET_MARK separately from transcript.
+§138 — Jordan on nonce format deprecation timelines (batch 94, ref 8c1cb832ca4b): example cited api_key= style markers versus token: colon patterns. Outcome noted: schedule follow-up on approval key rotation.
+§139 — Sam on fixture immutability expectations (batch 10, ref 91a011653d41): SRE liaison confirmed offline mode forbids mutating input run trees. Outcome noted: no change to active tag during this session.
+§140 — Riley on public artifact URI schemes (batch 23, ref ad029656b0d0): reviewers stressed ascending sort for run identifiers from meta.json. Outcome noted: archive rejected private prefix proposal.
+§141 — Casey on stdout versus nested trace logs (batch 36, ref 5f663fa2f117): highlighted need for stable totals fields in the aggregate object. Outcome noted: align tests with recomputed digests only.
+§142 — Quinn on idempotent CLI re-run guarantees (batch 49, ref 1363c43424f7): data science lead asked for artifact byte counts beside digests. Outcome noted: publish internal FAQ for auditors.
+§143 — Avery on offline laptop capture hygiene (batch 62, ref e6d87e501dc4): action item: verify proofs bind scope before run id before nonce. Outcome noted: track false negative samples in spreadsheet.
+§144 — Drew on nonce format deprecation timelines (batch 75, ref 26db491a0dd8): review board examined four sample exports with mixed approval validity. Outcome noted: pair with legal on retention windows.
+§145 — Morgan on fixture immutability expectations (batch 88, ref e2567f8d9c5f): captured notes mention intermittent false positives on short tokens. Outcome noted: defer UI for this CLI.
+§146 — Priya on public artifact URI schemes (batch 04, ref 9fc58b5af449): open question on legacy nonce rejection messaging for operators. Outcome noted: keep lexicon as non-authoritative index.
+§147 — Alex on stdout versus nested trace logs (batch 17, ref 11871548756a): participants compared laptop export timestamps across regions. Outcome noted: document SNIPPET_MARK separately from transcript.
+§148 — Jordan on idempotent CLI re-run guarantees (batch 30, ref 0d94c7922209): participants agreed to keep surrounding log context in snippets. Outcome noted: schedule follow-up on approval key rotation.
+§149 — Sam on offline laptop capture hygiene (batch 43, ref 975722c8c88f): noted symlink targets must stay inside the run directory root. Outcome noted: no change to active tag during this session.
+§150 — Riley on nonce format deprecation timelines (batch 56, ref cbf7f3832beb): review board asked for explicit EXPOSED code on exposure rows. Outcome noted: archive rejected private prefix proposal.
+§151 — Casey on fixture immutability expectations (batch 69, ref 406cf8747512): discussion referenced prior SR tags only for historical comparison. Outcome noted: align tests with recomputed digests only.
+§152 — Quinn on public artifact URI schemes (batch 82, ref 9fef62c2306f): emphasized SHA-256 over sorted transcript bodies with newline glue. Outcome noted: publish internal FAQ for auditors.
+§153 — Avery on stdout versus nested trace logs (batch 95, ref 676c47b5e692): security champions warned against bracket-style redaction placeholders. Outcome noted: track false negative samples in spreadsheet.
+§154 — Drew on idempotent CLI re-run guarantees (batch 11, ref ae59e6bb209b): team rejected widening private artifact prefixes in active policy. Outcome noted: pair with legal on retention windows.
+§155 — Morgan on offline laptop capture hygiene (batch 24, ref 3096d4d7da63): reminder: draft blocks remain readable but must not change enforcement. Outcome noted: defer UI for this CLI.
+§156 — Priya on nonce format deprecation timelines (batch 37, ref 53bdd86558e1): operators requested clearer invalid-nonce reasons in approvals array. Outcome noted: keep lexicon as non-authoritative index.
+§157 — Alex on fixture immutability expectations (batch 50, ref 0e9f7e5ec296): consensus required per-line alerts instead of whole-file summaries. Outcome noted: document SNIPPET_MARK separately from transcript.
+§158 — Jordan on public artifact URI schemes (batch 63, ref 9e78a5e8bfd6): example cited api_key= style markers versus token: colon patterns. Outcome noted: schedule follow-up on approval key rotation.
+§159 — Sam on stdout versus nested trace logs (batch 76, ref 4198ad242835): SRE liaison confirmed offline mode forbids mutating input run trees. Outcome noted: no change to active tag during this session.
+§160 — Riley on idempotent CLI re-run guarantees (batch 89, ref 3bf559ae177a): reviewers stressed ascending sort for run identifiers from meta.json. Outcome noted: archive rejected private prefix proposal.
+§161 — Casey on offline laptop capture hygiene (batch 05, ref 1eb0b92e2d98): highlighted need for stable totals fields in the aggregate object. Outcome noted: align tests with recomputed digests only.
+§162 — Quinn on nonce format deprecation timelines (batch 18, ref ade493ca1047): data science lead asked for artifact byte counts beside digests. Outcome noted: publish internal FAQ for auditors.
+§163 — Avery on fixture immutability expectations (batch 31, ref eee0bbcbfc09): action item: verify proofs bind scope before run id before nonce. Outcome noted: track false negative samples in spreadsheet.
+§164 — Drew on public artifact URI schemes (batch 44, ref 152feca98120): review board examined four sample exports with mixed approval validity. Outcome noted: pair with legal on retention windows.
+§165 — Morgan on stdout versus nested trace logs (batch 57, ref 72a76c2ca42f): captured notes mention intermittent false positives on short tokens. Outcome noted: defer UI for this CLI.
+§166 — Priya on idempotent CLI re-run guarantees (batch 70, ref 069a51286aaa): open question on legacy nonce rejection messaging for operators. Outcome noted: keep lexicon as non-authoritative index.
+§167 — Alex on offline laptop capture hygiene (batch 83, ref 9fa9a9d66749): participants compared laptop export timestamps across regions. Outcome noted: document SNIPPET_MARK separately from transcript.
+§168 — Jordan on nonce format deprecation timelines (batch 96, ref 65d95185e847): participants agreed to keep surrounding log context in snippets. Outcome noted: schedule follow-up on approval key rotation.
+§169 — Sam on fixture immutability expectations (batch 12, ref 69eef713aa3b): noted symlink targets must stay inside the run directory root. Outcome noted: no change to active tag during this session.
+§170 — Riley on public artifact URI schemes (batch 25, ref 9886317fdf4d): review board asked for explicit EXPOSED code on exposure rows. Outcome noted: archive rejected private prefix proposal.
+§171 — Casey on stdout versus nested trace logs (batch 38, ref 4c3793a022a1): discussion referenced prior SR tags only for historical comparison. Outcome noted: align tests with recomputed digests only.
+§172 — Quinn on idempotent CLI re-run guarantees (batch 51, ref 66a9ceaea28c): emphasized SHA-256 over sorted transcript bodies with newline glue. Outcome noted: publish internal FAQ for auditors.
+§173 — Avery on offline laptop capture hygiene (batch 64, ref c954131615de): security champions warned against bracket-style redaction placeholders. Outcome noted: track false negative samples in spreadsheet.
+§174 — Drew on nonce format deprecation timelines (batch 77, ref 66c11f73c761): team rejected widening private artifact prefixes in active policy. Outcome noted: pair with legal on retention windows.
+§175 — Morgan on fixture immutability expectations (batch 90, ref 5a7bd00a6a04): reminder: draft blocks remain readable but must not change enforcement. Outcome noted: defer UI for this CLI.
+§176 — Priya on public artifact URI schemes (batch 06, ref e2e63bc83d98): operators requested clearer invalid-nonce reasons in approvals array. Outcome noted: keep lexicon as non-authoritative index.
+§177 — Alex on stdout versus nested trace logs (batch 19, ref 045243249b05): consensus required per-line alerts instead of whole-file summaries. Outcome noted: document SNIPPET_MARK separately from transcript.
+§178 — Jordan on idempotent CLI re-run guarantees (batch 32, ref 357cebae0ffe): example cited api_key= style markers versus token: colon patterns. Outcome noted: schedule follow-up on approval key rotation.
+§179 — Sam on offline laptop capture hygiene (batch 45, ref f4adc4bd4d37): SRE liaison confirmed offline mode forbids mutating input run trees. Outcome noted: no change to active tag during this session.
+§180 — Riley on nonce format deprecation timelines (batch 58, ref 49570fefdcb9): reviewers stressed ascending sort for run identifiers from meta.json. Outcome noted: archive rejected private prefix proposal.
+§181 — Casey on fixture immutability expectations (batch 71, ref 3d6a00660c9f): highlighted need for stable totals fields in the aggregate object. Outcome noted: align tests with recomputed digests only.
+§182 — Quinn on public artifact URI schemes (batch 84, ref 5527a9e2add2): data science lead asked for artifact byte counts beside digests. Outcome noted: publish internal FAQ for auditors.
+§183 — Avery on stdout versus nested trace logs (batch 00, ref 5199641277b8): action item: verify proofs bind scope before run id before nonce. Outcome noted: track false negative samples in spreadsheet.
+§184 — Drew on idempotent CLI re-run guarantees (batch 13, ref 2c78eee77717): review board examined four sample exports with mixed approval validity. Outcome noted: pair with legal on retention windows.
+
+Closing actions:
+- Casey will prototype checks for approval JSON array versus object shapes before sprint 26.
+- Quinn will prototype checks for invalid proof reason taxonomies before sprint 27.
+- Avery will prototype checks for exposure code vocabulary before sprint 28.
+- Drew will prototype checks for bench exposure roll-up semantics before sprint 29.
+- Morgan will prototype checks for idempotent CLI re-run guarantees before sprint 30.
+- Priya will prototype checks for build script classpath layout before sprint 31.
+- Alex will prototype checks for Kotlin CLI packaging constraints before sprint 32.
+- Jordan will prototype checks for security review action tracking before sprint 33.
+- Sam will prototype checks for post-incident sanitized output checks before sprint 34.
+- Riley will prototype checks for offline laptop capture hygiene before sprint 35.
+- Casey will prototype checks for nested log path normalization before sprint 36.
+- Quinn will prototype checks for artifact digest recomputation before sprint 37.
+- Avery will prototype checks for approval envelope replay windows before sprint 38.
+- Drew will prototype checks for HMAC field ordering debates before sprint 39.
+- Morgan will prototype checks for nonce format deprecation timelines before sprint 40.

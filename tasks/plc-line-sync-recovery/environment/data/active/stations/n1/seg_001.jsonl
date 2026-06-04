@@ -1,0 +1,7 @@
+{"seq":1,"epoch":1,"wall_ms":1100,"payload":"a","crc":96,"member":"n1"}
+{"seq":2,"epoch":2,"wall_ms":1200,"payload":"b","crc":96,"member":"n1"}
+{"seq":3,"epoch":3,"wall_ms":1300,"payload":"c","crc":96,"member":"n1"}
+{"seq":4,"epoch":4,"wall_ms":1400,"payload":"d","crc":96,"member":"n1"}
+{"seq":5,"epoch":4,"wall_ms":1500,"payload":"e","crc":96,"member":"n1"}
+{"seq":6,"epoch":5,"wall_ms":0,"payload":"pA","crc":183}
+{"seq":6,"epoch":6,"wall_ms":20,"payload":"pB","crc":180}

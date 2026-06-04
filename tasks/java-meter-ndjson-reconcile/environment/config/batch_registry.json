@@ -1,0 +1,9 @@
+{
+  "meters": [
+    {
+      "meter_id": "MTR-2024-Q1",
+      "devices_csv": "/app/data/devices.csv",
+      "tariffs_csv": "/app/data/tariffs.csv"
+    }
+  ]
+}

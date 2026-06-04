@@ -1,0 +1,12 @@
+--- a/cli/src/main/java/meter/recon/CostRollup.java
++++ b/cli/src/main/java/meter/recon/CostRollup.java
+@@ -20,10 +20,7 @@
+     for (List<Map<String, Object>> rows : byDevice.values()) {
+       rows.sort(Comparator.comparing(r -> (String) r.get("reading_at")));
+       for (int i = 1; i < rows.size(); i++) {
+-        if (rows.get(i).get("reading_at").equals(rows.get(i - 1).get("reading_at"))) {
+-          continue;
+-        }
+         String site = (String) rows.get(i).get("site_id");
+         if (site == null || site.isEmpty()) continue;
+         double prev =

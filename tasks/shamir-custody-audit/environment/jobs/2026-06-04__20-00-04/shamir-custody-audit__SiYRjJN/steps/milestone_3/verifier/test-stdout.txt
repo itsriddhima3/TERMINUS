@@ -1,0 +1,191 @@
+============================= test session starts ==============================
+platform linux -- Python 3.13.9, pytest-8.4.1, pluggy-1.6.0
+rootdir: /tests
+plugins: json-ctrf-0.3.5
+collected 15 items
+
+../tests/test_m3.py ....FFFFF...F.F                                      [100%]
+
+=================================== FAILURES ===================================
+__________________ TestMilestone3.test_m3_delta_no_violations __________________
+
+self = <test_m3.TestMilestone3 object at 0x7d3a9f0f16d0>
+
+    def test_m3_delta_no_violations(self):
+        """sess-delta (executive only, no auditor) must NOT trigger cannot_coexist."""
+        _run_audit()
+        by_sess = _by_session(_load_report())
+        violations = by_sess["sess-delta"]["policy_violations"]
+>       assert violations == [], (
+            f"sess-delta has only executive tier, no auditor — "
+            f"cannot_coexist requires BOTH tiers; got violations: {violations}"
+        )
+E       AssertionError: sess-delta has only executive tier, no auditor — cannot_coexist requires BOTH tiers; got violations: ['cannot_coexist:executive+auditor']
+E       assert ['cannot_coex...tive+auditor'] == []
+E         
+E         Left contains one more item: 'cannot_coexist:executive+auditor'
+E         Use -v to get more diff
+
+/tests/test_m3.py:136: AssertionError
+__________________ TestMilestone3.test_m3_delta_quorum_valid ___________________
+
+self = <test_m3.TestMilestone3 object at 0x7d3a9f36b680>
+
+    def test_m3_delta_quorum_valid(self):
+        """sess-delta quorum_valid is true (executive present but auditor absent)."""
+        _run_audit()
+        by_sess = _by_session(_load_report())
+>       assert by_sess["sess-delta"]["quorum_valid"] is True, (
+            "sess-delta has only one tier of the constrained pair — must be valid"
+        )
+E       AssertionError: sess-delta has only one tier of the constrained pair — must be valid
+E       assert False is True
+
+/tests/test_m3.py:145: AssertionError
+_________________ TestMilestone3.test_m3_fingerprint_length_16 _________________
+
+self = <test_m3.TestMilestone3 object at 0x7d3a9f36bf00>
+
+    def test_m3_fingerprint_length_16(self):
+        """All non-null fingerprints are exactly 16 lowercase hex characters."""
+        _run_audit()
+        report = _load_report()
+        for entry in report["audit_results"]:
+            fp = entry["secret_fingerprint"]
+            if fp is None:
+                continue
+>           assert len(fp) == 16, (
+                f"Session {entry['session_id']}: fingerprint length {len(fp)} != 16"
+            )
+E           AssertionError: Session sess-alpha: fingerprint length 8 != 16
+E           assert 8 == 16
+E            +  where 8 = len('094662e3')
+
+/tests/test_m3.py:157: AssertionError
+_______________ TestMilestone3.test_m3_alpha_fingerprint_sha256 ________________
+
+self = <test_m3.TestMilestone3 object at 0x7d3a9f1f0e50>
+
+    def test_m3_alpha_fingerprint_sha256(self):
+        """sess-alpha fingerprint matches SHA-256 of correctly reconstructed secret."""
+        _run_audit()
+        by_sess = _by_session(_load_report())
+    
+        secret = _reconstruct_from_db("sess-alpha")
+        assert secret, "Python reconstruction must succeed for sess-alpha"
+    
+        expected_fp = hashlib.sha256(secret).hexdigest()[:16]
+        got_fp = by_sess["sess-alpha"]["secret_fingerprint"]
+>       assert got_fp == expected_fp, (
+            f"sess-alpha fingerprint {got_fp!r} != expected SHA-256[:16] {expected_fp!r}; "
+            f"check that SHA-256 (not SHA-1) is used and that 16 characters are taken"
+        )
+E       AssertionError: sess-alpha fingerprint '094662e3' != expected SHA-256[:16] '9ac2197d9258257b'; check that SHA-256 (not SHA-1) is used and that 16 characters are taken
+E       assert '094662e3' == '9ac2197d9258257b'
+E         
+E         - 9ac2197d9258257b
+E         + 094662e3
+
+/tests/test_m3.py:175: AssertionError
+_______________ TestMilestone3.test_m3_delta_fingerprint_sha256 ________________
+
+self = <test_m3.TestMilestone3 object at 0x7d3a9f1f1050>
+
+    def test_m3_delta_fingerprint_sha256(self):
+        """sess-delta fingerprint matches SHA-256 of correctly reconstructed secret."""
+        _run_audit()
+        by_sess = _by_session(_load_report())
+    
+        secret = _reconstruct_from_db("sess-delta")
+        assert secret, "Python reconstruction must succeed for sess-delta"
+    
+        expected_fp = hashlib.sha256(secret).hexdigest()[:16]
+        got_fp = by_sess["sess-delta"]["secret_fingerprint"]
+>       assert got_fp == expected_fp, (
+            f"sess-delta fingerprint {got_fp!r} != expected SHA-256[:16] {expected_fp!r}"
+        )
+E       AssertionError: sess-delta fingerprint 'b22df2c5' != expected SHA-256[:16] '2dc770fd44d44afe'
+E       assert 'b22df2c5' == '2dc770fd44d44afe'
+E         
+E         - 2dc770fd44d44afe
+E         + b22df2c5
+
+/tests/test_m3.py:190: AssertionError
+______________ TestMilestone3.test_m3_delta_verification_verified ______________
+
+self = <test_m3.TestMilestone3 object at 0x7d3a9f22cbb0>
+
+    def test_m3_delta_verification_verified(self):
+        """sess-delta (executive only, valid) verification_status is 'verified'."""
+        _run_audit()
+        by_sess = _by_session(_load_report())
+>       assert by_sess["sess-delta"]["verification_status"] == "verified"
+E       AssertionError: assert 'policy_violation' == 'verified'
+E         
+E         - verified
+E         + policy_violation
+
+/tests/test_m3.py:216: AssertionError
+____ TestMilestone3.test_m3_violation_count_matches_active_constraint_pairs ____
+
+self = <test_m3.TestMilestone3 object at 0x7d3a9f361910>
+
+    def test_m3_violation_count_matches_active_constraint_pairs(self):
+        """policy_violations length equals the number of cannot_coexist pairs where
+        BOTH constrained tiers are simultaneously present in the session's slot_registry.
+    
+        The buggy implementation uses OR (||) instead of AND (&&), so it fires when
+        EITHER tier is present.  For sess-delta (only 'executive', no 'auditor') the bug
+        incorrectly reports 1 violation; the corrected AND logic reports 0.
+        """
+        _run_audit()
+        by_sess = _by_session(_load_report())
+    
+        conn = sqlite3.connect(DB)
+        for sid in ("sess-alpha", "sess-gamma", "sess-delta"):
+            # Count constraint pairs where both tier_alpha AND tier_beta are present.
+            active = conn.execute(
+                """
+                SELECT COUNT(DISTINCT tc.constraint_id)
+                FROM tier_constraints tc
+                WHERE tc.rule_kind = 'cannot_coexist'
+                  AND EXISTS (
+                      SELECT 1 FROM slot_registry sr
+                      WHERE sr.session_id = ? AND sr.auth_tier = tc.tier_alpha
+                  )
+                  AND EXISTS (
+                      SELECT 1 FROM slot_registry sr
+                      WHERE sr.session_id = ? AND sr.auth_tier = tc.tier_beta
+                  )
+                """,
+                (sid, sid),
+            ).fetchone()[0]
+    
+            reported = len(by_sess[sid]["policy_violations"])
+>           assert reported == active, (
+                f"{sid}: tool reports {reported} violation(s) but "
+                f"{active} constraint pair(s) have both tiers present; "
+                "cannot_coexist requires BOTH tiers — check that && (AND) is used, not || (OR)"
+            )
+E           AssertionError: sess-delta: tool reports 1 violation(s) but 0 constraint pair(s) have both tiers present; cannot_coexist requires BOTH tiers — check that && (AND) is used, not || (OR)
+E           assert 1 == 0
+
+/tests/test_m3.py:288: AssertionError
+==================================== PASSES ====================================
+=========================== short test summary info ============================
+PASSED ../tests/test_m3.py::TestMilestone3::test_m3_alpha_no_violations
+PASSED ../tests/test_m3.py::TestMilestone3::test_m3_alpha_quorum_valid
+PASSED ../tests/test_m3.py::TestMilestone3::test_m3_gamma_has_violation
+PASSED ../tests/test_m3.py::TestMilestone3::test_m3_gamma_quorum_invalid
+PASSED ../tests/test_m3.py::TestMilestone3::test_m3_alpha_verification_verified
+PASSED ../tests/test_m3.py::TestMilestone3::test_m3_gamma_verification_policy_violation
+PASSED ../tests/test_m3.py::TestMilestone3::test_m3_beta_verification_failed
+PASSED ../tests/test_m3.py::TestMilestone3::test_m3_fingerprint_does_not_match_any_sha1_variant
+FAILED ../tests/test_m3.py::TestMilestone3::test_m3_delta_no_violations - Ass...
+FAILED ../tests/test_m3.py::TestMilestone3::test_m3_delta_quorum_valid - Asse...
+FAILED ../tests/test_m3.py::TestMilestone3::test_m3_fingerprint_length_16 - A...
+FAILED ../tests/test_m3.py::TestMilestone3::test_m3_alpha_fingerprint_sha256
+FAILED ../tests/test_m3.py::TestMilestone3::test_m3_delta_fingerprint_sha256
+FAILED ../tests/test_m3.py::TestMilestone3::test_m3_delta_verification_verified
+FAILED ../tests/test_m3.py::TestMilestone3::test_m3_violation_count_matches_active_constraint_pairs
+========================= 7 failed, 8 passed in 0.24s ==========================

@@ -1,0 +1,18 @@
+--- a/cli/src/main/java/customs/ingest/CsvIngest.java
++++ b/cli/src/main/java/customs/ingest/CsvIngest.java
+@@ -5,7 +5,6 @@
+ import java.nio.file.Files;
+ import java.nio.file.Path;
+ import java.util.ArrayList;
+-import java.util.Collections;
+ import java.util.List;
+ 
+ public final class CsvIngest {
+@@ -30,7 +29,6 @@
+               Double.parseDouble(parts[4]),
+               Double.parseDouble(parts[5])));
+     }
+-    Collections.reverse(rows);
+     return rows;
+   }
+ }

@@ -1,0 +1,12 @@
+digraph iota_pack {
+  anchor [role=anchor, cert="certs/root.pem"];
+  intermediate [cert="certs/intermediate.pem"];
+  iota_row [row=true];
+  iota_cred [cert="certs/leaf.pem"];
+
+  iota_row -> iota_cred [label="serves"];
+  iota_cred -> intermediate [label="trusts"];
+  intermediate -> anchor [label="trusts"];
+  iota_cred -> intermediate [label="issued_by"];
+  intermediate -> anchor [label="issued_by"];
+}

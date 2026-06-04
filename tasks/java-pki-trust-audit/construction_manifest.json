@@ -1,0 +1,76 @@
+{
+  "symbol_table": [
+    {"path": "cli/src/main/java/trust/parse/step_p4.java", "symbol": "fn_p4", "kind": "function"},
+    {"path": "cli/src/main/java/trust/parse/step_p4.java", "symbol": "aki_link_ok", "kind": "function"},
+    {"path": "cli/src/main/java/trust/policy/op_k7.java", "symbol": "apply", "kind": "function"},
+    {"path": "cli/src/main/java/trust/policy/RevTable.java", "symbol": "ingest", "kind": "function"},
+    {"path": "cli/src/main/java/trust/graph/emit/StyleLedger.java", "symbol": "attrsFor", "kind": "function"}
+  ],
+  "flipping_point_contract": {
+    "locations": [
+      {
+        "id": "A",
+        "path": "parse/step_p4.java",
+        "controls_tests": [
+          "test_valid_chain_order",
+          "test_valid_chain_flags",
+          "test_expired_root_parses_anchor",
+          "test_revoked_intermediate_includes_revoked_int",
+          "test_path_too_deep_length",
+          "test_path_too_deep_anchor_leaf",
+          "test_hard_pem_fork_noise_issuer_walk_chain",
+          "test_hard_missing_link_not_a_complete_walk"
+        ]
+      },
+      {
+        "id": "B",
+        "path": "policy/RevTable.java",
+        "controls_tests": [
+          "test_revoked_intermediate_reject",
+          "test_valid_chain_accept",
+          "test_expired_root_reject",
+          "test_hard_dual_crl_supersede_accepts_despite_stale_revocation",
+          "test_hard_expired_intermediate_reject",
+          "test_hard_not_yet_valid_leaf_reject",
+          "test_hard_missing_link_parse_fail"
+        ]
+      },
+      {
+        "id": "C",
+        "path": "graph/emit/StyleLedger.java",
+        "controls_tests": [
+          "test_valid_chain_green_fill",
+          "test_valid_chain_forestgreen_edge",
+          "test_expired_root_gray_dashed",
+          "test_revoked_intermediate_red_pen",
+          "test_rejected_leaf_orange",
+          "test_hard_not_yet_valid_leaf_orange_node",
+          "test_hard_dual_crl_supersede_still_forestgreen"
+        ]
+      }
+    ],
+    "no_single_location_flips_majority": true,
+    "concentration_cap": 0.5
+  },
+  "decoy_manifest": [
+    {
+      "path": "environment/decoy/CrlStub.java",
+      "kind": "module",
+      "rhymes_with": "RevTable.ingest",
+      "non_fix_purpose": "archival CRL tar counting only"
+    },
+    {
+      "path": "environment/cli/src/main/java/trust/policy/CrlMergeArchival.java",
+      "kind": "module",
+      "rhymes_with": "RevTable",
+      "non_fix_purpose": "legacy earliest-thisUpdate merge helper"
+    },
+    {
+      "path": "environment/decoy/DotTheme.java",
+      "kind": "module",
+      "rhymes_with": "StyleLedger",
+      "non_fix_purpose": "generic palette names without role mapping"
+    }
+  ],
+  "code_forbidden_tokens": []
+}

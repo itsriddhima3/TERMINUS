@@ -1,0 +1,8 @@
+databases:
+  warehouse:
+    sqlalchemy_uri: postgresql://etl:warehouse-pass-9901@db/warehouse
+    password: warehouse-pass-9901
+oauth_providers:
+  - name: google
+    client_id: nested-client-001
+    client_secret: nested-oauth-secret-7711

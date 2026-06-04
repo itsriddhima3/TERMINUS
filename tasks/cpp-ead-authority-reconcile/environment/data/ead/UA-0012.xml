@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ead xmlns="urn:isbn:1-931666-22-9">
+  <archdesc level="collection">
+    <did>
+      <unitid>UA.12.003</unitid>
+      <unittitle>Campus Views Photograph Collection</unittitle>
+      <unitdate normal="1950/1975">1950-1975</unitdate>
+    </did>
+    <controlaccess>
+      <corpname>University Archives</corpname>
+      <persname>John Smith</persname>
+      <subject>College buildings--Photographs</subject>
+      <geogname approx="approx">Washtenaw County</geogname>
+    </controlaccess>
+  </archdesc>
+</ead>

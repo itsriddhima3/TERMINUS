@@ -1,0 +1,119 @@
+{
+    "results": {
+        "tool": {
+            "name": "pytest",
+            "version": "8.4.1"
+        },
+        "summary": {
+            "tests": 10,
+            "passed": 7,
+            "failed": 3,
+            "skipped": 0,
+            "pending": 0,
+            "other": 0,
+            "start": 1780583419.9377673,
+            "stop": 1780583420.3340986
+        },
+        "tests": [
+            {
+                "name": "test_m1.py::TestMilestone1::test_m1_audit_exits_zero",
+                "status": "passed",
+                "duration": 0.040633218006405514,
+                "start": 1780583420.1024795,
+                "stop": 1780583420.1437032,
+                "retries": 0,
+                "file_path": "test_m1.py"
+            },
+            {
+                "name": "test_m1.py::TestMilestone1::test_m1_report_exists",
+                "status": "passed",
+                "duration": 0.02675761899445206,
+                "start": 1780583420.1442218,
+                "stop": 1780583420.172975,
+                "retries": 0,
+                "file_path": "test_m1.py"
+            },
+            {
+                "name": "test_m1.py::TestMilestone1::test_m1_report_schema",
+                "status": "passed",
+                "duration": 0.026561436003248673,
+                "start": 1780583420.173689,
+                "stop": 1780583420.2007844,
+                "retries": 0,
+                "file_path": "test_m1.py"
+            },
+            {
+                "name": "test_m1.py::TestMilestone1::test_m1_all_sessions_present",
+                "status": "passed",
+                "duration": 0.011714657994161826,
+                "start": 1780583420.201213,
+                "stop": 1780583420.2141826,
+                "retries": 0,
+                "file_path": "test_m1.py"
+            },
+            {
+                "name": "test_m1.py::TestMilestone1::test_m1_slots_loaded_correct",
+                "status": "passed",
+                "duration": 0.014229577005608007,
+                "start": 1780583420.2155674,
+                "stop": 1780583420.2303078,
+                "retries": 0,
+                "file_path": "test_m1.py"
+            },
+            {
+                "name": "test_m1.py::TestMilestone1::test_m1_approvals_linked_nonzero",
+                "status": "failed",
+                "raw_status": "call_failed",
+                "duration": 0.01231317800557008,
+                "start": 1780583420.2308834,
+                "stop": 1780583420.2692995,
+                "retries": 0,
+                "file_path": "test_m1.py",
+                "trace": "self = <test_m1.TestMilestone1 object at 0x7bc50ce24380>\n\n    def test_m1_approvals_linked_nonzero(self):\n        \"\"\"Sessions with approvals in the database report approvals_linked > 0.\"\"\"\n        _run_audit()\n        by_sess = _by_session(_load_report())\n        for sid in (\"sess-alpha\", \"sess-beta\", \"sess-gamma\", \"sess-delta\"):\n            linked = by_sess[sid][\"approvals_linked\"]\n>           assert linked > 0, (\n                f\"{sid}: approvals_linked={linked}, expected > 0 \u2014 \"\n                \"check that approval records are joined on approved_slot=slot_id\"\n            )\nE           AssertionError: sess-alpha: approvals_linked=0, expected > 0 \u2014 check that approval records are joined on approved_slot=slot_id\nE           assert 0 > 0\n\n/tests/test_m1.py:87: AssertionError",
+                "message": "The test failed in the call phase due to an assertion error"
+            },
+            {
+                "name": "test_m1.py::TestMilestone1::test_m1_approvals_linked_exact",
+                "status": "failed",
+                "raw_status": "call_failed",
+                "duration": 0.01112307400762802,
+                "start": 1780583420.2697206,
+                "stop": 1780583420.2868598,
+                "retries": 0,
+                "file_path": "test_m1.py",
+                "trace": "self = <test_m1.TestMilestone1 object at 0x7bc50ce24c00>\n\n    def test_m1_approvals_linked_exact(self):\n        \"\"\"approvals_linked counts match the actual approval records per session.\"\"\"\n        _run_audit()\n        by_sess = _by_session(_load_report())\n        for sid, expected in EXPECTED_APPROVALS.items():\n            got = by_sess[sid][\"approvals_linked\"]\n>           assert got == expected, f\"{sid}: approvals_linked={got}, want {expected}\"\nE           AssertionError: sess-alpha: approvals_linked=0, want 3\nE           assert 0 == 3\n\n/tests/test_m1.py:98: AssertionError",
+                "message": "The test failed in the call phase due to an assertion error"
+            },
+            {
+                "name": "test_m1.py::TestMilestone1::test_m1_required_fields_present",
+                "status": "passed",
+                "duration": 0.012879498994152527,
+                "start": 1780583420.2872834,
+                "stop": 1780583420.300622,
+                "retries": 0,
+                "file_path": "test_m1.py"
+            },
+            {
+                "name": "test_m1.py::TestMilestone1::test_m1_policy_violations_is_list",
+                "status": "passed",
+                "duration": 0.011942809003812727,
+                "start": 1780583420.3011093,
+                "stop": 1780583420.3134592,
+                "retries": 0,
+                "file_path": "test_m1.py"
+            },
+            {
+                "name": "test_m1.py::TestMilestone1::test_m1_approvals_linked_matches_direct_db_query",
+                "status": "failed",
+                "raw_status": "call_failed",
+                "duration": 0.013335739997273777,
+                "start": 1780583420.3139832,
+                "stop": 1780583420.3337116,
+                "retries": 0,
+                "file_path": "test_m1.py",
+                "trace": "self = <test_m1.TestMilestone1 object at 0x7bc50cf7b2f0>\n\n    def test_m1_approvals_linked_matches_direct_db_query(self):\n        \"\"\"approvals_linked matches a direct SQL query joining approved_slot to slot_id.\n    \n        The buggy implementation links approvals via approved_by = custodian_id (wrong column),\n        which yields 0 per session.  The correct join is approved_slot = slot_id.\n        This test bypasses the tool entirely and verifies counts against the database.\n        \"\"\"\n        _run_audit()\n        by_sess = _by_session(_load_report())\n    \n        conn = sqlite3.connect(DB)\n        for sid in EXPECTED_SESSIONS:\n            # Ground truth: count distinct slots that have at least one approval\n            # referencing them through the correct FK column (approved_slot = slot_id).\n            expected = conn.execute(\n                \"\"\"\n                SELECT COUNT(DISTINCT sr.slot_id)\n                FROM slot_registry sr\n                JOIN ceremony_approvals ap ON ap.approved_slot = sr.slot_id\n                WHERE sr.session_id = ?\n                \"\"\",\n                (sid,),\n            ).fetchone()[0]\n            reported = by_sess[sid][\"approvals_linked\"]\n>           assert reported == expected, (\n                f\"{sid}: approvals_linked={reported} but correct SQL join gives {expected}; \"\n                \"check that approvals are linked via ap.approved_slot = sr.slot_id, \"\n                \"not via ap.approved_by = sr.custodian_id\"\n            )\nE           AssertionError: sess-delta: approvals_linked=0 but correct SQL join gives 2; check that approvals are linked via ap.approved_slot = sr.slot_id, not via ap.approved_by = sr.custodian_id\nE           assert 0 == 2\n\n/tests/test_m1.py:152: AssertionError",
+                "message": "The test failed in the call phase due to an assertion error"
+            }
+        ]
+    }
+}

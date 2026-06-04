@@ -1,0 +1,17 @@
+{
+  "DEV-A01": {
+    "device_id": "DEV-A01",
+    "site_id": "SITE-NORTH",
+    "max_delta_kwh": 0.5
+  },
+  "DEV-A02": {
+    "device_id": "DEV-A02",
+    "site_id": "SITE-NORTH",
+    "max_delta_kwh": 0.5
+  },
+  "DEV-B01": {
+    "device_id": "DEV-B01",
+    "site_id": "SITE-SOUTH",
+    "max_delta_kwh": 1.0
+  }
+}

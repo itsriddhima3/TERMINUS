@@ -1,0 +1,31 @@
+user_visible_outputs = [
+  "/app/var/game.db",
+  "/app/bin/fluxctl",
+  "fluxctl status --json",
+  "/app/data/seeds/SCN-Alpha.toml",
+  "/app/data/transcripts/win_alpha.script",
+]
+
+internal_harness_files = [
+  "/app/scripts/build.sh",
+  "/app/scripts/init_workspace.sh",
+  "/app/app/probe_status.sh",
+  "/app/lib/run_go.sh",
+  "/app/data/transcripts/illegal_adj.script",
+]
+
+[structured_outputs.status_json]
+target = "fluxctl status --json"
+format = "json"
+instruction_checks = [
+  "scenario",
+  "tick",
+  "metric_a",
+  "metric_b",
+  "metric_c",
+  "stable_streak",
+  "won",
+  "lost",
+  "schema_version",
+  "grid",
+]

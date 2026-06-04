@@ -1,0 +1,22 @@
+{
+  "solo_lane": {"sku": "Alpha-Unit", "workers": 1, "qty_each": 3, "opening": 6},
+  "burst_dual": {"sku": "Alpha-Unit", "workers": 2, "qty_each": 4, "opening": 6},
+  "burst_quad": {"sku": "Beta-Crate", "workers": 4, "qty_each": 3, "opening": 10},
+  "mixed_skus": {"pairs": [{"sku": "Alpha-Unit", "workers": 2, "qty_each": 2, "opening": 6}, {"sku": "Gamma-Tote", "workers": 2, "qty_each": 2, "opening": 4}]},
+  "zero_floor": {"sku": "Gamma-Tote", "workers": 2, "qty_each": 2, "opening": 4},
+  "pipe_burst": {"sku": "Beta-Crate", "workers": 3, "qty_each": 4, "opening": 10, "pipelined": true},
+  "retry_lane": {"sku": "Alpha-Unit", "workers": 3, "qty_each": 3, "opening": 6, "retries": 2},
+  "reject_over_cap": {"sku": "Gamma-Tote", "workers": 1, "qty_each": 8, "opening": 4},
+  "gamma_solo": {"sku": "Gamma-Tote", "workers": 1, "qty_each": 1, "opening": 4},
+  "beta_solo": {"sku": "Beta-Crate", "workers": 1, "qty_each": 5, "opening": 10},
+  "alpha_edge": {"sku": "Alpha-Unit", "workers": 3, "qty_each": 2, "opening": 6},
+  "stress_fan": {"sku": "Beta-Crate", "workers": 5, "qty_each": 3, "opening": 10},
+  "stagger_race": {"sku": "Alpha-Unit", "workers": 8, "qty_each": 2, "opening": 6},
+  "triple_interleave": {"pairs": [{"sku": "Alpha-Unit", "workers": 3, "qty_each": 2, "opening": 6}, {"sku": "Beta-Crate", "workers": 3, "qty_each": 3, "opening": 10}, {"sku": "Gamma-Tote", "workers": 2, "qty_each": 2, "opening": 4}]},
+  "unit_rush": {"sku": "Beta-Crate", "workers": 10, "qty_each": 1, "opening": 10},
+  "two_phase_drain": {"sku": "Alpha-Unit", "opening": 6, "phases": [{"workers": 4, "qty_each": 2}, {"workers": 3, "qty_each": 2}]},
+  "canonical_drift": {"sku": "Beta-Crate", "workers": 4, "qty_each": 3, "opening": 10},
+  "odd_remainder": {"sku": "Beta-Crate", "workers": 7, "qty_each": 2, "opening": 10},
+  "bimodal_burst": {"sku": "Gamma-Tote", "opening": 4, "bimodal": [{"workers": 4, "qty_each": 1}, {"workers": 4, "qty_each": 3}]},
+  "saturated_fan": {"sku": "Alpha-Unit", "workers": 12, "qty_each": 1, "opening": 6}
+}

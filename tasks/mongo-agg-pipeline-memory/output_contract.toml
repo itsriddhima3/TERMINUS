@@ -1,0 +1,32 @@
+user_visible_outputs = [
+  "/app/output/pipeline_audit.json",
+  "/app/data/workload_matrix.json",
+  "/app/docs/spine_predicate_registry.md",
+  "/app/lib/mongosh_wrap.sh",
+  "/app/runners/k7_execute.sh",
+]
+
+internal_harness_files = [
+  "/app/lib/mongosh_wrap.sh",
+  "/app/init/ensure_mongo.sh",
+  "/app/runners/k7_execute.sh",
+]
+
+[structured_outputs.pipeline_audit]
+target = "/app/output/pipeline_audit.json"
+format = "json"
+instruction_checks = [
+  "schema_version",
+  "workload_label",
+  "spine_collection",
+  "filter_region",
+  "filter_event_type",
+  "result_total",
+  "grouped_keys",
+  "memory_limit_exceeded",
+  "allow_disk_enabled",
+  "first_stage_kind",
+  "match_stage_index",
+  "examined_to_returned_ratio",
+  "pipeline_hash",
+]

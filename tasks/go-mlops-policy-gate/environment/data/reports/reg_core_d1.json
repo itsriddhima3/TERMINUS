@@ -1,0 +1,12 @@
+{
+  "bench_id": "reg_core_d1",
+  "header": {
+    "kind": "regression_report",
+    "tier": "production"
+  },
+  "metrics": {
+    "rmse": 10.3,
+    "baseline_rmse": 10.0,
+    "mae_ratio": 1.02
+  }
+}

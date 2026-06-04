@@ -1,0 +1,18 @@
+--- a/cli/src/link/op_pick_c.cpp
++++ b/cli/src/link/op_pick_c.cpp
+@@ -4,13 +4,13 @@ namespace arc {
+ 
+ std::string pick_creator_auth(const std::vector<std::pair<std::string, std::string>>& names) {
+   for (const auto& [kind, nm] : names) {
+-    if (kind == "pers") {
++    if (kind == "corp") {
+       std::string auth = resolve_creator(nm);
+       if (!auth.empty()) return auth;
+     }
+   }
+   for (const auto& [kind, nm] : names) {
+-    if (kind == "corp") {
++    if (kind == "pers") {
+       std::string auth = resolve_creator(nm);
+       if (!auth.empty()) return auth;
+     }

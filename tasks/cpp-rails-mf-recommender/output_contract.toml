@@ -1,0 +1,38 @@
+user_visible_outputs = [
+  "/app/bin/ratectl",
+  "/app/output/splits/manifest.json",
+  "/app/output/splits/train.jsonl",
+  "/app/output/model/pack.bin",
+  "/app/output/submission/receipt.json",
+  "http://127.0.0.1:4567",
+]
+
+internal_harness_files = [
+  "/app/scripts/build.sh",
+  "/app/scripts/start_api.sh",
+  "/app/scripts/init_workspace.sh",
+  "/app/app/probe_fetch.sh",
+  "/app/service/db/ratings.db",
+]
+
+[structured_outputs.manifest]
+target = "/app/output/splits/manifest.json"
+format = "json"
+instruction_checks = [
+  "schema_version",
+  "split_id",
+  "n_users",
+  "n_items",
+  "n_train",
+  "train_sha256",
+]
+
+[structured_outputs.receipt]
+target = "/app/output/submission/receipt.json"
+format = "json"
+instruction_checks = [
+  "schema_version",
+  "accepted",
+  "rmse",
+  "n_scored",
+]

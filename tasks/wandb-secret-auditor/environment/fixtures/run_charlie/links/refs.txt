@@ -1,0 +1,3 @@
+artifact://public/model-C@v2
+file:/absolute/outside
+

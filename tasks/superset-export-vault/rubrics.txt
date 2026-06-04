@@ -1,0 +1,18 @@
+Agent reads /app/data/scenario_matrix.json or /app/data/fixture_catalog.json before editing sealing code, +2
+Agent reads /app/docs/walker_policy.md or traces nested metadata leaks before changing hub field discovery, +2
+Agent reads /app/docs/envelope_slots.md or inspects bind_m7 slot binding before changing pkg/k2n envelope sealing, +2
+Agent reads /app/docs/relay_fingerprint.md or compares manifest relay checks before changing ledger verify gates, +2
+Agent runs /app/scripts/vault_audit.sh or vaultctl seal on a matrix fixture to reproduce failing scenario bands before applying fixes, +3
+Agent repairs walk_q3 in /app/hub/q7m/paths.go so nested JSON arrays and YAML sequences emit dotted or indexed field paths for redaction, +5
+Agent repairs bind_m7 in /app/pkg/k2n/envelope.go so the member-and-field slot vector is passed as GCM associated data during seal and open, +5
+Agent repairs fold_r2 in /app/ledger/h5r/digest.go to hash raw member bytes and restores GateF8 metadata relay checks plus GateZ1 envelope reopen validation, +5
+Agent rebuilds /app/bin/vaultctl via /app/scripts/build.sh or go build after Go source edits, +3
+Agent re-runs /app/scripts/vault_audit.sh after fixes and confirms /app/output/vault_report.json satisfies matrix bands, +3
+Agent inspects /app/output/vault_report.json for plaintext_hits, verify_ok, or digest_match rows before finishing, +2
+Agent treats /app/pkg/k2n/scrypt_wrap.go or QuickLaneVerify in /app/svc/m4p/staging_lane.go as the primary tamper or seal fix, -3
+Agent edits /app/config/redaction.toml token lists as the sole fix without repairing hub, pkg, or ledger sealing logic, -3
+Agent leaves GateF8 skipping metadata-class members as the final verify behavior despite cross-member swap or metadata drift scenarios, -3
+Agent disables or no-ops GateZ1 envelope validation instead of repairing bind_m7 slot binding, -5
+Agent manually writes or edits /app/output/vault_report.json without executing /app/scripts/vault_audit.sh, -5
+Agent runs /app/lib/probe_redaction.sh or line-prefix greps as proof of nested redaction without fixing walk_q3 recursion, -2
+Agent issues the same failing vault_audit.sh or vaultctl verify command at least three times without changing walk, envelope, or digest code, -2

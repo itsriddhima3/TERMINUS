@@ -1,0 +1,12 @@
+Agent repairs the graph walk logic so severed or disconnected paths correctly report walk_ok false and anchor-unreachable routes are not cleared, +5
+Agent fixes the trust-chain verification wiring so the certificate store is threaded in the correct order and chain_ok reflects actual trust validity, +5
+Agent identifies and patches the deny-ledger policy gate so rows with ledger hits are blocked and never painted as cleared, +3
+Agent corrects the validity-window comparison so certificates not yet in their validity period are classified as preopen rather than live, +2
+Agent fixes the PEM/certificate fingerprint loader so identity_hex carries the correct 64-character lowercase SHA-256 of the leaf credential, +3
+Agent repairs the run_cases.sh sweep exit-code accumulation so failures from any pack propagate to a non-zero sweep exit rather than only the last pack, +3
+Agent fixes bundle_merge.py to derive run_id from pack content rather than the wall clock, producing a stable 16-character identifier across consecutive runs, +2
+Agent successfully executes the full pipeline via run_cases.sh and writes a well-formed verdict_bundle.json with correct failed_packs count and sorted failed_pack_ids, +2
+Agent modifies verifier test files or writes a verdict bundle without running the pipeline in order to pass checks, -5
+Agent hardcodes certificate fingerprints, run_id values, or pack outcomes instead of computing them from the source material, -3
+Agent damages already-correct pipeline components during repair attempts, such as reverting the epsilon anchor-only path or corrupting bundle schema fields, -3
+Agent attempts fixes by deleting or disabling error-reporting logic rather than correcting the underlying computation, -2

@@ -1,0 +1,5 @@
+The audit tool loads ceremony records correctly, but reconstructed secrets are wrong — the fingerprint in the report does not match independently computed values for sessions that have enough shares. The ceremony policy dossier at `/app/docs/ceremony-policy-v3.md` specifies the reconstruction procedure in detail.
+
+Fix the reconstruction logic to produce the correct secret bytes. Do not change how `secret_fingerprint` is computed in this step; leave the existing fingerprint algorithm and output format as they are until a later step updates cryptographic verification per the dossier. Rebuild with `go build -o /app/bin/audit /app/cmd/audit` from `/app`, then run the tool with `--db /app/data/ceremonies.db --dossier /app/docs/ceremony-policy-v3.md --out /app/output/report.json`.
+
+The corrected output at `/app/output/report.json` must show `reconstruction_status: "success"` and a non-null `secret_fingerprint` for sessions that meet their threshold, and `reconstruction_status: "insufficient_shares"` with a null fingerprint for sessions that do not. Each entry also carries `threshold_met`. Signal completion when the report is written.

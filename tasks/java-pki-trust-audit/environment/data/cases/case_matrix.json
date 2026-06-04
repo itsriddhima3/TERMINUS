@@ -1,0 +1,71 @@
+{
+  "schema_version": 1,
+  "eval_instant": "20240615120000Z",
+  "cases": [
+    {
+      "case_id": "valid_chain",
+      "corpus_pem": "/app/data/certs/corpus-valid.pem",
+      "trust_anchor_cn": "bench-root-live",
+      "leaf_cn": "bench-leaf-valid",
+      "bench_path": true
+    },
+    {
+      "case_id": "expired_root",
+      "corpus_pem": "/app/data/certs/corpus-expired-root.pem",
+      "trust_anchor_cn": "bench-root-expired",
+      "leaf_cn": "bench-leaf-expired",
+      "bench_path": true
+    },
+    {
+      "case_id": "revoked_intermediate",
+      "corpus_pem": "/app/data/certs/corpus-revoked-int.pem",
+      "trust_anchor_cn": "bench-root-live",
+      "leaf_cn": "bench-leaf-revoked-int",
+      "bench_path": true,
+      "crl_glob": "/app/data/crls/bench-int-revoked-*.crl"
+    },
+    {
+      "case_id": "path_too_deep",
+      "corpus_pem": "/app/data/certs/corpus-deep.pem",
+      "trust_anchor_cn": "bench-root-live",
+      "leaf_cn": "bench-leaf-deep",
+      "bench_path": true
+    },
+    {
+      "case_id": "dual_crl_supersede",
+      "corpus_pem": "/app/data/certs/corpus-dual-crl.pem",
+      "trust_anchor_cn": "bench-root-live",
+      "leaf_cn": "bench-leaf-valid",
+      "bench_path": true,
+      "crl_glob": "/app/data/crls/bench-int-clean-crl-*.crl"
+    },
+    {
+      "case_id": "pem_fork_noise",
+      "corpus_pem": "/app/data/certs/corpus-fork-noise.pem",
+      "trust_anchor_cn": "bench-root-live",
+      "leaf_cn": "bench-leaf-valid",
+      "bench_path": true
+    },
+    {
+      "case_id": "expired_intermediate",
+      "corpus_pem": "/app/data/certs/corpus-expired-intermediate.pem",
+      "trust_anchor_cn": "bench-root-live",
+      "leaf_cn": "bench-leaf-stale-int",
+      "bench_path": true
+    },
+    {
+      "case_id": "not_yet_valid_leaf",
+      "corpus_pem": "/app/data/certs/corpus-not-yet-valid.pem",
+      "trust_anchor_cn": "bench-root-live",
+      "leaf_cn": "bench-leaf-future",
+      "bench_path": true
+    },
+    {
+      "case_id": "missing_link",
+      "corpus_pem": "/app/data/certs/corpus-missing-link.pem",
+      "trust_anchor_cn": "bench-root-live",
+      "leaf_cn": "bench-leaf-valid",
+      "bench_path": true
+    }
+  ]
+}

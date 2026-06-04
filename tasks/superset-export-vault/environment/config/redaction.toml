@@ -1,0 +1,11 @@
+rules:
+  - member_suffix: ".yaml"
+    key_tokens: ["password", "secret", "uri", "token"]
+  - member_suffix: ".yml"
+    key_tokens: ["password", "secret", "uri", "token"]
+  - member_suffix: ".json"
+    key_tokens: ["password", "secret", "uri", "token"]
+  - member_suffix: ".yaml"
+    key_tokens: ["credential", "auth"]
+  - member_suffix: ".json"
+    key_tokens: ["credential", "auth"]

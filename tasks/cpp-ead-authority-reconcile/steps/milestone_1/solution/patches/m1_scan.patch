@@ -1,0 +1,13 @@
+--- a/cli/src/ingest/op_scan_x.cpp
++++ b/cli/src/ingest/op_scan_x.cpp
+@@ -65,7 +65,9 @@
+       trim(nm);
+       out.creators.emplace_back("corp", nm);
+     } else if (xmlStrcmp(c->name, BAD_CAST "persname") == 0) {
+-      continue;
++      std::string nm = text_of(c);
++      trim(nm);
++      out.creators.emplace_back("pers", nm);
+     } else if (xmlStrcmp(c->name, BAD_CAST "subject") == 0) {
+       std::string subj = text_of(c);
+       trim(subj);

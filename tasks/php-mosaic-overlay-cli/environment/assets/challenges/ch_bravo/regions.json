@@ -1,0 +1,24 @@
+{
+  "challenge_id": "ch_bravo",
+  "source_width": 64,
+  "source_height": 32,
+  "scene_a": "scene_a.png",
+  "scene_b": "scene_b.png",
+  "regions": [
+    {
+      "id": "bravo_region_ne",
+      "polygon": [[54, 0], [63, 0], [63, 8], [54, 8]],
+      "label": "upper_right_block"
+    },
+    {
+      "id": "bravo_region_nw",
+      "polygon": [[0, 0], [10, 0], [10, 8], [0, 8]],
+      "label": "upper_left_block"
+    },
+    {
+      "id": "bravo_region_quad",
+      "polygon": [[28, 18], [44, 16], [44, 28], [28, 26]],
+      "label": "center_quad"
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+# baseline lane without script boundary
+session calm_lane
+frames 120
+body alpha red 0 0 0 0 30 0.500
+body beta blue 6 0 0 0 30 0.500
+original
+event 40 1 alpha push 0.200 0
+event 80 2 beta push -0.150 0
+end
+playback
+event 40 1 alpha push 0.200 0
+event 80 2 beta push -0.150 0
+end

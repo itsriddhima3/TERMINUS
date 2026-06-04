@@ -1,0 +1,24 @@
+--- a/cli/src/main/java/trust/policy/RevTable.java
++++ b/cli/src/main/java/trust/policy/RevTable.java
+@@ -44,12 +44,18 @@ public final class RevTable {
+                 .generateCRL(new ByteArrayInputStream(der));
+     String issuer = CertSlice.extractCn(crl.getIssuerX500Principal());
+-    String thisUpdate = crl.getThisUpdate().toInstant().toString();
++    String thisUpdate = generalized(crl.getThisUpdate());
+     String prev = issuerThisUpdate.get(issuer);
+-    if (prev == null || thisUpdate.compareTo(prev) <= 0) {
++    if (prev == null || thisUpdate.compareTo(prev) > 0) {
++      revokedSerials.clear();
+       issuerThisUpdate.put(issuer, thisUpdate);
+       for (X509CRLEntry e : crl.getRevokedCertificates()) {
+         revokedSerials.add(e.getSerialNumber().toString(16));
+       }
+     }
+   }
++
++  private static String generalized(java.util.Date d) {
++    return java.time.format.DateTimeFormatter.ofPattern("yyyyMMddHHmmss'Z'")
++        .withZone(java.time.ZoneOffset.UTC)
++        .format(d.toInstant());
++  }
+ 

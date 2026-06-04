@@ -1,0 +1,11 @@
+--- a/cli/src/policy/op_acc_d.cpp
++++ b/cli/src/policy/op_acc_d.cpp
+@@ -10,7 +10,7 @@
+ 
+ std::string format_accession_candidate(const std::string& collection_id) {
+   if (collection_id.rfind("MS-", 0) == 0) {
+-    return std::string("MSS-") + collection_id.substr(3);
++    return collection_id;
+   }
+   return collection_id;
+ }

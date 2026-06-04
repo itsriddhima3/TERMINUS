@@ -1,0 +1,14 @@
+{
+  "bench_id": "mix_g7",
+  "header": {
+    "kind": "classification_report",
+    "tier": "staging"
+  },
+  "metrics": {
+    "macro_f1": 0.78,
+    "ece": 0.05,
+    "rmse": 11.15,
+    "baseline_rmse": 10.0,
+    "population_shift": 0.08
+  }
+}

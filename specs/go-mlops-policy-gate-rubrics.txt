@@ -1,0 +1,14 @@
+Agent reads /app/docs/bench_precedence.md or annex A1–A3 tables before changing threshold or emission logic, +2
+Agent reconciles volume 03 errata against primary annex precedence instead of keeping archive-on-disk ceilings for live grading, +3
+Agent reads /app/docs/ops_runbook/annex_a0_risk.md or field notes for risk bases before editing emission scoring, +2
+Agent runs /app/app/bench_audit.sh on matrix fixtures to reproduce reviewer disagreements before patching Go evaluator code, +3
+Agent repairs op_bind in /app/bindlane/ingest.go so embedding_report maps to the vector-lane family rather than regression tables, +5
+Agent repairs phase_t2 and Rank_u9 in /app/threshlane/resolve.go for tier multipliers, drift-cap ordering, and dual regression slot cites, +5
+Agent repairs step_k7 in /app/emitlane/emit.go for annex A0 risk bases, warn-path cited_rules, production vector fail elevation, and A3-REG-07 sidecar cites, +5
+Agent rebuilds /app/bin/gatectl via go build or bench_audit.sh after Go source edits, +3
+Agent re-runs bench_audit.sh and inspects /app/output/bench_verdicts.json for verdict, risk_score, and cited_rules per matrix key, +3
+Agent treats /app/config/runtime.toml [bands] stanza or /app/hub/r4v lookup helpers as the normative policy source without fixing bindlane, threshlane, and emitlane, -3
+Agent keeps legacy_annex.md file presence driving headline bands after reading bench_precedence.md, -3
+Agent hardcodes per-bench verdict rows in bench_verdicts.json or edits verifier tests instead of fixing the evaluator pipeline, -5
+Agent patches only one of bindlane, threshlane, or emitlane while leaving coupled annex binding, tier, or emission defects, -3
+Agent repeats the same failing bench_audit.sh outcome at least three times without changing ingest, resolve, or emit logic, -2

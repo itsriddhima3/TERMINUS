@@ -10,7 +10,14 @@ TASK_DIR="$1"
 TASK_NAME="$(basename "$TASK_DIR")"
 
 [[ -d "$TASK_DIR" ]]                || { echo "missing $TASK_DIR" >&2; exit 2; }
-[[ -f "$TASK_DIR/instruction.md" ]] || { echo "missing instruction.md" >&2; exit 2; }
+if [[ -f "$TASK_DIR/steps/milestone_1/instruction.md" ]]; then
+  : # canonical milestone layout
+elif [[ -f "$TASK_DIR/instruction.md" ]]; then
+  : # standard single-step layout
+else
+  echo "missing instruction.md (or steps/milestone_1/instruction.md for milestone tasks)" >&2
+  exit 2
+fi
 [[ -f "$TASK_DIR/task.toml" ]]      || { echo "missing task.toml" >&2; exit 2; }
 
 # Per-task authoring instrumentation. See docs/exec-plans/instrumentation.md.

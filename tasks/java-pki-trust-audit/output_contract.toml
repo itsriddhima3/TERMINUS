@@ -1,0 +1,31 @@
+user_visible_outputs = [
+  "/app/output/corpus_index.json",
+  "/app/output/audit_results.json",
+  "/app/output/trust.dot",
+  "/app/output/trust.svg",
+]
+internal_harness_files = [
+  "/app/bin/trustaudit",
+  "/app/scripts/build-audit.sh",
+  "/app/app/run_full_audit.sh",
+]
+
+[structured_outputs.corpus_index]
+target = "/app/output/corpus_index.json"
+format = "json"
+instruction_checks = ["schema_version", "case_id", "chain_cn", "chain_ok", "aki_link_ok"]
+
+[structured_outputs.audit_results]
+target = "/app/output/audit_results.json"
+format = "json"
+instruction_checks = ["schema_version", "verdict", "reason", "chain_cn"]
+
+[structured_outputs.trust_dot]
+target = "/app/output/trust.dot"
+format = "text"
+instruction_checks = ["digraph", "forestgreen", "fillcolor"]
+
+[structured_outputs.trust_svg]
+target = "/app/output/trust.svg"
+format = "text"
+instruction_checks = ["svg"]

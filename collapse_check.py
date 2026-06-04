@@ -118,6 +118,17 @@ STANDARD_NON_UI_TEST_SH_PREFIX_PATTERNS = (
     ("workdir guard exit", re.compile(r"^exit\s+1$")),
     ("workdir guard close", re.compile(r"^fi$")),
 )
+
+DOCKER_UV_TEST_SH_PREFIX_PATTERNS = (
+    ("uv environment source", re.compile(r"^source\s+\$HOME/\.local/bin/env$")),
+    ("workdir guard", re.compile(r'^if\s+\[\s+"\$PWD"\s*=\s*"/"\s*\];\s+then$')),
+    (
+        "workdir guard message",
+        re.compile(r'^echo\s+"Error:\s+No\s+working\s+directory\s+set\.\s+Please\s+set\s+a\s+WORKDIR\s+in\s+your\s+Dockerfile\."$'),
+    ),
+    ("workdir guard exit", re.compile(r"^exit\s+1$")),
+    ("workdir guard close", re.compile(r"^fi$")),
+)
 APT_LISTS_CLEANUP_PATTERN = re.compile(r"^rm\s+-rf\s+/var/lib/apt/lists/\*$")
 PREBUILT_APP_BUILD_PATTERN = re.compile(
     r"^\s*RUN\b[^\n]*(?:cmake\b[^\n]*-B\s+/app/build|cmake\s+--build\s+/app/build|make\b[^\n]*/app/build)",
@@ -161,7 +172,18 @@ def first_verifier_command_index(substantive_lines: list[str]) -> int | None:
     return None
 
 
-def non_ui_test_sh_prefix_mismatches(test_sh: str) -> list[str]:
+def dockerfile_preinstalls_verifier_uv(task_dir: Path) -> bool:
+    dockerfile = task_dir / "environment" / "Dockerfile"
+    if not dockerfile.exists():
+        return False
+    text = dockerfile.read_text(encoding="utf-8")
+    return "UV_OFFLINE=1" in text and "uv tool install" in text and "pytest" in text
+
+
+def non_ui_test_sh_prefix_mismatches(
+    test_sh: str,
+    prefix_patterns: tuple[tuple[str, re.Pattern[str]], ...] | None = None,
+) -> list[str]:
     substantive_lines = shell_substantive_lines(test_sh)
     verifier_index = first_verifier_command_index(substantive_lines)
     if verifier_index is None:
@@ -169,7 +191,8 @@ def non_ui_test_sh_prefix_mismatches(test_sh: str) -> list[str]:
     prefix = substantive_lines[:verifier_index]
     mismatches: list[str] = []
     prefix_index = 0
-    for expected_index, (label, pattern) in enumerate(STANDARD_NON_UI_TEST_SH_PREFIX_PATTERNS):
+    patterns = prefix_patterns or STANDARD_NON_UI_TEST_SH_PREFIX_PATTERNS
+    for expected_index, (label, pattern) in enumerate(patterns):
         if expected_index == 2 and prefix_index < len(prefix) and APT_LISTS_CLEANUP_PATTERN.search(prefix[prefix_index]):
             prefix_index += 1
         observed = prefix[prefix_index] if prefix_index < len(prefix) else "<missing>"
@@ -1355,7 +1378,10 @@ def analyze_oracle(task_dir: Path) -> dict:
     solution_dir = task_dir / "solution"
     env_dir = task_dir / "environment"
     root_script = solution_dir / "solve.sh"
-    if not root_script.exists():
+    milestone_scripts = sorted(
+        path for path in task_dir.glob("steps/milestone_*/solution/solve[0-9]*.sh") if path.is_file()
+    )
+    if not root_script.exists() and not milestone_scripts:
         return {
             "oracle_targets": [],
             "oracle_loc_non_boilerplate": 0,
@@ -1397,11 +1423,17 @@ def analyze_oracle(task_dir: Path) -> dict:
             source,
         )
 
-    def walk_script(script_path: Path, app_cwd: str = "", inherited_shell_vars: dict[str, str] | None = None) -> None:
+    def walk_script(
+        script_path: Path,
+        app_cwd: str = "",
+        inherited_shell_vars: dict[str, str] | None = None,
+        solution_dir: Path | None = None,
+    ) -> None:
         script_path = script_path.resolve()
         if script_path in seen_scripts:
             return
         seen_scripts.add(script_path)
+        active_solution_dir = solution_dir or (task_dir / "solution")
         content = script_path.read_text(encoding="utf-8", errors="replace")
         shell_vars = dict(inherited_shell_vars or {})
         shell_vars.setdefault("ROOT_DIR", str(script_path.parent))
@@ -1464,7 +1496,7 @@ def analyze_oracle(task_dir: Path) -> dict:
 
             patch_token = extract_patch_token(stripped)
             if patch_token:
-                patch_path = resolve_solution_host_path(patch_token, script_path, solution_dir, shell_vars)
+                patch_path = resolve_solution_host_path(patch_token, script_path, active_solution_dir, shell_vars)
                 if patch_path and patch_path not in seen_patches:
                     seen_patches.add(patch_path)
                     patch_info = analyze_patch_file(patch_path)
@@ -1484,21 +1516,29 @@ def analyze_oracle(task_dir: Path) -> dict:
 
             source_label = str(script_path.relative_to(task_dir))
             for op in extract_shell_rewrite_ops(
-                stripped, app_cwd, shell_vars, script_path, solution_dir, ignored_frontier_roots
+                stripped, app_cwd, shell_vars, script_path, active_solution_dir, ignored_frontier_roots
             ):
                 record_operation(op, source_label)
 
             called_script_token = extract_called_script_token(stripped)
             if called_script_token:
-                called_script = resolve_solution_host_path(called_script_token, script_path, solution_dir, shell_vars)
-                if called_script and solution_dir in called_script.parents:
-                    walk_script(called_script, app_cwd, shell_vars)
+                called_script = resolve_solution_host_path(called_script_token, script_path, active_solution_dir, shell_vars)
+                if called_script and active_solution_dir in called_script.parents:
+                    walk_script(called_script, app_cwd, shell_vars, active_solution_dir)
 
             i += 1
 
         record_source(script_path, "shell", loc)
 
-    walk_script(root_script)
+    scripts_to_walk: list[Path] = []
+    if root_script.exists():
+        scripts_to_walk.append(root_script)
+    else:
+        scripts_to_walk.extend(milestone_scripts)
+
+    for entry_script in scripts_to_walk:
+        entry_solution_dir = entry_script.parent
+        walk_script(entry_script, solution_dir=entry_solution_dir)
 
     comparable_writes: list[dict[str, object]] = []
     for op in operations:
@@ -2095,7 +2135,12 @@ def rc4_tamper_surface(task_dir: Path) -> dict:
 
     # 4. Non-standard pre-pytest shell flow
     if test_sh:
-        prefix_mismatches = non_ui_test_sh_prefix_mismatches(test_sh)
+        prefix_patterns = (
+            DOCKER_UV_TEST_SH_PREFIX_PATTERNS
+            if dockerfile_preinstalls_verifier_uv(task_dir)
+            else STANDARD_NON_UI_TEST_SH_PREFIX_PATTERNS
+        )
+        prefix_mismatches = non_ui_test_sh_prefix_mismatches(test_sh, prefix_patterns)
         if prefix_mismatches:
             issues.append({
                 "type": "custom_pre_pytest_commands",

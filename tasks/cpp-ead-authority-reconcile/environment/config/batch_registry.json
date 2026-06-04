@@ -1,0 +1,9 @@
+{
+  "batches": [
+    {
+      "batch_id": "ARC-2024-Q2",
+      "ead_dir": "ead",
+      "files": ["UA-0012.xml", "MS-0456.xml", "PH-0789.xml"]
+    }
+  ]
+}

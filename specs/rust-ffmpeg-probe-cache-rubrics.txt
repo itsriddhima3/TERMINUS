@@ -1,0 +1,22 @@
+Probe cache contention — submission rubrics
+
+Agent reads /app/docs/bench_precedence.md or /app/docs/catalog/part_00_rubric.md before treating archive bulletins or ops notes as authoritative repair guidance, +2
+Agent reads /app/docs/ingest_contract.md or /app/docs/lane_matrix.md before validating stress ledger shape or per-lane row totals, +2
+Agent reads /app/docs/catalog/part_01_open.md, /app/docs/catalog/part_02_write.md, or /app/docs/catalog/part_03_lane.md before changing open, write-lane, or retry behavior, +2
+Agent reads /app/config/bench_profiles.toml before editing K2, Q3, or P2 numeric bindings in source, +2
+Agent runs /app/bin/m7desk run-stress with /app/data/stress_manifest.toml and inspects stderr or /app/output/stress_ledger.json before repairing ingest modules, +3
+Agent traces the live stress path through /app/m7desk into /app/k9m, /app/r2n, and /app/p4v rather than decoy modules or harness notes first, +3
+Agent rebuilds /app/bin/m7desk via /app/scripts/build.sh after Rust source edits, +3
+Agent repairs apply_open_bundle in /app/k9m/op_m7.rs so matrix catalogs keep WAL journal family and synchronous mode is not OFF, +5
+Agent repairs run_q3_scope in /app/r2n/q3_wire.rs so parallel workers use pooled connections with per-insert transactions, +5
+Agent repairs persist_row in /app/p4v/op_p2.rs so SQLITE_BUSY retries follow the bench profile backoff schedule through eight attempts, +5
+Agent re-runs stress and confirms summary.all_complete is true with zero per-lane busy_events before finishing, +3
+Agent uses /app/scripts/dimension_probe.sh or sqlite3 on /tmp/m7desk_stress lane catalogs when reconciling journal_mode versus observed_rows, +2
+
+Agent treats /app/docs/ops/bulletin_09.md or VACUUM guidance as the primary lock-storm repair instead of catalog K2, Q3, or P2 requirements, -3
+Agent treats /app/docs/archive/legacy_journal_notes.md busy_timeout-only guidance as the sole pragma repair instead of k9m open bundle requirements, -3
+Agent treats /app/decoy/r2n_pool_template.rs, /app/decoy/sync_hint.rs, or /app/decoy/read_lane.rs as the authoritative pool or pragma repair instead of k9m, r2n, or p4v, -3
+Agent patches only one of /app/k9m/op_m7.rs, /app/r2n/q3_wire.rs, or /app/p4v/op_p2.rs while coupled open, pool, or retry defects remain in the other modules, -3
+Agent raises only busy_timeout or pool max_size in isolation without fixing journal family downgrade or transactional write scope, -3
+Agent manually writes or edits /app/output/stress_ledger.json without executing m7desk run-stress after rebuild, -5
+Agent repeats the same failing stress outcome at least three times without changing k9m, r2n, or p4v sources, -2

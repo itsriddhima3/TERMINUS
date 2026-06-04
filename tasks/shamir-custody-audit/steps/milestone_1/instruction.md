@@ -1,0 +1,5 @@
+The ceremony audit tool at `/app/bin/audit` produces reports where every session shows zero linked approvals, even though the database contains approval records for multiple sessions. The ceremony policy dossier at `/app/docs/ceremony-policy-v3.md` specifies how approval records are associated with custodian slots and what constitutes a valid linkage.
+
+Fix the approval linkage logic so `approvals_linked` correctly reflects the number of slots with associated approval records. After fixing, rebuild with `go build -o /app/bin/audit /app/cmd/audit` from `/app`, then run the tool with `--db /app/data/ceremonies.db --dossier /app/docs/ceremony-policy-v3.md --out /app/output/report.json`.
+
+The output at `/app/output/report.json` must contain an `audit_results` array where each entry includes `session_id`, `slots_loaded`, `approvals_linked`, `reconstruction_status`, `secret_fingerprint`, `threshold_met`, `quorum_valid`, `policy_violations`, and `verification_status`. Signal completion when the report is written.

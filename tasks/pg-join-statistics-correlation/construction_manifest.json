@@ -1,0 +1,138 @@
+{
+  "symbol_table": [
+    {
+      "path": "migrations/x9k.sql",
+      "symbol": "st_x9",
+      "kind": "constant",
+      "signature": "CREATE STATISTICS st_x9 (dependencies) ON region_id, zone_code FROM bridge_facility_zone",
+      "purpose": "extended statistics object on bridge table column pair"
+    },
+    {
+      "path": "store/a7k.sql",
+      "symbol": "cfg_a7",
+      "kind": "constant",
+      "signature": "ALTER TABLE bridge_facility_zone ALTER COLUMN region_id SET STATISTICS 1000",
+      "purpose": "raises statistics target on bridge region column"
+    },
+    {
+      "path": "lib/r2k.sql",
+      "symbol": "op_r2",
+      "kind": "function",
+      "signature": "ANALYZE bridge_facility_zone",
+      "purpose": "refreshes catalog statistics after object creation"
+    }
+  ],
+  "flipping_point_contract": {
+    "locations": [
+      {
+        "id": "A",
+        "path": "migrations/x9k.sql",
+        "controls_tests": [
+          "test_bridge_estimate_ratio_in_band",
+          "test_inventory_estimate_ratio_in_band",
+          "test_spine_driver_allowed",
+          "test_spine_registry_clusters_catalogued",
+          "test_lane_decoy_cluster_alone_insufficient",
+          "test_independent_plan_confirms_hash_spine_driver",
+          "test_spine_driver_is_hash_join",
+          "test_report_schema_version",
+          "test_workload_label"
+        ]
+      },
+      {
+        "id": "B",
+        "path": "lib/r2k.sql",
+        "controls_tests": [
+          "test_hash_joins_present",
+          "test_nested_loops_within_cap",
+          "test_hash_join_share_meets_floor",
+          "test_core_spine_tables_recently_analyzed",
+          "test_independent_spine_count_matches_report",
+          "test_catalog_table_count",
+          "test_filter_constants"
+        ]
+      },
+      {
+        "id": "C",
+        "path": "store/a7k.sql",
+        "controls_tests": [
+          "test_result_total_in_band",
+          "test_plan_root_rows_sane",
+          "test_bridge_statistics_target_elevated",
+          "test_fact_shipment_statistics_target_elevated",
+          "test_report_row_consistency",
+          "test_bridge_facility_cardinality_baseline"
+        ]
+      }
+    ],
+    "no_single_location_flips_majority": true,
+    "concentration_cap": 0.5
+  },
+  "decoy_manifest": [
+    {
+      "path": "environment/q/m3_helpers.sql",
+      "kind": "helper",
+      "rhymes_with": "op_r2",
+      "non_fix_purpose": "session and lane aggregate helpers for dashboards"
+    },
+    {
+      "path": "environment/migrations/v2_stats_note.sql",
+      "kind": "module",
+      "rhymes_with": "st_x9",
+      "non_fix_purpose": "ops refresh log table unrelated to planner objects"
+    },
+    {
+      "path": "environment/migrations/w9_decoy.sql",
+      "kind": "module",
+      "rhymes_with": "st_x9",
+      "non_fix_purpose": "lane/carrier dependency stats that do not satisfy spine registry clusters"
+    }
+  ],
+  "code_forbidden_tokens": [
+    "logistics",
+    "reporting",
+    "database",
+    "planner",
+    "reference",
+    "material",
+    "corpus",
+    "fulfillment",
+    "spine",
+    "workload",
+    "audit",
+    "harness",
+    "grading",
+    "schema",
+    "version",
+    "label",
+    "catalog",
+    "tables",
+    "filter",
+    "region",
+    "zone",
+    "code",
+    "total",
+    "methods",
+    "driver",
+    "ratio",
+    "nested",
+    "loop",
+    "joins",
+    "hash",
+    "merge",
+    "bridge",
+    "estimate",
+    "actual",
+    "rows",
+    "executors",
+    "guidance",
+    "repair",
+    "planning",
+    "line",
+    "seconds",
+    "generic",
+    "guides",
+    "acceptance",
+    "bands"
+  ]
+}

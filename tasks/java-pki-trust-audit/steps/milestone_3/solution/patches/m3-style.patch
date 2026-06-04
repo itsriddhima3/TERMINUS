@@ -1,0 +1,19 @@
+--- a/cli/src/main/java/trust/graph/emit/StyleLedger.java
++++ b/cli/src/main/java/trust/graph/emit/StyleLedger.java
+@@ -6,11 +6,11 @@
+   private StyleLedger() {}
+ 
+   public static Map<String, String> attrsFor(String role) {
+-  return switch (role) {
+-      case "valid_path" -> Map.of("fillcolor", "#ffffff", "color", "black");
+-      case "rejected" -> Map.of("fillcolor", "#ffffcc", "style", "filled");
+-      case "expired_root" -> Map.of("fillcolor", "#dddddd", "style", "solid");
+-      case "revoked_intermediate" -> Map.of("color", "black", "penwidth", "1");
++    return switch (role) {
++      case "valid_path" -> Map.of("fillcolor", "#e8f5e9", "color", "forestgreen");
++      case "rejected" -> Map.of("fillcolor", "orange", "style", "filled");
++      case "expired_root" -> Map.of("fillcolor", "gray", "style", "dashed");
++      case "revoked_intermediate" -> Map.of("color", "red", "penwidth", "2", "peripheries", "2");
+       default -> Map.of();
+     };
+   }

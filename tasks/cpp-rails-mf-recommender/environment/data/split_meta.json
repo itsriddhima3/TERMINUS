@@ -1,0 +1,14 @@
+{
+  "split_id": "bench-split-a7",
+  "n_users": 24,
+  "n_items": 32,
+  "n_train": 504,
+  "n_holdout": 57,
+  "per_page": 17,
+  "fit_seed": 42,
+  "n_factors": 8,
+  "fit_epochs": 30,
+  "lr_base": 0.02,
+  "lr_decay": 0.05,
+  "rmse_threshold": 0.85
+}

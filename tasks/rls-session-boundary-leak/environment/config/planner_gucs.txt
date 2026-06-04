@@ -1,0 +1,14 @@
+# Session GUC reference (internal)
+
+app.scope_id
+  Custom integer GUC set by application checkout code before each EXECUTE.
+  Not transaction-local unless callers use SET LOCAL (audit rows use SET).
+
+plan_cache_mode
+  auto | force_generic_plan | force_custom_plan
+  Cluster default: auto. Profile bundle leaves svc_runner at auto for throughput.
+  Audit sessions may force generic plans to reproduce pool warm-cache leaks.
+  Role-level override stored in pg_roles.rolconfig as plan_cache_mode=force_custom_plan.
+
+search_path
+  Locked to public on application roles via /app/v/h3v.sql.

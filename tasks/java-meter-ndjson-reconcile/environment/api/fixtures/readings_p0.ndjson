@@ -1,0 +1,5 @@
+{"device_id":"DEV-A01","reading_at":"2024-01-01T00:00:00Z","register_kwh":100.0,"interval_min":15}
+{"device_id":"DEV-A01","reading_at":"2024-01-01T00:15:00Z","register_kwh":100.25,"interval_min":15}
+{"device_id":"DEV-A02","reading_at":"2024-01-01T00:00:00Z","register_kwh":50.0,"interval_min":15}
+{"device_id":"DEV-A02","reading_at":"2024-01-01T00:30:00Z","register_kwh":50.5,"interval_min":15}
+{"device_id":"DEV-B01","reading_at":"2024-01-01T00:00:00Z","register_kwh":200.0,"interval_min":15}

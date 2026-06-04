@@ -1,0 +1,28 @@
+user_visible_outputs = [
+  "/app/output/plan_audit.json",
+  "/app/data/workload_matrix.json",
+  "/app/docs/correlation_registry.md",
+]
+
+internal_harness_files = [
+  "/app/lib/explain_collect.sh",
+  "/app/lib/psql_wrap.sh",
+  "/app/init/ensure_pg.sh",
+  "/app/q/spine_template.sql",
+]
+
+[structured_outputs.plan_audit]
+target = "/app/output/plan_audit.json"
+format = "json"
+instruction_checks = [
+  "schema_version",
+  "workload_label",
+  "catalog_tables",
+  "filter_region_id",
+  "filter_zone_code",
+  "result_total",
+  "join_methods",
+  "spine_driver",
+  "bridge_estimate_ratio",
+  "inventory_estimate_ratio",
+]

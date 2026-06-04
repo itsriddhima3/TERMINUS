@@ -1,0 +1,4 @@
+{"seq":1,"epoch":1,"wall_ms":1100,"payload":"e1","crc":151,"member":"n2"}
+{"seq":2,"epoch":2,"wall_ms":1200,"payload":"e2","crc":149,"member":"n2"}
+{"seq":3,"epoch":3,"wall_ms":1300,"payload":"e3","crc":155,"member":"n2"}
+{"seq":4,"epoch":4,"wall_ms":5000,"payload":"ok","crc":222}

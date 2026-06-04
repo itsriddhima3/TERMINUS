@@ -1,0 +1,14 @@
+{
+  "line_id": "delta",
+  "q_size": 3,
+  "split_gen": 10,
+  "lag_tight_ms": 25,
+  "trust_anchor": "edge-v2",
+  "stations": [
+    "n1",
+    "n2",
+    "n3",
+    "n4",
+    "n5"
+  ]
+}

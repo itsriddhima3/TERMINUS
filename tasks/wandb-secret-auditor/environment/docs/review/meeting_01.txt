@@ -1,0 +1,32 @@
+Security review transcript (excerpted + anonymized)
+
+---
+Meta:
+- Project: demo-proj
+- Timeline: 2026-03-15 to 2026-04-20
+
+Notes:
+We are reviewing offline run folders captured from multiple developer laptops.
+The audit tool needs to be deterministic, and it must apply the currently active
+policy revision (older drafts remain in this transcript for context).
+
+Draft policy tags discussed:
+POLICY_TAG: SR-2026-02
+POLICY_TAG: SR-2026-03
+
+Redaction:
+REDACT: api_key=[A-Z0-9\-]{8,64}
+REDACT: token:\s*[a-zA-Z0-9_]{8,64}
+
+Reference rules (draft):
+ALLOW_REF_PREFIX: artifact://public/
+
+Approvals (draft):
+APPROVAL_KEY: alpha-review-key-seed
+NONCE_FMT: NNC-v1:<run>:<8hex>
+
+Discussion:
+- Several runs have tokens in logs that must never appear in the report output.
+- Directory references are sensitive; traversal or absolute paths must be treated as unsafe unless explicitly allowed.
+- Keep the output stable (sorted lists, stable formatting).
+

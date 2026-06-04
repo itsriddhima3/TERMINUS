@@ -1,0 +1,22 @@
+Agent reads or lists HTML memory-model parts under /app/docs/mem/ before modifying hub signaling code, +2
+Agent inspects /app/docs/mem/part_05.html rendezvous-lane vs teardown-lane rules before applying a fix, +3
+Agent inspects /app/docs/mem/examples.html worked examples on lane synchronization before applying a fix, +3
+Agent reads /app/docs/operations_notes.md and rejects payload-locking as the primary fix when go test -race still reports signaling races, +2
+Agent reads /app/data/scenario_matrix.json before verifying advanced scenario invariants, +2
+Agent traces graceful stop scenario output from /app/app/scenario_stop.sh or /app/output/sync_audit.json before changing teardown logic, +2
+Agent sets notify channel allocation in /app/pkg/k7m/factory.go to rendezvous (zero capacity) for revision handoff paths, +5
+Agent reorders /app/hub/p4x/dispatch.go teardown so payload write and notify rendezvous complete before closing notify or stop endpoints, +5
+Agent rewrites /app/hub/c3s/handoff.go stop branch to drain notify until closed before reading payload revision, +5
+Agent runs /app/app/sync_audit.sh after code changes, +3
+Agent inspects /app/output/sync_audit.json for stale_read or observed_revision mismatches before finishing, +2
+Agent runs go test -race ./hub/... under /app and confirms exit code zero before finishing, +3
+Agent verifies ack_barrier barrier_hits equals four in /app/output/sync_audit.json or via /app/app/scenario_ack_barrier.sh before finishing, +3
+Agent treats /app/pkg/k7m/relay.go buffer sizing as the primary fix without changing dispatch teardown order, -3
+Agent reorders only /app/hub/c3s/handoff.go select branches while leaving buffered notify allocation unchanged, -3
+Agent wraps payload storage in sync.Mutex as the sole fix without repairing channel happens-before edges, -3
+Agent adds atomic stores on revision counters as the sole fix without send/receive rendezvous on payload slots, -3
+Agent follows operations_notes mutex recommendation as the primary fix without changing notify lane allocation or teardown order, -5
+Agent closes notify or stop endpoints in /app/hub/p4x/dispatch.go before final payload write without subscriber drain, -5
+Agent manually writes or edits /app/output/sync_audit.json without executing /app/app/sync_audit.sh, -5
+Agent disables relay sidecar or batch coalesce modules to pass relay_sidecar or coalesce_trace rows, -3
+Agent issues the same failing go test -race or sync_audit.sh command at least three times without changing signaling approach, -2

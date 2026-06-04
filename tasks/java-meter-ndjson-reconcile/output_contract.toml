@@ -1,0 +1,33 @@
+user_visible_outputs = [
+  "/app/scripts/start-api.sh",
+  "/app/bin/meterctl",
+  "/app/var/readings.json",
+  "/app/var/normalized.json",
+  "/app/output/reconcile.json",
+  "/app/output/normalized.csv",
+]
+
+internal_harness_files = [
+  "/app/scripts/build-cli.sh",
+  "/app/scripts/build-api.sh",
+]
+
+[structured_outputs.readings]
+target = "/app/var/readings.json"
+format = "json"
+instruction_checks = ["meter_id", "readings"]
+
+[structured_outputs.normalized]
+target = "/app/var/normalized.json"
+format = "json"
+instruction_checks = ["meter_id", "readings", "site_id", "rate_cents", "corrected_register_kwh"]
+
+[structured_outputs.reconcile]
+target = "/app/output/reconcile.json"
+format = "json"
+instruction_checks = ["meter_id", "gap_events", "duplicate_events", "impossible_delta_events", "cost_by_site"]
+
+[structured_outputs.normalized_csv]
+target = "/app/output/normalized.csv"
+format = "csv"
+instruction_checks = ["device_id", "reading_at", "register_kwh", "site_id", "rate_cents", "issue"]

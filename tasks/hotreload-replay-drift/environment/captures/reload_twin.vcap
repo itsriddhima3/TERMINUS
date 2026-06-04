@@ -1,0 +1,16 @@
+session reload_twin
+frames 160
+reload 90 mod_a
+body east red 0 0 0 0 32 0.600
+body west blue 7 0 0 0 32 0.600
+body north blue 3 4 0 0 24 0.500
+original
+event 70 1 east push 0.250 0
+event 95 2 west push -0.180 0
+event 120 3 north push 0.120 0.080
+end
+playback
+event 70 1 east push 0.250 0
+event 95 2 west push -0.180 0
+event 120 3 north push 0.120 0.080
+end

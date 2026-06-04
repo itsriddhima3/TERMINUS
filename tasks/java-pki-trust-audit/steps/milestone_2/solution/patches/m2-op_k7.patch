@@ -1,0 +1,70 @@
+--- a/cli/src/main/java/trust/policy/op_k7.java
++++ b/cli/src/main/java/trust/policy/op_k7.java
+@@ -1,10 +1,10 @@
+ package trust.policy;
+ 
+-import java.time.Instant;
+-import java.time.format.DateTimeFormatter;
+-import java.time.format.DateTimeParseException;
++import java.text.SimpleDateFormat;
++import java.util.Date;
+ import java.util.List;
+ import java.util.Map;
++import java.util.TimeZone;
+ import trust.parse.CertSlice;
+ import trust.parse.step_p4;
+ 
+@@ -28,8 +28,18 @@
+     if (anchor != null && notAfterBefore(anchor, evalInstant)) {
+       return "expired_root";
+     }
+-    if (chain.size() > 6) {
++    if (chain.size() > 4) {
+       return "path_length";
++    }
++    for (int i = 1; i < chain.size() - 1; i++) {
++      CertSlice mid = byCn.get(chain.get(i));
++      if (mid != null && notAfterBefore(mid, evalInstant)) {
++        return "expired_intermediate";
++      }
++    }
++    CertSlice leaf = byCn.get(chain.get(chain.size() - 1));
++    if (leaf != null && notBeforeAfter(leaf, evalInstant)) {
++      return "not_yet_valid";
+     }
+     for (CertSlice s : slices) {
+       String serial = s.x509().getSerialNumber().toString(16);
+@@ -45,21 +55,25 @@
+     return "accept";
+   }
+ 
++  private static Date parseEval(String evalInstant) throws Exception {
++    SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmss'Z'");
++    sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
++    return sdf.parse(evalInstant);
++  }
++
+   private static boolean notAfterBefore(CertSlice cert, String evalInstant) {
+     try {
+-      Instant eval = parseInstant(evalInstant);
+-      return cert.x509().getNotAfter().toInstant().isBefore(eval);
++      return cert.x509().getNotAfter().before(parseEval(evalInstant));
+     } catch (Exception e) {
+       return false;
+     }
+   }
+ 
+-  private static Instant parseInstant(String z) {
+-    if (z.endsWith("Z") && z.length() == 16 && z.indexOf('T') < 0) {
+-      return DateTimeFormatter.ofPattern("yyyyMMddHHmmss'Z'")
+-          .withZone(java.time.ZoneOffset.UTC)
+-          .parse(z, Instant::from);
++  private static boolean notBeforeAfter(CertSlice cert, String evalInstant) {
++    try {
++      return cert.x509().getNotBefore().after(parseEval(evalInstant));
++    } catch (Exception e) {
++      return false;
+     }
+-    return Instant.parse(z);
+   }
+ }

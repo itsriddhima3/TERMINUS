@@ -1,0 +1,32 @@
+{
+  "fixtures": {
+    "acme_flat": "/app/fixtures/acme_export.tgz",
+    "nested_oauth": "/app/fixtures/nested_export.tgz",
+    "json_array": "/app/fixtures/array_export.tgz",
+    "yaml_replica": "/app/fixtures/replica_export.tgz",
+    "whitespace_sensitive": "/app/fixtures/whitespace_export.tgz"
+  },
+  "needles": {
+    "acme_flat": ["acme-db-s3cr3t-8842", "oauth-flat-secret-5520", "acme-replica-pass-4401"],
+    "nested_oauth": ["nested-oauth-secret-7711", "warehouse-pass-9901"],
+    "json_array": [
+      "array-oauth-x777",
+      "array-oauth-y888",
+      "array-backup-z999",
+      "array-db-primary-1122"
+    ],
+    "yaml_replica": [
+      "replica-node-east-4419",
+      "replica-node-east-9923",
+      "replica-node-west-5518"
+    ],
+    "whitespace_sensitive": ["ws-sensitive-3301  "]
+  },
+  "roundtrip_digests": {
+    "acme_flat": "PLACEHOLDER",
+    "nested_oauth": "PLACEHOLDER",
+    "json_array": "PLACEHOLDER",
+    "yaml_replica": "PLACEHOLDER",
+    "whitespace_sensitive": "PLACEHOLDER"
+  }
+}

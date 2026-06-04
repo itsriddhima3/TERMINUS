@@ -1,0 +1,20 @@
+--- a/internal/policy/rules.go
++++ b/internal/policy/rules.go
+@@ -6,7 +6,7 @@
+ // tier constraints defined in the pair map.
+ func checkPair(slots []types.SlotRecord, pm pairMap) bool {
+ 	for _, pair := range pm.cannotCoexist {
+-		if tierPresent(slots, pair.Alpha) || tierPresent(slots, pair.Beta) {
++		if tierPresent(slots, pair.Alpha) && tierPresent(slots, pair.Beta) {
+ 			return false
+ 		}
+ 	}
+@@ -18,7 +18,7 @@
+ func Violations(slots []types.SlotRecord, pm pairMap) []string {
+ 	var vs []string
+ 	for _, pair := range pm.cannotCoexist {
+-		if tierPresent(slots, pair.Alpha) || tierPresent(slots, pair.Beta) {
++		if tierPresent(slots, pair.Alpha) && tierPresent(slots, pair.Beta) {
+ 			vs = append(vs, "cannot_coexist:"+pair.Alpha+"+"+pair.Beta)
+ 		}
+ 	}

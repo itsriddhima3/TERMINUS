@@ -1,0 +1,416 @@
+{
+  "hardness_axes": [
+    {
+      "id": "discover",
+      "name": "Discover",
+      "verdict": "PASS",
+      "reasoning": "Solver must read the HTML memory-model corpus and correlate examples with failing graceful-stop and late-attach scenarios under -race; instruction does not name the violating primitive."
+    },
+    {
+      "id": "synthesize",
+      "name": "Synthesize",
+      "verdict": "PASS",
+      "reasoning": "Correct fix coordinates channel factory capacity, publisher teardown send/close order, and subscriber drain-then-read handoff across three packages."
+    },
+    {
+      "id": "diagnose",
+      "name": "Diagnose",
+      "verdict": "PASS",
+      "reasoning": "Instruction reports intermittent stale revision reads and race-detector noise, not buffer sizes or close ordering."
+    },
+    {
+      "id": "navigate_coupling",
+      "name": "Navigate coupling",
+      "verdict": "PASS",
+      "reasoning": "Mutex-only or single-file reorder passes some scenarios but fails others and still trips -race until all three loci align."
+    },
+    {
+      "id": "reason_beyond_training",
+      "name": "Reason beyond training",
+      "verdict": "PASS",
+      "reasoning": "Fix derives from org-reframed Go memory-model channel rules (rendezvous lane vs teardown lane) in a 65-page corpus — not mutex/chan textbook idioms. Mutex, atomic, and cap-only shortcuts are explicit trap paths that fail -race and advanced invariants."
+    }
+  ],
+  "anti_trivialization_checks": [
+    {"id": "1", "name": "Disclosure-collapse", "verdict": "PASS", "reasoning": "Symptoms-only instruction omits buffer capacity, close order, and spec references."},
+    {"id": "2", "name": "Hidden-instance", "verdict": "PASS", "reasoning": "Defect spans factory, dispatch, and handoff; no single file search."},
+    {"id": "3", "name": "Single-artifact repair", "verdict": "PASS", "reasoning": "Flipping_point_contract proves no single file controls majority of tests."},
+    {"id": "4", "name": "Generalization", "verdict": "PASS", "reasoning": "Fourteen scenario rows plus hub stress_summary cover fan-out, detach, toggle, drain, relay decoy, coalesce, registry growth, ack barrier, ring rotation, and package-level -race."},
+    {"id": "5", "name": "Prompt-honesty", "verdict": "PASS", "reasoning": "Even honest symptom description requires corpus-to-code mapping."},
+    {"id": "6", "name": "Cheating-vs-difficulty", "verdict": "PASS", "reasoning": "Audit JSON forgery penalized; difficulty is synchronization reasoning."},
+    {"id": "7", "name": "Mechanical-fix filter", "verdict": "PASS", "reasoning": "Not a timeout or dep-pin task."},
+    {"id": "8", "name": "Localized-fix", "verdict": "PASS", "reasoning": "Three distributed loci required."},
+    {"id": "9", "name": "Oracle-locality", "verdict": "PASS", "reasoning": "Oracle edits three Go files with coordinated semantics."},
+    {"id": "10", "name": "Small declarative-cluster", "verdict": "PASS", "reasoning": "Not a config-table repair."},
+    {"id": "11", "name": "Grep-collapse", "verdict": "PASS", "reasoning": "Instruction nouns banned from fix-path code symbols."},
+    {"id": "12", "name": "Pre-factored-helper", "verdict": "PASS", "reasoning": "Opaque op_n2, phase_r8, step_w1 naming."},
+    {"id": "13", "name": "Recipe-discount", "verdict": "PASS", "reasoning": "Not a standard mutex or atomic recipe."},
+    {"id": "14", "name": "Security-aura discount", "verdict": "PASS", "reasoning": "Concurrency correctness domain."},
+    {"id": "15", "name": "Orthogonal-checklist", "verdict": "PASS", "reasoning": "Scenarios share coupled happens-before failure."},
+    {"id": "16", "name": "Harness-discount", "verdict": "PASS", "reasoning": "Docker/bash is transport only."},
+    {"id": "17", "name": "One-pass solvability", "verdict": "PASS", "reasoning": "Requires doc reading and multi-file tracing."},
+    {"id": "18", "name": "Hard-only gate", "verdict": "PASS", "reasoning": "Clearly hard at symptoms-only level."},
+    {"id": "19", "name": "Discovery budget test", "verdict": "PASS", "reasoning": "Four discoveries documented in discovery_budget."},
+    {"id": "20", "name": "Instruction specificity test", "verdict": "PASS", "reasoning": "Symptoms-only instruction level."},
+    {"id": "21", "name": "Topology distribution test", "verdict": "PASS", "reasoning": "Three topologies each require three or more coordinated locations."}
+  ],
+  "rubric_axes": [
+    {"id": "verifiable", "name": "Verifiable", "verdict": "PASS", "reasoning": "JSON audit fields and go test -race exit code are deterministic."},
+    {"id": "well_specified", "name": "Well-specified", "verdict": "PASS", "reasoning": "Fourteen scenario rows plus stress_summary with typed invariant fields and expected labels."},
+    {"id": "solvable", "name": "Solvable", "verdict": "PASS", "reasoning": "Expert Go engineer can complete in hours with memory-model reference."},
+    {"id": "difficult", "name": "Difficult", "verdict": "PASS", "reasoning": "Subtle channel teardown semantics across files."},
+    {"id": "interesting", "name": "Interesting", "verdict": "PASS", "reasoning": "Real stale-read incidents in Go pub-sub systems."},
+    {"id": "outcome_verified", "name": "Outcome-verified", "verdict": "PASS", "reasoning": "Grades audit output and race build, not process notes."}
+  ],
+  "instruction_completeness_test": {
+    "verdict": "PASS",
+    "reasoning": "Instruction alone cannot identify which signaling edge violates happens-before; agent must read docs/mem corpus and trace hub packages."
+  },
+  "discovery_budget": [
+    {
+      "discovery": "Notify channels use nonzero capacity decoupling payload writes from receive rendezvous.",
+      "planned_location": "environment/pkg/k7m/factory.go (op_n2)",
+      "why_instruction_must_not_reveal": "Naming capacity collapses to cap=0 without corpus reasoning."
+    },
+    {
+      "discovery": "Graceful stop closes notify before final send rendezvous completes.",
+      "planned_location": "environment/hub/p4x/dispatch.go (phase_r8)",
+      "why_instruction_must_not_reveal": "Close-before-send is the direct fix recipe."
+    },
+    {
+      "discovery": "Subscribers read payload on stop branch before draining notify until closed.",
+      "planned_location": "environment/hub/c3s/handoff.go (step_w1)",
+      "why_instruction_must_not_reveal": "Branch reorder alone looks like a one-line patch."
+    },
+    {
+      "discovery": "Violating edge appears in memory-model example cluster on buffered notify teardown vs unbuffered rendezvous.",
+      "planned_location": "environment/docs/mem/examples.html (examples 7, 11, 14)",
+      "why_instruction_must_not_reveal": "Section or example IDs enable keyword search without semantic reading."
+    },
+    {
+      "discovery": "operations_notes.md recommends payload mutex locking — wrong root cause that passes some sequential rows.",
+      "planned_location": "environment/docs/operations_notes.md",
+      "why_instruction_must_not_reveal": "Naming the red herring collapses debugging to ignoring one file."
+    },
+    {
+      "discovery": "Doc corpus uses org-specific rendezvous-lane / teardown-lane terminology instead of searchable standard Go MM headings.",
+      "planned_location": "environment/docs/mem/part_05.html",
+      "why_instruction_must_not_reveal": "Revealing term mapping lets agents skip 65-page semantic read."
+    }
+  ],
+  "instruction_specificity": {
+    "level": "symptoms-only",
+    "reasoning": "Instruction describes stale revision reads, race-detector signal, and audit JSON contract without naming channel kinds, buffer sizes, close order, or spec sections."
+  },
+  "attack_path": {
+    "summary": "Agent adds sync.Mutex around payload without fixing channel happens-before edges.",
+    "reasoning": "Passes sequential audit intermittently but fails test_race_build_clean and graceful_stop/late_attach scenarios when teardown ordering remains wrong."
+  },
+  "smallest_plausible_patch": {
+    "summary": "Unbuffered notify + send-before-close + drain-then-read across three files.",
+    "reasoning": "Minimal coordinated patch but requires discovering all three loci from corpus and failing scenarios."
+  },
+  "collapse_audit": {
+    "verdict": "PASS",
+    "reasoning": "Distributed fix surface, long-context org-reframed doc requirement, operations_notes red herring, and sixteen tests blocking mutex/atomic/cap-only shortcuts target ≤20% model pass rate.",
+    "residual_hardness": "14-step workflow: read reframed MM corpus, reject mutex misdirection, map rendezvous vs teardown lanes to three code loci, pass -race and fourteen scenario invariants.",
+    "red_flags": [
+      "Go mutex/chan patterns are in-distribution — mitigated by org-reframed docs, non-obvious root cause, and shortcut-trap test matrix.",
+      "1/10k intermittent rate requires -race and stop/attach scenarios as primary deterministic signal."
+    ]
+  },
+  "topology_enumeration": [
+    {
+      "id": "T1",
+      "summary": "Handoff-only drain reorder",
+      "locations": [
+        "environment/hub/c3s/handoff.go (step_w1)",
+        "environment/hub/p4x/dispatch.go (phase_r8)",
+        "environment/pkg/k7m/factory.go (op_n2)"
+      ],
+      "why_no_single_location_suffices": "Reorder without factory rendezvous still allows buffered signals ahead of payload visibility in burst/backlog paths."
+    },
+    {
+      "id": "T2",
+      "summary": "Dispatch-only send-before-close",
+      "locations": [
+        "environment/hub/p4x/dispatch.go (phase_r8)",
+        "environment/hub/c3s/handoff.go (step_w1)",
+        "environment/pkg/k7m/factory.go (op_n2)"
+      ],
+      "why_no_single_location_suffices": "Send-before-close alone fails late attach when buffer decouples send from receive and handoff reads early."
+    },
+    {
+      "id": "T3",
+      "summary": "Full rendezvous alignment",
+      "locations": [
+        "environment/pkg/k7m/factory.go (op_n2)",
+        "environment/hub/p4x/dispatch.go (phase_r8)",
+        "environment/hub/c3s/handoff.go (step_w1)"
+      ],
+      "why_no_single_location_suffices": "Only all three coordinated changes pass every scenario and -race."
+    }
+  ],
+  "construction_manifest": {
+    "symbol_table": [
+      {
+        "path": "environment/pkg/k7m/factory.go",
+        "symbol": "op_n2",
+        "kind": "function",
+        "signature": "func op_n2(kind int, capHint int) chan struct{}",
+        "purpose": "constructs notify and stop signaling channels for hub wiring"
+      },
+      {
+        "path": "environment/hub/p4x/dispatch.go",
+        "symbol": "phase_r8",
+        "kind": "function",
+        "signature": "func phase_r8(ctx context.Context, reg *m8t.Registry, seq int, body []byte) error",
+        "purpose": "writes payload slot, signals subscribers, runs graceful stop teardown"
+      },
+      {
+        "path": "environment/hub/c3s/handoff.go",
+        "symbol": "step_w1",
+        "kind": "function",
+        "signature": "func step_w1(ctx context.Context, reg *m8t.Registry, id string) (int, error)",
+        "purpose": "subscriber loop receiving signals then reading payload revision"
+      }
+    ],
+    "flipping_point_contract": {
+      "locations": [
+        {
+          "id": "A",
+          "path": "environment/pkg/k7m/factory.go",
+          "controls_tests": [
+            "test_burst_delivery_no_stale",
+            "test_backlog_clear_no_stale",
+            "test_seq_monotonic_triple_fanout",
+            "test_ring_slot_visibility_clean",
+            "test_registry_grow_under_load",
+            "test_metrics_relay_sidecar_intact"
+          ]
+        },
+        {
+          "id": "B",
+          "path": "environment/hub/p4x/dispatch.go",
+          "controls_tests": [
+            "test_graceful_stop_no_stale",
+            "test_late_attach_no_stale",
+            "test_mid_detach_peer_isolated",
+            "test_pending_ack_barrier_clean",
+            "test_nested_branch_toggle_clean",
+            "test_idle_coalesce_log_intact"
+          ]
+        },
+        {
+          "id": "C",
+          "path": "environment/hub/c3s/handoff.go",
+          "controls_tests": [
+            "test_no_scenario_stale_reads",
+            "test_race_build_clean",
+            "test_closed_channel_zero_slot_clean",
+            "test_hub_packages_detector_clean"
+          ]
+        }
+      ],
+      "no_single_location_flips_majority": true,
+      "concentration_cap": 0.5
+    },
+    "decoy_manifest": [
+      {
+        "path": "environment/pkg/k7m/relay.go",
+        "kind": "helper",
+        "rhymes_with": "op_n2",
+        "non_fix_purpose": "op_q4 multiplexes metrics taps with unrelated buffer sizing for observability only"
+      },
+      {
+        "path": "environment/hub/c3s/batch.go",
+        "kind": "helper",
+        "rhymes_with": "step_w1",
+        "non_fix_purpose": "step_b5 coalesces idle intervals for throughput logging without participating in revision handoff"
+      }
+    ],
+    "code_forbidden_tokens": [
+      "go",
+      "fan-out",
+      "distribution",
+      "service",
+      "publishes",
+      "revision",
+      "snapshots",
+      "registered",
+      "consumers",
+      "internal",
+      "signaling",
+      "primitives",
+      "audit",
+      "harness",
+      "sync_audit",
+      "schema_version",
+      "burst",
+      "delivery",
+      "graceful",
+      "stop",
+      "late",
+      "subscriber",
+      "attach",
+      "backlog",
+      "clearing",
+      "scenarios",
+      "observed_revision",
+      "expected_revision",
+      "stale_read",
+      "operators",
+      "stale",
+      "reads",
+      "race-enabled",
+      "test",
+      "suite",
+      "iterations",
+      "sequential",
+      "runs",
+      "html",
+      "reference",
+      "corpus",
+      "docs",
+      "approved",
+      "authority",
+      "happens-before",
+      "rules",
+      "governing",
+      "teardown",
+      "repair",
+      "scenario",
+      "race",
+      "payload",
+      "publication",
+      "memory-model",
+      "fanout",
+      "sync",
+      "json",
+      "rows",
+      "expected",
+      "observed",
+      "clearing",
+      "attach",
+      "delivery",
+      "stop",
+      "graceful",
+      "burst"
+    ]
+  },
+  "naming_pass": {
+    "instruction_nouns_extracted": [
+      "go",
+      "fan-out",
+      "distribution",
+      "service",
+      "publishes",
+      "revision",
+      "snapshots",
+      "registered",
+      "consumers",
+      "internal",
+      "signaling",
+      "primitives",
+      "audit",
+      "harness",
+      "sync_audit",
+      "schema_version",
+      "burst",
+      "delivery",
+      "graceful",
+      "stop",
+      "late",
+      "subscriber",
+      "attach",
+      "backlog",
+      "clearing",
+      "scenarios",
+      "observed_revision",
+      "expected_revision",
+      "stale_read",
+      "operators",
+      "stale",
+      "reads",
+      "race-enabled",
+      "test",
+      "suite",
+      "iterations",
+      "sequential",
+      "runs",
+      "html",
+      "reference",
+      "corpus",
+      "docs",
+      "approved",
+      "authority",
+      "happens-before",
+      "rules",
+      "governing",
+      "teardown",
+      "repair",
+      "scenario",
+      "race",
+      "payload",
+      "publication",
+      "memory-model",
+      "fanout",
+      "sync",
+      "json",
+      "rows",
+      "expected",
+      "observed",
+      "clearing",
+      "attach",
+      "delivery",
+      "stop",
+      "graceful",
+      "burst"
+    ],
+    "renames_during_drafting": [
+      {
+        "original": "publish.go",
+        "renamed_to": "dispatch.go",
+        "reason": "avoid publish noun collision with instruction"
+      },
+      {
+        "original": "consume.go",
+        "renamed_to": "handoff.go",
+        "reason": "avoid subscriber/consumer echo in path"
+      },
+      {
+        "original": "channel_factory",
+        "renamed_to": "op_n2",
+        "reason": "opaque symbol per construction manifest"
+      }
+    ],
+    "test_names_audited": [
+      "test_report_schema_version",
+      "test_all_scenarios_present",
+      "test_burst_delivery_no_stale",
+      "test_graceful_stop_no_stale",
+      "test_late_attach_no_stale",
+      "test_backlog_clear_no_stale",
+      "test_no_scenario_stale_reads",
+      "test_race_build_clean",
+      "test_seq_monotonic_triple_fanout",
+      "test_mid_detach_peer_isolated",
+      "test_nested_branch_toggle_clean",
+      "test_closed_channel_zero_slot_clean",
+      "test_metrics_relay_sidecar_intact",
+      "test_idle_coalesce_log_intact",
+      "test_registry_grow_under_load",
+      "test_pending_ack_barrier_clean",
+      "test_ring_slot_visibility_clean",
+      "test_hub_packages_detector_clean"
+    ],
+    "concentration_math": {
+      "total_tests": 16,
+      "per_location": [
+        {"location_id": "A", "test_count": 6, "ratio": 0.375},
+        {"location_id": "B", "test_count": 6, "ratio": 0.375},
+        {"location_id": "C", "test_count": 4, "ratio": 0.25}
+      ]
+    }
+  }
+}

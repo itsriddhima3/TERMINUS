@@ -1,0 +1,12 @@
+{
+  "bench_id": "cls_f1_band_t5",
+  "header": {
+    "kind": "classification_report",
+    "tier": "production"
+  },
+  "metrics": {
+    "macro_f1": 0.82,
+    "ece": 0.06,
+    "population_shift": 0.14
+  }
+}

@@ -1,0 +1,34 @@
+--- a/cli/src/main/java/meter/app/NormalizeCmd.java
++++ b/cli/src/main/java/meter/app/NormalizeCmd.java
+@@ -1,11 +1,9 @@
+ package meter.app;
+ 
+ import java.util.ArrayList;
+-import java.util.HashSet;
+ import java.util.LinkedHashMap;
+ import java.util.List;
+ import java.util.Map;
+-import java.util.Set;
+ import meter.ingest.CsvLookup;
+ import meter.ingest.CsvLookup.DeviceRow;
+ import meter.ingest.CsvLookup.TariffRow;
+@@ -25,8 +23,6 @@
+     List<TariffRow> tariffs = CsvLookup.op_rate_e(Paths.TARIFFS_CSV);
+     List<Correction> corrections = CorrectionsClient.op_delta_e(a);
+     Map<String, Double> corrIdx = CorrectionsClient.op_corr_index(corrections);
+-    Set<String> ledgerApplied = new HashSet<>();
+-
+     List<Map<String, Object>> enriched = new ArrayList<>();
+     List<Map<String, Object>> readings = (List<Map<String, Object>>) src.get("readings");
+     for (Map<String, Object> row : readings) {
+@@ -46,9 +42,8 @@
+ 
+       double corrected = register;
+       String corrKey = deviceId + "|" + readingAt;
+-      if (corrIdx.containsKey(corrKey) && !ledgerApplied.contains(corrKey)) {
++      if (corrIdx.containsKey(corrKey)) {
+         corrected = register + corrIdx.get(corrKey);
+-        ledgerApplied.add(corrKey);
+       }
+ 
+       Map<String, Object> out = new LinkedHashMap<>(row);

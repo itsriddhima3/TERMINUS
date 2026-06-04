@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "base_rows": {
+    "burst_delivery": 42,
+    "graceful_stop": 57,
+    "late_attach": 63,
+    "backlog_clear": 71
+  },
+  "advanced_rows": {
+    "fanout_triple": {"expected_revision": 88, "seq_monotonic": true},
+    "mid_detach": {"expected_revision": 91, "detached_peer_frozen": 90},
+    "branch_toggle": {"expected_revision": 94},
+    "drain_zero_edge": {"expected_revision": 101, "zero_slot_confused": false},
+    "relay_sidecar": {"expected_revision": 88, "metrics_ok": true},
+    "coalesce_trace": {"expected_revision": 105, "coalesce_events": 3},
+    "registry_grow": {"expected_revision": 112, "slot_count_delta": 2},
+    "ack_barrier": {"expected_revision": 116, "barrier_hits": 4},
+    "ring_rotate": {"expected_revision": 119, "slot_index": 2, "body_label": "rotate-payload-v2", "body_digest": "0e9339af0e59f8846248f8dd6889e170"}
+  },
+  "stress_summary": {"race_exit_code": 0, "iterations_clean": 500}
+}

@@ -1,0 +1,61 @@
+--- a/core/m4t/pack.cpp
++++ b/core/m4t/pack.cpp
+@@ -20,6 +20,13 @@
+   write_u32(buf, bits);
+ }
+ 
++static float row_scale(const std::vector<double> &row) {
++  double mx = 0.0;
++  for (double v : row) mx = std::max(mx, std::abs(v));
++  if (mx <= 1e-6) return 1.0f;
++  return static_cast<float>(mx / 127.0);
++}
++
+ int step_q2(const char *path, const FitState *st) {
+   std::vector<uint8_t> out;
+   out.insert(out.end(), {'R', 'T', 'P', 'K'});
+@@ -30,33 +37,27 @@
+   write_u32(out, static_cast<uint32_t>(st->n_factors));
+   write_f32(out, static_cast<float>(st->global_mean));
+ 
+-  for (char c : st->train_sha256.substr(0, 16)) {
+-    out.push_back(static_cast<uint8_t>(c));
+-  }
++  std::string sha = st->train_sha256;
++  if (sha.size() < 32) sha.append(32 - sha.size(), '0');
++  for (size_t i = 0; i < 32; ++i) out.push_back(static_cast<uint8_t>(sha[i]));
+ 
+   for (double v : st->bu) write_f32(out, static_cast<float>(v));
+   for (double v : st->bi) write_f32(out, static_cast<float>(v));
+ 
+-  double global_max = 0.0;
+-  for (const auto &row : st->pu) {
+-    for (double v : row) global_max = std::max(global_max, std::abs(v));
+-  }
+-  for (const auto &row : st->qi) {
+-    for (double v : row) global_max = std::max(global_max, std::abs(v));
+-  }
+-  float scale = global_max > 0 ? static_cast<float>(global_max / 127.0) : 1.0f;
+-  write_f32(out, scale);
+-
+   for (const auto &row : st->pu) {
++    float sc = row_scale(row);
++    write_f32(out, sc);
+     for (double v : row) {
+-      int8_t q = static_cast<int8_t>(std::lround(v / scale));
+-      out.push_back(static_cast<uint8_t>(q));
++      int8_t q = static_cast<int8_t>(std::lround(v / sc));
++      out.push_back(static_cast<uint8_t>(static_cast<int>(q) + 128));
+     }
+   }
+   for (const auto &row : st->qi) {
++    float sc = row_scale(row);
++    write_f32(out, sc);
+     for (double v : row) {
+-      int8_t q = static_cast<int8_t>(std::lround(v / scale));
+-      out.push_back(static_cast<uint8_t>(q));
++      int8_t q = static_cast<int8_t>(std::lround(v / sc));
++      out.push_back(static_cast<uint8_t>(static_cast<int>(q) + 128));
+     }
+   }
+ 

@@ -1,0 +1,5 @@
+[
+  {"org_ref": 1, "label": "Acme-Crate"},
+  {"org_ref": 2, "label": "Beta-Tote"},
+  {"org_ref": 3, "label": "Delta-Bin"}
+]

@@ -1,0 +1,6 @@
+/* Broken baseline: prunes placeholder class, not degree-zero vertices (manual §4.3). */
+BEG_G { }
+N [has("class") && $.class == "orphan"] {
+  delete($);
+}
+END_G { }

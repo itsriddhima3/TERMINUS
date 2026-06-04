@@ -1,0 +1,11 @@
+{
+  "bench_id": "_probe_emb_report",
+  "header": {
+    "kind": "emb_report",
+    "tier": "staging"
+  },
+  "metrics": {
+    "recall_at_10": 0.72,
+    "ndcg_at_10": 0.69
+  }
+}

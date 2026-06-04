@@ -1,0 +1,14 @@
+{
+  "manuscript": {
+    "prefix": "MS-",
+    "format": "prefix_hyphen"
+  },
+  "university_archives": {
+    "prefix": "UA.",
+    "format": "dot_segments"
+  },
+  "photograph": {
+    "prefix": "PH.",
+    "format": "dot_segments"
+  }
+}

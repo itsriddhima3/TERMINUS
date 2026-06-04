@@ -1,0 +1,398 @@
+---
+alwaysApply: false
+---
+---
+description: Pre-submission CI validation checklist for task creation
+alwaysApply: true
+---
+
+# CI Validation Mode
+
+Before considering a task complete:
+
+Run through this checklist.
+
+Do NOT assume CI will catch problems later.
+
+Fix failures immediately.
+
+---
+
+# Phase 1: Structural Validation
+
+Verify:
+
+□ environment/ exists
+
+□ environment/Dockerfile exists
+
+□ tests/test.sh exists
+
+□ task.toml exists
+
+□ instruction.md exists
+
+□ required directories exist
+
+□ task.toml structure valid
+
+Reject immediately if:
+
+- missing required files
+
+- malformed task.toml
+
+- invalid layout
+
+---
+
+# Phase 2: Instruction Validation
+
+Verify:
+
+□ instructions use absolute paths
+
+□ instructions avoid relative paths
+
+Good:
+
+/app/config/settings.json
+
+Bad:
+
+config/settings.json
+
+Reject if:
+
+- relative paths exist
+
+---
+
+# Phase 3: Dependency Validation
+
+Verify:
+
+□ dependencies pinned
+
+□ package versions exact
+
+□ lockfiles included when appropriate
+
+Good:
+
+numpy==1.26.4
+
+Bad:
+
+numpy
+
+Reject:
+
+- floating versions
+
+- unpinned dependencies
+
+---
+
+# Phase 4: Docker Image Validation
+
+Verify:
+
+□ every FROM uses digest pinning
+
+□ compose image entries pinned
+
+□ runtime base sanctioned
+
+□ build reproducible
+
+□ runtime image minimal
+
+Reject immediately if:
+
+- missing sha256 digests
+
+- unapproved runtime base
+
+Examples:
+
+Good:
+
+FROM python:3.13-slim@sha256:<digest>
+
+Bad:
+
+FROM python:3.13-slim
+
+---
+
+# Phase 5: Build Context Validation
+
+Verify:
+
+□ environment <=100MB
+
+□ files <=50MB
+
+□ .dockerignore exists when needed
+
+□ environment excludes clutter
+
+Remove:
+
+- caches
+
+- logs
+
+- node_modules
+
+- secrets
+
+- credentials
+
+- build artifacts
+
+---
+
+# Phase 6: Docker Hygiene Validation
+
+Verify:
+
+□ clean apt usage
+
+□ no apt upgrade
+
+□ cache cleanup occurs
+
+□ dependency layers ordered properly
+
+□ build tools excluded from runtime
+
+□ archives extracted + removed
+
+□ no heredocs
+
+□ no recursive chmod/chown
+
+Good:
+
+COPY --chmod=0755
+
+Bad:
+
+chmod -R
+
+---
+
+# Phase 7: Runtime Validation
+
+Verify:
+
+□ tests not copied into image
+
+□ solution not copied into image
+
+□ Dockerfile avoids verifier references
+
+Forbidden:
+
+COPY tests/
+
+COPY solution/
+
+references to:
+
+tests/test.sh
+
+solution/solve.sh
+
+test_outputs.py
+
+---
+
+# Phase 8: Verifier Validation
+
+Verify:
+
+□ reward file always written
+
+□ verifier uses pytest
+
+□ verifier deterministic
+
+□ verifier works offline
+
+□ no runtime downloads
+
+□ no package installs
+
+Good:
+
+echo 1 > /logs/verifier/reward.txt
+
+echo 0 > /logs/verifier/reward.txt
+
+Reject:
+
+- missing reward file
+
+- exiting before reward
+
+- runtime installs
+
+---
+
+# Phase 9: Offline Validation
+
+Verify:
+
+□ test.sh avoids network access
+
+□ verifier dependencies baked into image
+
+Forbidden:
+
+pip install
+
+npm install
+
+curl
+
+wget
+
+git clone
+
+during runtime
+
+---
+
+# Phase 10: Container Safety Validation
+
+Verify:
+
+□ no privileged mode
+
+□ no unsafe capabilities
+
+□ no docker socket mounts
+
+Reject immediately if:
+
+- privileged=true
+
+- SYS_ADMIN
+
+- docker.sock mounts
+
+---
+
+# Phase 11: Task Metadata Validation
+
+Verify:
+
+□ required task.toml fields exist
+
+□ environment fields complete
+
+□ agent fields complete
+
+□ verifier fields complete
+
+□ allow_internet=false
+
+If compose exists:
+
+□ custom_docker_compose=true
+
+If multi container:
+
+□ is_multi_container=true
+
+---
+
+# Phase 12: Python Validation
+
+Verify:
+
+□ ruff passes
+
+□ spelling errors fixed
+
+Run:
+
+ruff check
+
+ruff check --fix
+
+Fix:
+
+- lint failures
+
+- typos
+
+- naming mistakes
+
+---
+
+# Final Validation Checklist
+
+Before submission verify:
+
+□ check_pinned_images passes
+
+□ check_sanctioned_base_images passes
+
+□ check_build_context_size passes
+
+□ pinned_dependencies passes
+
+□ tests_or_solution_in_image passes
+
+□ check_dockerfile_references passes
+
+□ check_test_sh passes
+
+□ check_task_absolute_path passes
+
+□ check_privileged_containers passes
+
+□ validate_task_fields passes
+
+□ ruff passes
+
+□ typos passes
+
+Warnings to review:
+
+□ dockerignore
+
+□ apt usage
+
+□ offline tests
+
+□ reproducible builds
+
+□ layer ordering
+
+□ runtime slimness
+
+□ file extraction
+
+□ heredocs
+
+□ recursive permissions
+
+---
+
+# Final Decision Rule
+
+If ANY blocking check fails:
+
+STOP
+
+Do not submit.
+
+Only continue when:
+
+All blocking checks pass.
+```

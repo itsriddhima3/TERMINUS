@@ -1,0 +1,5 @@
+connection:
+  password: "ws-sensitive-3301  "
+engine: postgres
+note: |
+  trailing spaces in the password field must round-trip exactly

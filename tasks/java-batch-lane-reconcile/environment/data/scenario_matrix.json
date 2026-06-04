@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "scenario_order": [
+    "w1_single",
+    "w2_pair",
+    "w4_quad",
+    "mix_parallel",
+    "deplete_exact",
+    "pipe_backlog",
+    "idempotent_rerun",
+    "over_cap_reject",
+    "interleave_ab",
+    "partial_abort",
+    "stamp_guard",
+    "post_write_snap",
+    "sibling_contention",
+    "pool_dual_conn",
+    "parity_probe",
+    "biz_key_race",
+    "rollup_seq_m",
+    "rollup_seq_n",
+    "rollup_seq_o",
+    "rollup_seq_p",
+    "tri_fanout",
+    "solo_west"
+  ]
+}

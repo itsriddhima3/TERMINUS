@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ead xmlns="urn:isbn:1-931666-22-9">
+  <archdesc level="collection">
+    <did>
+      <unitid>PH.0789</unitid>
+      <unittitle>Bentley Library Photo Series</unittitle>
+      <unitdate normal="1920/1930">1920-1930</unitdate>
+    </did>
+    <controlaccess>
+      <corpname>Bentley Historical Library</corpname>
+      <geogname>Ann Arbor (Mich.)</geogname>
+    </controlaccess>
+  </archdesc>
+</ead>

@@ -1,0 +1,10 @@
+[runner]
+default_matrix = "/app/data/bench_matrix.json"
+
+# Display-only quotas from 2023 playbook; NOT normative for bench_audit (see annex A1-A3).
+[bands]
+cls_f1_pass = 0.70
+reg_rmse_pass = 1.20
+risk_pass = 10
+risk_warn = 30
+risk_fail = 70

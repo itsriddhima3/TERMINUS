@@ -1,0 +1,208 @@
+---
+alwaysApply: false
+---
+---
+description: Rules for creating Docker environments for tasks
+globs:
+  - environment/Dockerfile
+  - environment/docker-compose.yaml
+  - environment/docker-compose.yml
+alwaysApply: true
+---
+
+# Docker Environment Rules
+
+## Dockerfile Location
+
+- Dockerfile must exist at:
+
+environment/Dockerfile
+
+- Docker-related files should remain inside the environment/ directory
+
+---
+
+# Base Image Rules
+
+- Every FROM image must use digest pinning
+
+Required:
+
+FROM image:tag@sha256:<digest>
+
+Forbidden:
+
+FROM image:latest
+
+FROM image:tag
+
+- Use sanctioned base images unless explicitly exempt
+
+---
+
+# Runtime Requirements
+
+Final runtime image must include:
+
+- tmux
+- asciinema
+
+These dependencies must exist inside the built image, not installed later.
+
+---
+
+# Apt Installation Rules
+
+When installing packages:
+
+- Use --no-install-recommends
+- Clean apt cache in the same layer
+- Avoid unnecessary packages
+
+Preferred pattern:
+
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends <packages> \
+ && rm -rf /var/lib/apt/lists/*
+
+---
+
+# Dependency Rules
+
+Dependencies must be reproducible.
+
+Requirements:
+
+- Pin package versions exactly
+- Lock dependencies where possible
+- Avoid unpinned installs
+
+Forbidden:
+
+pip install numpy
+
+npm install
+
+Allowed:
+
+numpy==1.26.4
+
+npm ci
+
+---
+
+# Copy Rules
+
+Do NOT copy:
+
+- solution/
+- tests/
+- hidden verifier assets
+
+Runtime images must only contain files needed for execution.
+
+Use:
+
+COPY . .
+
+Avoid selective copying that accidentally leaks hidden files.
+
+---
+
+# Environment Size Rules
+
+Requirements:
+
+- environment/ total size <= 100MB
+- Individual files <= 50MB
+
+Non-trivial environments should include:
+
+.dockerignore
+
+---
+
+# Testing Rules
+
+Everything required by:
+
+tests/test.sh
+
+must already exist inside the image.
+
+Forbidden:
+
+- Runtime downloads
+- Runtime package installs
+- Verifier installing dependencies
+
+---
+
+# Docker Compose Rules
+
+Requirements:
+
+- Use compose version 3.8 or compatible
+- Pin image digests for service images
+
+Forbidden:
+
+- privileged containers
+- unsafe capabilities
+- unpinned service images
+
+Good:
+
+image: postgres:15@sha256:<digest>
+
+Bad:
+
+image: postgres:latest
+
+---
+
+# Multi-Service Rules
+
+If multiple services are required:
+
+- Use docker-compose
+- Explicitly define dependencies
+- Keep services minimal
+- Only include required containers
+
+---
+
+# Git Repository Rules
+
+When cloning repositories:
+
+- Clone fixed commits only
+
+Forbidden:
+
+git clone repo && use HEAD
+
+Required:
+
+git clone repo \
+&& git checkout <commit>
+
+Never allow environments that expose future commits.
+
+---
+
+# Environment Validation Checklist
+
+Before finishing verify:
+
+- Dockerfile builds successfully
+- Runtime image contains tmux + asciinema
+- Every image uses digest pinning
+- Dependencies are reproducible
+- Runtime does not install dependencies
+- Hidden assets are not copied
+- Compose configuration is safe
+- Environment size limits are respected
+
+If any check fails, fix the environment before completion.
+```

@@ -1,0 +1,5 @@
+{
+  "client_id": "acme-dashboard",
+  "client_secret": "oauth-flat-secret-5520",
+  "provider": "generic_oidc"
+}

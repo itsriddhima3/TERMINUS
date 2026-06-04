@@ -1,0 +1,347 @@
+{
+  "hardness_axes": [
+    {
+      "id": "discover",
+      "name": "Discover",
+      "verdict": "PASS",
+      "reasoning": "Normative reuse windows, fingerprint scope, and Retry-After date-vs-delta parsing live across eight OpenAPI compendium volumes plus a precedence memo; volume 04 errata contradicts the PDF table-of-contents until reconciled with meridian_precedence.md."
+    },
+    {
+      "id": "synthesize",
+      "name": "Synthesize",
+      "verdict": "PASS",
+      "reasoning": "Correct behavior requires coordinating vault TTL anchoring, transport backoff parsing, and dispatch fingerprint binding; fixing any one layer leaves duplicate postings, permanent throttle stalls, or wrong key rotation on expiry."
+    },
+    {
+      "id": "diagnose",
+      "name": "Diagnose",
+      "verdict": "PASS",
+      "reasoning": "Instruction reports duplicate settlements under parallel lanes and permanently failed throttle lanes without naming mutex gaps, header formats, or fingerprint tables."
+    },
+    {
+      "id": "navigate_coupling",
+      "name": "Navigate coupling",
+      "verdict": "PASS",
+      "reasoning": "A mutex-only vault fix stops races but still mints fresh keys per attempt; Retry-After-only fix completes throttled lanes but parallel lanes still double-post; fingerprint-only fix mis-orders TTL anchor relative to first accepted submission."
+    },
+    {
+      "id": "reason_beyond_training",
+      "name": "Reason beyond training",
+      "verdict": "PASS",
+      "reasoning": "Meridian-specific coupling of first-acceptance TTL anchor, beneficiary-hash fingerprint slots, and dual-format Retry-After under a mock 429/503 gateway is not a generic Go retry recipe."
+    }
+  ],
+  "anti_trivialization_checks": [
+    {
+      "id": "disclosure_collapse",
+      "name": "Disclosure-collapse",
+      "verdict": "PASS",
+      "reasoning": "Raw idea cited OpenAPI section numbers and exact 24h/retry rules; redesigned so instruction is symptoms-only and normative numbers live only in the 90-page compendium corpus."
+    },
+    {
+      "id": "hidden_instance",
+      "name": "Hidden-instance",
+      "verdict": "PASS",
+      "reasoning": "Twelve scenario rows generalize across solo, burst, rate-limit, HTTP-date Retry-After, reuse window, and expiry; no single broken manifest record."
+    },
+    {
+      "id": "single_artifact_repair",
+      "name": "Single-artifact repair",
+      "verdict": "PASS",
+      "reasoning": "Oracle touches vault store, backoff transport, and dispatch binder across three package roots."
+    },
+    {
+      "id": "generalization",
+      "name": "Generalization",
+      "verdict": "PASS",
+      "reasoning": "Verifier matrix covers multiple amounts, accounts, rate-limit codes, and burst fan-out degrees\u2014not one named broken transfer."
+    },
+    {
+      "id": "prompt_honesty",
+      "name": "Prompt-honesty",
+      "verdict": "PASS",
+      "reasoning": "Honest symptom prompt does not reveal which of three layers is wrong; ops notes misdirect toward client-side sleep tuning."
+    },
+    {
+      "id": "cheating_vs_difficulty",
+      "name": "Cheating-vs-difficulty",
+      "verdict": "PASS",
+      "reasoning": "Anti-cheating is outcome JSON from live mock runs, not hidden checksum files."
+    },
+    {
+      "id": "mechanical_fix_filter",
+      "name": "Mechanical-fix filter",
+      "verdict": "PASS",
+      "reasoning": "Difficulty is cross-layer contract reconciliation, not verifier timeout or reward formatting."
+    },
+    {
+      "id": "localized_fix",
+      "name": "Localized-fix",
+      "verdict": "PASS",
+      "reasoning": "Instruction names observable clusters (duplicate postings, permanent rate-limit failure) spanning three subsystems."
+    },
+    {
+      "id": "oracle_locality",
+      "name": "Oracle-locality",
+      "verdict": "PASS",
+      "reasoning": "solve.sh applies multi-hunk Go edits in three files plus rebuild, not wholesale file replacement."
+    },
+    {
+      "id": "small_declarative_cluster",
+      "name": "Small declarative-cluster",
+      "verdict": "PASS",
+      "reasoning": "Fix is procedural Go logic across packages, not one TOML policy table."
+    },
+    {
+      "id": "grep_collapse",
+      "name": "Grep-collapse",
+      "verdict": "WARN",
+      "reasoning": "Domain words like retry and idempotency appear in decoy modules; fix-path symbols are opaque (op_vault, phase_b3, step_m5) and distributed."
+    },
+    {
+      "id": "pre_factored_helper",
+      "name": "Pre-factored-helper",
+      "verdict": "PASS",
+      "reasoning": "Decoy helpers perform metrics and archive spec scans; fix symbols do not mirror instruction bullet verbs."
+    },
+    {
+      "id": "recipe_discount",
+      "name": "Recipe-discount",
+      "verdict": "WARN",
+      "reasoning": "HTTP retry and idempotency are familiar patterns; residual hardness comes from spec-corpus semantics and three-way coupling."
+    },
+    {
+      "id": "security_aura_discount",
+      "name": "Security-aura discount",
+      "verdict": "PASS",
+      "reasoning": "Banking nouns are setting only; tests assert settlement counts and completion flags, not security theater."
+    },
+    {
+      "id": "orthogonal_checklist",
+      "name": "Orthogonal-checklist",
+      "verdict": "PASS",
+      "reasoning": "Reuse window, concurrency, and Retry-After formats interact\u2014burst fix without TTL anchor still duplicates."
+    },
+    {
+      "id": "harness_discount",
+      "name": "Harness-discount",
+      "verdict": "PASS",
+      "reasoning": "Mock gateway realism supports tests but does not substitute for reading compendium chapters."
+    },
+    {
+      "id": "one_pass_solvability",
+      "name": "One-pass solvability",
+      "verdict": "WARN",
+      "reasoning": "A strong agent might guess mutex+retry quickly; twelve-scenario matrix and HTTP-date Retry-After case block naive one-hunk patches."
+    },
+    {
+      "id": "hard_only_gate",
+      "name": "Hard-only gate",
+      "verdict": "PASS",
+      "reasoning": "Long-context spec navigation plus tri-layer coupling targets hard, not medium, after redesign."
+    },
+    {
+      "id": "discovery_budget_test",
+      "name": "Discovery budget test",
+      "verdict": "PASS",
+      "reasoning": "Four committed discoveries: fingerprint scope table, first-acceptance TTL anchor, HTTP-date Retry-After, split round-trip between probe POST and commit POST."
+    },
+    {
+      "id": "instruction_specificity_test",
+      "name": "Instruction specificity test",
+      "verdict": "PASS",
+      "reasoning": "Instruction stays symptoms-only; no section numbers, algorithms, or fix locations."
+    },
+    {
+      "id": "topology_distribution_test",
+      "name": "Topology distribution test",
+      "verdict": "PASS",
+      "reasoning": "Three distinct fix topologies enumerated in topology_enumeration, each requiring three or more coordinated locations."
+    }
+  ],
+  "rubric_axes": [
+    {
+      "id": "verifiable",
+      "name": "Verifiable",
+      "verdict": "PASS",
+      "reasoning": "Deterministic compliance_audit.json from mock httptest gateway with integer settlement counts."
+    },
+    {
+      "id": "well_specified",
+      "name": "Well-specified",
+      "verdict": "PASS",
+      "reasoning": "Public contract names harness path, output schema fields, and symptom clusters without prescribing implementation."
+    },
+    {
+      "id": "solvable",
+      "name": "Solvable",
+      "verdict": "PASS",
+      "reasoning": "Expert Go engineer can repair client in a few hours after reading compendium chapters."
+    },
+    {
+      "id": "difficult",
+      "name": "Difficult",
+      "verdict": "PASS",
+      "reasoning": "Requires long-context reading and concurrent HTTP client reasoning beyond undergrad CRUD."
+    },
+    {
+      "id": "interesting",
+      "name": "Interesting",
+      "verdict": "PASS",
+      "reasoning": "Payment SDK idempotency and throttle recovery are production integration work."
+    },
+    {
+      "id": "outcome_verified",
+      "name": "Outcome-verified",
+      "verdict": "PASS",
+      "reasoning": "Tests grade audit JSON outcomes, not source shape or tool usage."
+    }
+  ],
+  "instruction_completeness_test": {
+    "verdict": "PASS",
+    "reasoning": "Instruction alone lacks fingerprint scope, TTL anchor rule, Retry-After date format, and split POST orchestration\u2014the agent must read compendium volumes and Go client code."
+  },
+  "discovery_budget": [
+    {
+      "discovery": "Reuse keys must bind to a transfer fingerprint (origin account, beneficiary token, amount minor units) not a fresh UUID per HTTP attempt.",
+      "planned_location": "environment/core/d2w/bind.go plus meridian_spec/chapter_submission_keys.md",
+      "why_instruction_must_not_reveal": "Naming fingerprint scope collapses diagnosis to a single map lookup fix."
+    },
+    {
+      "discovery": "The reuse window anchors from first gateway-accepted submission timestamp, not from local key mint time.",
+      "planned_location": "environment/core/p4k/vault.go plus meridian_spec/chapter_caller_recovery.md",
+      "why_instruction_must_not_reveal": "Stating the anchor rule lets agents patch TTL without reading compendium precedence disputes."
+    },
+    {
+      "discovery": "Retry-After may be delta-seconds or HTTP-date; the broken transport accepts only integer seconds.",
+      "planned_location": "environment/core/t7m/backoff.go plus meridian_spec/chapter_rate_limits.md",
+      "why_instruction_must_not_reveal": "Revealing header duality reduces throttle tests to a one-line parser branch."
+    },
+    {
+      "discovery": "Dispatch performs a probe POST then a commit POST in separate goroutine windows, re-minting keys between them under load.",
+      "planned_location": "environment/core/d2w/bind.go plus environment/app/scenario drivers",
+      "why_instruction_must_not_reveal": "Cause-revealing orchestration detail would steer agents away from vault/backoff coupling."
+    }
+  ],
+  "instruction_specificity": {
+    "level": "symptoms-only",
+    "reasoning": "Instruction describes duplicate settlements, permanent throttle failures, and compendium divergence without section numbers, header algorithms, or file paths."
+  },
+  "attack_path": {
+    "summary": "Agent adds sync.Mutex around UUID generator and a fixed sleep retry loop.",
+    "reasoning": "Passes solo lane but fails parallel duplicate, HTTP-date throttle, reuse-window expiry, and hidden burst scenarios."
+  },
+  "smallest_plausible_patch": {
+    "summary": "Mutex vault lookup by fingerprint, parse Retry-After as RFC7231 date or seconds, collapse probe/commit to share vault slot.",
+    "reasoning": "Still requires reading three compendium chapters for fingerprint fields, TTL anchor, and date header worked example."
+  },
+  "collapse_audit": {
+    "verdict": "PASS",
+    "reasoning": "Editable frontier spans three Go packages plus scenario drivers; requirement map is many-to-many; oracle estimated 45+ LOC substantive edits.",
+    "residual_hardness": "After files are visible, agent must still reconcile contradictory errata in volume 04 against meridian_precedence.md and wire HTTP-date example from chapter_rate_limits into backoff without instruction citing either.",
+    "red_flags": [
+      "Familiar HTTP retry/idempotency domain may invite recipe patching\u2014mitigated by HTTP-date case and first-acceptance TTL anchor."
+    ]
+  },
+  "naming_pass": {
+    "instruction_nouns_extracted": [
+      "Meridian",
+      "retail",
+      "wire",
+      "integration",
+      "app",
+      "QA",
+      "compliance",
+      "harness",
+      "compliance_audit",
+      "output",
+      "wire_audit",
+      "json",
+      "Parallel",
+      "stress",
+      "lanes",
+      "duplicate",
+      "settlement",
+      "postings",
+      "logical",
+      "transfer",
+      "single-threaded",
+      "replays",
+      "Mock",
+      "gateway",
+      "throttle",
+      "responses",
+      "permanently",
+      "failed",
+      "bundled",
+      "OpenAPI",
+      "compendium",
+      "meridian_spec",
+      "callers",
+      "recover",
+      "Reviewers",
+      "shipped",
+      "Go",
+      "client",
+      "diverges",
+      "contract",
+      "ways"
+    ],
+    "renames_during_drafting": [],
+    "test_names_audited": [
+      "test_schema_version",
+      "test_catalog_scenarios_present",
+      "test_solo_lane_single_post",
+      "test_burst_fan_one_posting",
+      "test_rate_limit_eventually_succeeds",
+      "test_http_date_retry_after",
+      "test_reuse_within_window",
+      "test_expired_key_rotates",
+      "test_cross_intent_isolation",
+      "test_mixed_amounts_isolated",
+      "test_hidden_burst_clean",
+      "test_global_audit_clean"
+    ],
+    "concentration_math": {
+      "total_tests": 12,
+      "per_location": [
+        {
+          "location_id": "A",
+          "test_count": 4,
+          "ratio": 0.3333333333333333
+        },
+        {
+          "location_id": "B",
+          "test_count": 4,
+          "ratio": 0.3333333333333333
+        },
+        {
+          "location_id": "C",
+          "test_count": 4,
+          "ratio": 0.3333333333333333
+        }
+      ]
+    },
+    "recomputed_concentration": {
+      "total_tests": 12,
+      "concentration_cap": 0.5,
+      "per_location": [
+        {
+          "location_id": "A",
+          "test_count": 4,
+          "ratio": 0.3333333333333333
+        },
+        {
+          "location_id": "B",
+          "test_count": 4,
+          "ratio": 0.3333333333333333
+        },
+        {
+          "location_id": "C",
+          "test_count": 4,
+          "ratio": 0.3333333333333333
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,6 @@
+batch_id = "ARC-2024-Q2"
+api_port = 3000
+api_host = "127.0.0.1"
+ead_root = "/app/data/ead"
+var_dir = "/app/var"
+output_dir = "/app/output"

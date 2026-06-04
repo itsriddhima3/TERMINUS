@@ -1,0 +1,24 @@
+user_visible_outputs = [
+  "/app/output/bench_verdicts.json",
+  "/app/data/bench_matrix.json",
+  "/app/docs/ops_runbook/index.md",
+  "/app/docs/bench_precedence.md",
+]
+
+internal_harness_files = [
+  "/app/bin/gatectl",
+  "/app/lib/run_go.sh",
+  "/app/data/reports",
+]
+
+[structured_outputs.bench_verdicts]
+target = "/app/output/bench_verdicts.json"
+format = "json"
+instruction_checks = [
+  "schema_version",
+  "cases",
+  "verdict",
+  "risk_score",
+  "cited_rules",
+  "reasons",
+]

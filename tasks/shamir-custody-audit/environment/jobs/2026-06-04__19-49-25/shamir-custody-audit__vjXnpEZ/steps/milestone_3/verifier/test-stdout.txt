@@ -1,0 +1,26 @@
+============================= test session starts ==============================
+platform linux -- Python 3.13.9, pytest-8.4.1, pluggy-1.6.0
+rootdir: /tests
+plugins: json-ctrf-0.3.5
+collected 15 items
+
+../tests/test_m3.py ...............                                      [100%]
+
+==================================== PASSES ====================================
+=========================== short test summary info ============================
+PASSED ../tests/test_m3.py::TestMilestone3::test_m3_alpha_no_violations
+PASSED ../tests/test_m3.py::TestMilestone3::test_m3_alpha_quorum_valid
+PASSED ../tests/test_m3.py::TestMilestone3::test_m3_gamma_has_violation
+PASSED ../tests/test_m3.py::TestMilestone3::test_m3_gamma_quorum_invalid
+PASSED ../tests/test_m3.py::TestMilestone3::test_m3_delta_no_violations
+PASSED ../tests/test_m3.py::TestMilestone3::test_m3_delta_quorum_valid
+PASSED ../tests/test_m3.py::TestMilestone3::test_m3_fingerprint_length_16
+PASSED ../tests/test_m3.py::TestMilestone3::test_m3_alpha_fingerprint_sha256
+PASSED ../tests/test_m3.py::TestMilestone3::test_m3_delta_fingerprint_sha256
+PASSED ../tests/test_m3.py::TestMilestone3::test_m3_alpha_verification_verified
+PASSED ../tests/test_m3.py::TestMilestone3::test_m3_gamma_verification_policy_violation
+PASSED ../tests/test_m3.py::TestMilestone3::test_m3_beta_verification_failed
+PASSED ../tests/test_m3.py::TestMilestone3::test_m3_delta_verification_verified
+PASSED ../tests/test_m3.py::TestMilestone3::test_m3_fingerprint_does_not_match_any_sha1_variant
+PASSED ../tests/test_m3.py::TestMilestone3::test_m3_violation_count_matches_active_constraint_pairs
+============================== 15 passed in 0.19s ==============================

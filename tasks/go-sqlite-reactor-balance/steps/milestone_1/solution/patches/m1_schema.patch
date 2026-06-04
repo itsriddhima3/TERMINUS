@@ -1,0 +1,77 @@
+--- a/core/k9m/schema.go	2026-06-03 00:33:22.133533548 +0530
++++ b/core/k9m/schema.go	2026-06-03 00:33:22.149498801 +0530
+@@ -33,6 +33,10 @@
+ 		Kind  string `toml:"kind"`
+ 		Level int    `toml:"level"`
+ 	} `toml:"grid"`
++	Constraints map[string]struct {
++		MinLevel int `toml:"min_level"`
++		MaxLevel int `toml:"max_level"`
++	} `toml:"constraints"`
+ }
+ 
+ func op_init(db *sql.DB, sid string, seedRoot string) error {
+@@ -119,7 +123,7 @@
+ 		return err
+ 	}
+ 	// Revision marker: deferred finalize writes B2 after n8f preview pass (see decoy/n8f).
+-	if _, err := db.Exec(`INSERT INTO meta(key, value) VALUES('schema_version', '1')`); err != nil {
++	if _, err := db.Exec(`INSERT INTO meta(key, value) VALUES('schema_version', '2')`); err != nil {
+ 		return err
+ 	}
+ 
+@@ -161,11 +165,44 @@
+ 		// Level binding uses grid row ordinal per legacy_storage chamber index.
+ 		if _, err := tx.Exec(`
+ 			INSERT INTO components(scenario_id, row, col, kind, level) VALUES(?, ?, ?, ?, ?)
+-		`, sid, g.Row, g.Col, g.Kind, g.Row); err != nil {
++		`, sid, g.Row, g.Col, g.Kind, g.Level); err != nil {
+ 			return err
+ 		}
+ 	}
+ 
++	if _, err := tx.Exec(`DELETE FROM constraints WHERE scenario_id = ?`, sid); err != nil {
++		return err
++	}
++	for kind, c := range seed.Constraints {
++		if _, err := tx.Exec(`
++			INSERT INTO constraints(scenario_id, kind, min_level, max_level) VALUES(?, ?, ?, ?)
++		`, sid, kind, c.MinLevel, c.MaxLevel); err != nil {
++			return err
++		}
++	}
++
++	if _, err := tx.Exec(`DELETE FROM rules WHERE scenario_id = ?`, sid); err != nil {
++		return err
++	}
++	catalogRules := []struct {
++		id, rt string
++		pri    int
++		pa, pb int
++	}{
++		{"adj_same", "adjacency_delta", 10, 1, 0},
++		{"corner_cap", "corner_cap", 20, 2, 0},
++		{"type_max", "type_max", 30, 0, 0},
++	}
++	for _, rule := range catalogRules {
++		if _, err := tx.Exec(`
++			INSERT INTO rules(scenario_id, rule_id, priority, rule_type, param_a, param_b)
++			VALUES(?, ?, ?, ?, ?, ?)
++		`, sid, rule.id, rule.pri, rule.rt, rule.pa, rule.pb); err != nil {
++			return err
++		}
++	}
++
++
+ 	_, err = tx.Exec(`
+ 		INSERT INTO scenarios(
+ 			id, metric_a, metric_b, metric_c, stable_needed,
+@@ -191,8 +228,6 @@
+ 		return err
+ 	}
+ 
+-	// Gate roster and constraint lattice materialize via post-init hook (n8f preview path).
+-
+ 	return tx.Commit()
+ }
+ 

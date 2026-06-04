@@ -1,0 +1,5 @@
+Reconstruction is correct, but two problems remain. First, the tool incorrectly flags policy violations for sessions where no violation should occur — the ceremony policy dossier at `/app/docs/ceremony-policy-v3.md` specifies the exact conditions under which a `cannot_coexist` tier constraint is triggered. Second, the `secret_fingerprint` values are incorrect; the dossier specifies the algorithm and output format precisely.
+
+Fix both, rebuild with `go build -o /app/bin/audit /app/cmd/audit` from `/app`, then run the tool with `--db /app/data/ceremonies.db --dossier /app/docs/ceremony-policy-v3.md --out /app/output/report.json`.
+
+The corrected report must produce accurate `quorum_valid` and `policy_violations` fields per the dossier's policy enforcement rules; `secret_fingerprint` values as exactly 16 lowercase hex characters per the dossier's cryptographic verification requirements; and `verification_status` as `"verified"` for sessions that pass all checks, `"policy_violation"` for sessions with a constraint violation, and `"failed"` for sessions where reconstruction could not succeed. Signal completion when the corrected report is written.

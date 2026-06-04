@@ -349,10 +349,6 @@ Create the files required by the brief and by `@task-creation.mdc`. The exact fi
 - `steps/milestone_N/solution/solveN.sh` — oracle for milestone N only, called by a tiny `steps/milestone_N/solution/solve.sh` wrapper.
 - `task.toml` — `version = "2.0"`, `[metadata].number_of_milestones` equal to the number of `[[steps]]` blocks, each `[[steps]].name = "milestone_N"`, per-step `[steps.agent]` / `[steps.verifier]` timeouts, no top-level `[agent]` / `[verifier]`, no Harbor-only fields (`schema_version`, `[task]`, `min_reward`, `[steps.healthcheck]`, `[steps.verifier.env]`, `artifacts`, `multi_step_reward_strategy`, `workdir/setup.sh`).
 
-**UI tasks (subcategories includes ui_building):** New UI building tasks are no longer accepted. In-progress instances may finish; do not start new ones. Below is the existing template for legacy/in-progress UI tasks only.
-- `tests/test_outputs.py` — unit tests. (Same RC3/RC4/Part B as standard.)
-- `tests/` e2e test files — Playwright/Vitest as specified in `@task-creation.mdc`. (§4 UI-task verifier rules.)
-- `tests/test.sh` — copy the UI platform template from `@task-creation.mdc` (different from standard).
 
 **All task types:**
 - `instruction.md` — write human-style per humanization rules in `@task-creation.mdc`. (RC6 symptoms-only, §1 Instruction checklist, absolute paths, no emojis, no synthetic Deliverables/Artifacts/Acceptance-Criteria sections, no algorithm/CLI/schema/threshold/file-location leakage, no bold-markers on solution-adjacent values.)

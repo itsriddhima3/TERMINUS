@@ -1,0 +1,70 @@
+--- pkg/k7m/factory.go	2026-06-02 14:00:11.350683060 +0530
++++ pkg/k7m/factory.go	2026-06-02 23:09:10.259288388 +0530
+@@ -9,11 +9,8 @@
+ 	if kind == KindStop {
+ 		return make(chan struct{})
+ 	}
+-	capacity := capHint
+-	if capacity <= 0 {
+-		capacity = 4
+-	}
+-	return make(chan struct{}, capacity)
++	_ = capHint
++	return make(chan struct{})
+ }
+ 
+ func NewNotify(capHint int) chan struct{} {
+--- hub/p4x/dispatch.go	2026-06-02 14:27:09.496694688 +0530
++++ hub/p4x/dispatch.go	2026-06-02 23:09:10.259288388 +0530
+@@ -2,8 +2,6 @@
+ 
+ import (
+ 	"context"
+-	"runtime"
+-
+ 	"local/hub/hub/m8t"
+ 	"local/hub/pkg/k7m"
+ )
+@@ -13,11 +11,7 @@
+ 		return nil
+ 	}
+ 	reg.Slot.Write(seq, body, reg.Slot.Index)
+-	select {
+-	case reg.Notify <- struct{}{}:
+-	default:
+-		reg.Notify <- struct{}{}
+-	}
++	reg.Notify <- struct{}{}
+ 	_ = k7m.RelayTapCount()
+ 	_ = ctx
+ 	return nil
+@@ -27,10 +21,10 @@
+ 	if reg == nil || reg.Slot == nil {
+ 		return nil
+ 	}
++	reg.Slot.Write(finalSeq, body, reg.Slot.Index)
++	reg.Notify <- struct{}{}
+ 	close(reg.Stop)
+ 	close(reg.Notify)
+-	runtime.Gosched()
+-	reg.Slot.Write(finalSeq, body, reg.Slot.Index)
+ 	_ = ctx
+ 	return nil
+ }
+--- hub/c3s/handoff.go	2026-06-02 14:00:38.680358584 +0530
++++ hub/c3s/handoff.go	2026-06-02 23:09:10.259288388 +0530
+@@ -17,13 +17,13 @@
+ 		case <-ctx.Done():
+ 			return reg.Slot.Revision, nil
+ 		case <-reg.Stop:
+-			rev, _, _ := reg.Slot.Read()
+ 			for {
+ 				_, open := <-reg.Notify
+ 				if !open {
+ 					break
+ 				}
+ 			}
++			rev, _, _ := reg.Slot.Read()
+ 			return rev, nil
+ 		case <-reg.Notify:
+ 			rev, _, _ := reg.Slot.Read()

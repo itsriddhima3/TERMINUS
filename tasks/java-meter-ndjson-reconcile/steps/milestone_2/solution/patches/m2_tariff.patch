@@ -1,0 +1,11 @@
+--- a/cli/src/main/java/meter/join/TariffWin.java
++++ b/cli/src/main/java/meter/join/TariffWin.java
+@@ -11,7 +11,7 @@
+     if (a.isEmpty()) return 0.0;
+     for (TariffRow row : a) {
+       if (!row.siteId().equals(b)) continue;
+-      if (c.compareTo(row.windowStart()) >= 0 && c.compareTo(row.windowEnd()) <= 0) {
++      if (c.compareTo(row.windowStart()) >= 0 && c.compareTo(row.windowEnd()) < 0) {
+         return row.rateCents();
+       }
+     }

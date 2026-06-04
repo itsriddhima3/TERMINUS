@@ -1,0 +1,11 @@
+--- a/cli/src/main/java/meter/recon/ReportEmit.java
++++ b/cli/src/main/java/meter/recon/ReportEmit.java
+@@ -33,7 +33,7 @@
+ 
+     Set<String> gapKeys = new HashSet<>();
+     for (Map<String, Object> ev : a.gapEvents()) {
+-      gapKeys.add(ev.get("device_id") + "|" + ev.get("expected_at"));
++      gapKeys.add(ev.get("device_id") + "|" + ev.get("reading_at"));
+     }
+     Set<String> dupKeys = new HashSet<>();
+     for (Map<String, Object> ev : a.duplicateEvents()) {

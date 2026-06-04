@@ -1,0 +1,11 @@
+--- a/internal/recovery/shamir.go
++++ b/internal/recovery/shamir.go
+@@ -36,7 +36,7 @@
+ 	}
+ 
+ 	// Target coordinate for polynomial evaluation.
+-	evalAt := byte(1)
++	evalAt := byte(0)
+ 
+ 	for byteIdx := 0; byteIdx < width; byteIdx++ {
+ 		var acc byte

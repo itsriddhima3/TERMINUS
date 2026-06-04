@@ -1,0 +1,210 @@
+Security review transcript — working session 18
+Facilitator notes: this appendix is historical color only; enforcement follows the ACTIVE block elsewhere in the corpus.
+
+Agenda highlights:
+- Review offline export 18 anomalies
+- Compare redaction operator strings against the lexicon index
+- Capture open risks for deterministic reporting
+
+Discussion record:
+§001 — Riley on exposure code vocabulary (batch 50, ref bf01674fc31f): reviewers stressed ascending sort for run identifiers from meta.json. Outcome noted: publish internal FAQ for auditors.
+§002 — Casey on security review action tracking (batch 63, ref 57e21e9d282c): highlighted need for stable totals fields in the aggregate object. Outcome noted: track false negative samples in spreadsheet.
+§003 — Quinn on approval envelope replay windows (batch 76, ref 6c6b801f432d): data science lead asked for artifact byte counts beside digests. Outcome noted: pair with legal on retention windows.
+§004 — Avery on draft policy retirement (batch 89, ref 90dd151a5107): action item: verify proofs bind scope before run id before nonce. Outcome noted: defer UI for this CLI.
+§005 — Drew on sensitive token grep baselines (batch 05, ref 9201ced87d32): review board examined four sample exports with mixed approval validity. Outcome noted: keep lexicon as non-authoritative index.
+§006 — Morgan on multi-meeting policy tag history (batch 18, ref 3041bef4f43a): captured notes mention intermittent false positives on short tokens. Outcome noted: document SNIPPET_MARK separately from transcript.
+§007 — Priya on exposure code vocabulary (batch 31, ref c7ffb3802075): open question on legacy nonce rejection messaging for operators. Outcome noted: schedule follow-up on approval key rotation.
+§008 — Alex on security review action tracking (batch 44, ref b9e472e873cd): participants compared laptop export timestamps across regions. Outcome noted: no change to active tag during this session.
+§009 — Jordan on approval envelope replay windows (batch 57, ref 0ce640998fac): participants agreed to keep surrounding log context in snippets. Outcome noted: archive rejected private prefix proposal.
+§010 — Sam on draft policy retirement (batch 70, ref 6e85359917f4): noted symlink targets must stay inside the run directory root. Outcome noted: align tests with recomputed digests only.
+§011 — Riley on sensitive token grep baselines (batch 83, ref fdfd86ba083a): review board asked for explicit EXPOSED code on exposure rows. Outcome noted: publish internal FAQ for auditors.
+§012 — Casey on multi-meeting policy tag history (batch 96, ref 1a00dbd5e076): discussion referenced prior SR tags only for historical comparison. Outcome noted: track false negative samples in spreadsheet.
+§013 — Quinn on exposure code vocabulary (batch 12, ref 279693f0a477): emphasized SHA-256 over sorted transcript bodies with newline glue. Outcome noted: pair with legal on retention windows.
+§014 — Avery on security review action tracking (batch 25, ref e43511416016): security champions warned against bracket-style redaction placeholders. Outcome noted: defer UI for this CLI.
+§015 — Drew on approval envelope replay windows (batch 38, ref da3c5f5bbf72): team rejected widening private artifact prefixes in active policy. Outcome noted: keep lexicon as non-authoritative index.
+§016 — Morgan on draft policy retirement (batch 51, ref d7e20280da9e): reminder: draft blocks remain readable but must not change enforcement. Outcome noted: document SNIPPET_MARK separately from transcript.
+§017 — Priya on sensitive token grep baselines (batch 64, ref ab1d3b6139ef): operators requested clearer invalid-nonce reasons in approvals array. Outcome noted: schedule follow-up on approval key rotation.
+§018 — Alex on multi-meeting policy tag history (batch 77, ref a93cb0ba90a6): consensus required per-line alerts instead of whole-file summaries. Outcome noted: no change to active tag during this session.
+§019 — Jordan on exposure code vocabulary (batch 90, ref 46b5a923b9a1): example cited api_key= style markers versus token: colon patterns. Outcome noted: archive rejected private prefix proposal.
+§020 — Sam on security review action tracking (batch 06, ref b44f5b655ba5): SRE liaison confirmed offline mode forbids mutating input run trees. Outcome noted: align tests with recomputed digests only.
+§021 — Riley on approval envelope replay windows (batch 19, ref d470a3cb4288): reviewers stressed ascending sort for run identifiers from meta.json. Outcome noted: publish internal FAQ for auditors.
+§022 — Casey on draft policy retirement (batch 32, ref 2c79e61ca582): highlighted need for stable totals fields in the aggregate object. Outcome noted: track false negative samples in spreadsheet.
+§023 — Quinn on sensitive token grep baselines (batch 45, ref 1da501217799): data science lead asked for artifact byte counts beside digests. Outcome noted: pair with legal on retention windows.
+§024 — Avery on multi-meeting policy tag history (batch 58, ref 6ab30138d4d7): action item: verify proofs bind scope before run id before nonce. Outcome noted: defer UI for this CLI.
+§025 — Drew on exposure code vocabulary (batch 71, ref ba048cac9808): review board examined four sample exports with mixed approval validity. Outcome noted: keep lexicon as non-authoritative index.
+§026 — Morgan on security review action tracking (batch 84, ref fce87526a1fa): captured notes mention intermittent false positives on short tokens. Outcome noted: document SNIPPET_MARK separately from transcript.
+§027 — Priya on approval envelope replay windows (batch 00, ref 14c34f1247ec): open question on legacy nonce rejection messaging for operators. Outcome noted: schedule follow-up on approval key rotation.
+§028 — Alex on draft policy retirement (batch 13, ref 0e19c862a4f0): participants compared laptop export timestamps across regions. Outcome noted: no change to active tag during this session.
+§029 — Jordan on sensitive token grep baselines (batch 26, ref 10d312197978): participants agreed to keep surrounding log context in snippets. Outcome noted: archive rejected private prefix proposal.
+§030 — Sam on multi-meeting policy tag history (batch 39, ref fe0f17a6d8d7): noted symlink targets must stay inside the run directory root. Outcome noted: align tests with recomputed digests only.
+§031 — Riley on exposure code vocabulary (batch 52, ref e2a6d871fd31): review board asked for explicit EXPOSED code on exposure rows. Outcome noted: publish internal FAQ for auditors.
+§032 — Casey on security review action tracking (batch 65, ref 0caa3defaa87): discussion referenced prior SR tags only for historical comparison. Outcome noted: track false negative samples in spreadsheet.
+§033 — Quinn on approval envelope replay windows (batch 78, ref 72d3055f44c8): emphasized SHA-256 over sorted transcript bodies with newline glue. Outcome noted: pair with legal on retention windows.
+§034 — Avery on draft policy retirement (batch 91, ref 8ff1ed943998): security champions warned against bracket-style redaction placeholders. Outcome noted: defer UI for this CLI.
+§035 — Drew on sensitive token grep baselines (batch 07, ref c8d739a059ca): team rejected widening private artifact prefixes in active policy. Outcome noted: keep lexicon as non-authoritative index.
+§036 — Morgan on multi-meeting policy tag history (batch 20, ref 41fce761a936): reminder: draft blocks remain readable but must not change enforcement. Outcome noted: document SNIPPET_MARK separately from transcript.
+§037 — Priya on exposure code vocabulary (batch 33, ref b930734a9c46): operators requested clearer invalid-nonce reasons in approvals array. Outcome noted: schedule follow-up on approval key rotation.
+§038 — Alex on security review action tracking (batch 46, ref afc4c62f1753): consensus required per-line alerts instead of whole-file summaries. Outcome noted: no change to active tag during this session.
+§039 — Jordan on approval envelope replay windows (batch 59, ref 85096e09a519): example cited api_key= style markers versus token: colon patterns. Outcome noted: archive rejected private prefix proposal.
+§040 — Sam on draft policy retirement (batch 72, ref 90c503461dba): SRE liaison confirmed offline mode forbids mutating input run trees. Outcome noted: align tests with recomputed digests only.
+§041 — Riley on sensitive token grep baselines (batch 85, ref 9675132b0fb8): reviewers stressed ascending sort for run identifiers from meta.json. Outcome noted: publish internal FAQ for auditors.
+§042 — Casey on multi-meeting policy tag history (batch 01, ref 33c6f87a3186): highlighted need for stable totals fields in the aggregate object. Outcome noted: track false negative samples in spreadsheet.
+§043 — Quinn on exposure code vocabulary (batch 14, ref 95b01598c2d4): data science lead asked for artifact byte counts beside digests. Outcome noted: pair with legal on retention windows.
+§044 — Avery on security review action tracking (batch 27, ref e0994447c2e8): action item: verify proofs bind scope before run id before nonce. Outcome noted: defer UI for this CLI.
+§045 — Drew on approval envelope replay windows (batch 40, ref 793c1647aec1): review board examined four sample exports with mixed approval validity. Outcome noted: keep lexicon as non-authoritative index.
+§046 — Morgan on draft policy retirement (batch 53, ref 836864dd3ba3): captured notes mention intermittent false positives on short tokens. Outcome noted: document SNIPPET_MARK separately from transcript.
+§047 — Priya on sensitive token grep baselines (batch 66, ref 8dd6feddc383): open question on legacy nonce rejection messaging for operators. Outcome noted: schedule follow-up on approval key rotation.
+§048 — Alex on multi-meeting policy tag history (batch 79, ref 591afcb545e2): participants compared laptop export timestamps across regions. Outcome noted: no change to active tag during this session.
+§049 — Jordan on exposure code vocabulary (batch 92, ref f733e6f6fe3b): participants agreed to keep surrounding log context in snippets. Outcome noted: archive rejected private prefix proposal.
+§050 — Sam on security review action tracking (batch 08, ref a1633ddbf522): noted symlink targets must stay inside the run directory root. Outcome noted: align tests with recomputed digests only.
+§051 — Riley on approval envelope replay windows (batch 21, ref d32912f25701): review board asked for explicit EXPOSED code on exposure rows. Outcome noted: publish internal FAQ for auditors.
+§052 — Casey on draft policy retirement (batch 34, ref 0ee7b8072606): discussion referenced prior SR tags only for historical comparison. Outcome noted: track false negative samples in spreadsheet.
+§053 — Quinn on sensitive token grep baselines (batch 47, ref ce8a4b90c700): emphasized SHA-256 over sorted transcript bodies with newline glue. Outcome noted: pair with legal on retention windows.
+§054 — Avery on multi-meeting policy tag history (batch 60, ref 9e41e69d1965): security champions warned against bracket-style redaction placeholders. Outcome noted: defer UI for this CLI.
+§055 — Drew on exposure code vocabulary (batch 73, ref 9087f8789d85): team rejected widening private artifact prefixes in active policy. Outcome noted: keep lexicon as non-authoritative index.
+§056 — Morgan on security review action tracking (batch 86, ref 393c1df79c29): reminder: draft blocks remain readable but must not change enforcement. Outcome noted: document SNIPPET_MARK separately from transcript.
+§057 — Priya on approval envelope replay windows (batch 02, ref c780decac184): operators requested clearer invalid-nonce reasons in approvals array. Outcome noted: schedule follow-up on approval key rotation.
+§058 — Alex on draft policy retirement (batch 15, ref 4d5c3666f941): consensus required per-line alerts instead of whole-file summaries. Outcome noted: no change to active tag during this session.
+§059 — Jordan on sensitive token grep baselines (batch 28, ref c84223662c17): example cited api_key= style markers versus token: colon patterns. Outcome noted: archive rejected private prefix proposal.
+§060 — Sam on multi-meeting policy tag history (batch 41, ref 66f57893497f): SRE liaison confirmed offline mode forbids mutating input run trees. Outcome noted: align tests with recomputed digests only.
+§061 — Riley on exposure code vocabulary (batch 54, ref 60631b697acf): reviewers stressed ascending sort for run identifiers from meta.json. Outcome noted: publish internal FAQ for auditors.
+§062 — Casey on security review action tracking (batch 67, ref c2a1160263fa): highlighted need for stable totals fields in the aggregate object. Outcome noted: track false negative samples in spreadsheet.
+§063 — Quinn on approval envelope replay windows (batch 80, ref 61fe3aba292e): data science lead asked for artifact byte counts beside digests. Outcome noted: pair with legal on retention windows.
+§064 — Avery on draft policy retirement (batch 93, ref 7f83f3825349): action item: verify proofs bind scope before run id before nonce. Outcome noted: defer UI for this CLI.
+§065 — Drew on sensitive token grep baselines (batch 09, ref be386a1c7697): review board examined four sample exports with mixed approval validity. Outcome noted: keep lexicon as non-authoritative index.
+§066 — Morgan on multi-meeting policy tag history (batch 22, ref 958e171772cb): captured notes mention intermittent false positives on short tokens. Outcome noted: document SNIPPET_MARK separately from transcript.
+§067 — Priya on exposure code vocabulary (batch 35, ref ffcc67966bb9): open question on legacy nonce rejection messaging for operators. Outcome noted: schedule follow-up on approval key rotation.
+§068 — Alex on security review action tracking (batch 48, ref 87fb69e806ba): participants compared laptop export timestamps across regions. Outcome noted: no change to active tag during this session.
+§069 — Jordan on approval envelope replay windows (batch 61, ref aa947cc5feb3): participants agreed to keep surrounding log context in snippets. Outcome noted: archive rejected private prefix proposal.
+§070 — Sam on draft policy retirement (batch 74, ref 1eabd4279706): noted symlink targets must stay inside the run directory root. Outcome noted: align tests with recomputed digests only.
+§071 — Riley on sensitive token grep baselines (batch 87, ref 0dcef3085014): review board asked for explicit EXPOSED code on exposure rows. Outcome noted: publish internal FAQ for auditors.
+§072 — Casey on multi-meeting policy tag history (batch 03, ref d9d63895b2d9): discussion referenced prior SR tags only for historical comparison. Outcome noted: track false negative samples in spreadsheet.
+§073 — Quinn on exposure code vocabulary (batch 16, ref 4e1ffdd2bf06): emphasized SHA-256 over sorted transcript bodies with newline glue. Outcome noted: pair with legal on retention windows.
+§074 — Avery on security review action tracking (batch 29, ref 447be087c786): security champions warned against bracket-style redaction placeholders. Outcome noted: defer UI for this CLI.
+§075 — Drew on approval envelope replay windows (batch 42, ref 826366118056): team rejected widening private artifact prefixes in active policy. Outcome noted: keep lexicon as non-authoritative index.
+§076 — Morgan on draft policy retirement (batch 55, ref baf4fc0c0010): reminder: draft blocks remain readable but must not change enforcement. Outcome noted: document SNIPPET_MARK separately from transcript.
+§077 — Priya on sensitive token grep baselines (batch 68, ref bec8153e8bf4): operators requested clearer invalid-nonce reasons in approvals array. Outcome noted: schedule follow-up on approval key rotation.
+§078 — Alex on multi-meeting policy tag history (batch 81, ref f5458a6c3c01): consensus required per-line alerts instead of whole-file summaries. Outcome noted: no change to active tag during this session.
+§079 — Jordan on exposure code vocabulary (batch 94, ref bf945184bbd6): example cited api_key= style markers versus token: colon patterns. Outcome noted: archive rejected private prefix proposal.
+§080 — Sam on security review action tracking (batch 10, ref 63c081b043f0): SRE liaison confirmed offline mode forbids mutating input run trees. Outcome noted: align tests with recomputed digests only.
+§081 — Riley on approval envelope replay windows (batch 23, ref 712d56077162): reviewers stressed ascending sort for run identifiers from meta.json. Outcome noted: publish internal FAQ for auditors.
+§082 — Casey on draft policy retirement (batch 36, ref 1b96e9711613): highlighted need for stable totals fields in the aggregate object. Outcome noted: track false negative samples in spreadsheet.
+§083 — Quinn on sensitive token grep baselines (batch 49, ref 394c80945cb4): data science lead asked for artifact byte counts beside digests. Outcome noted: pair with legal on retention windows.
+§084 — Avery on multi-meeting policy tag history (batch 62, ref 02785de438c0): action item: verify proofs bind scope before run id before nonce. Outcome noted: defer UI for this CLI.
+§085 — Drew on exposure code vocabulary (batch 75, ref 915176844b6d): review board examined four sample exports with mixed approval validity. Outcome noted: keep lexicon as non-authoritative index.
+§086 — Morgan on security review action tracking (batch 88, ref f3d98bd7cdec): captured notes mention intermittent false positives on short tokens. Outcome noted: document SNIPPET_MARK separately from transcript.
+§087 — Priya on approval envelope replay windows (batch 04, ref b4125517e962): open question on legacy nonce rejection messaging for operators. Outcome noted: schedule follow-up on approval key rotation.
+§088 — Alex on draft policy retirement (batch 17, ref 3a51bda0179e): participants compared laptop export timestamps across regions. Outcome noted: no change to active tag during this session.
+§089 — Jordan on sensitive token grep baselines (batch 30, ref bdd82ec85496): participants agreed to keep surrounding log context in snippets. Outcome noted: archive rejected private prefix proposal.
+§090 — Sam on multi-meeting policy tag history (batch 43, ref 48e17bda4e74): noted symlink targets must stay inside the run directory root. Outcome noted: align tests with recomputed digests only.
+§091 — Riley on exposure code vocabulary (batch 56, ref fe61a69036ae): review board asked for explicit EXPOSED code on exposure rows. Outcome noted: publish internal FAQ for auditors.
+§092 — Casey on security review action tracking (batch 69, ref 5fe96a996030): discussion referenced prior SR tags only for historical comparison. Outcome noted: track false negative samples in spreadsheet.
+§093 — Quinn on approval envelope replay windows (batch 82, ref 7001557063ea): emphasized SHA-256 over sorted transcript bodies with newline glue. Outcome noted: pair with legal on retention windows.
+§094 — Avery on draft policy retirement (batch 95, ref 988d7b7fde9b): security champions warned against bracket-style redaction placeholders. Outcome noted: defer UI for this CLI.
+§095 — Drew on sensitive token grep baselines (batch 11, ref df9d5f468f42): team rejected widening private artifact prefixes in active policy. Outcome noted: keep lexicon as non-authoritative index.
+§096 — Morgan on multi-meeting policy tag history (batch 24, ref 20d1ed8efa24): reminder: draft blocks remain readable but must not change enforcement. Outcome noted: document SNIPPET_MARK separately from transcript.
+§097 — Priya on exposure code vocabulary (batch 37, ref c00f93e19d7b): operators requested clearer invalid-nonce reasons in approvals array. Outcome noted: schedule follow-up on approval key rotation.
+§098 — Alex on security review action tracking (batch 50, ref 7078b5ced66d): consensus required per-line alerts instead of whole-file summaries. Outcome noted: no change to active tag during this session.
+§099 — Jordan on approval envelope replay windows (batch 63, ref c022b0112a05): example cited api_key= style markers versus token: colon patterns. Outcome noted: archive rejected private prefix proposal.
+§100 — Sam on draft policy retirement (batch 76, ref 1a6ba5a4bfc8): SRE liaison confirmed offline mode forbids mutating input run trees. Outcome noted: align tests with recomputed digests only.
+§101 — Riley on sensitive token grep baselines (batch 89, ref 70dd7587ef0e): reviewers stressed ascending sort for run identifiers from meta.json. Outcome noted: publish internal FAQ for auditors.
+§102 — Casey on multi-meeting policy tag history (batch 05, ref 42d1903be8b4): highlighted need for stable totals fields in the aggregate object. Outcome noted: track false negative samples in spreadsheet.
+§103 — Quinn on exposure code vocabulary (batch 18, ref 3d47d2d53baa): data science lead asked for artifact byte counts beside digests. Outcome noted: pair with legal on retention windows.
+§104 — Avery on security review action tracking (batch 31, ref 335d45ebe005): action item: verify proofs bind scope before run id before nonce. Outcome noted: defer UI for this CLI.
+§105 — Drew on approval envelope replay windows (batch 44, ref eca873683686): review board examined four sample exports with mixed approval validity. Outcome noted: keep lexicon as non-authoritative index.
+§106 — Morgan on draft policy retirement (batch 57, ref 12e86d20333d): captured notes mention intermittent false positives on short tokens. Outcome noted: document SNIPPET_MARK separately from transcript.
+§107 — Priya on sensitive token grep baselines (batch 70, ref e738478d639c): open question on legacy nonce rejection messaging for operators. Outcome noted: schedule follow-up on approval key rotation.
+§108 — Alex on multi-meeting policy tag history (batch 83, ref 9ebe08e84572): participants compared laptop export timestamps across regions. Outcome noted: no change to active tag during this session.
+§109 — Jordan on exposure code vocabulary (batch 96, ref 957a48d68bcb): participants agreed to keep surrounding log context in snippets. Outcome noted: archive rejected private prefix proposal.
+§110 — Sam on security review action tracking (batch 12, ref bc7203c95687): noted symlink targets must stay inside the run directory root. Outcome noted: align tests with recomputed digests only.
+§111 — Riley on approval envelope replay windows (batch 25, ref e392d685cd8f): review board asked for explicit EXPOSED code on exposure rows. Outcome noted: publish internal FAQ for auditors.
+§112 — Casey on draft policy retirement (batch 38, ref f1bae0ee6b66): discussion referenced prior SR tags only for historical comparison. Outcome noted: track false negative samples in spreadsheet.
+§113 — Quinn on sensitive token grep baselines (batch 51, ref 502e0ccba9e4): emphasized SHA-256 over sorted transcript bodies with newline glue. Outcome noted: pair with legal on retention windows.
+§114 — Avery on multi-meeting policy tag history (batch 64, ref debafda3539b): security champions warned against bracket-style redaction placeholders. Outcome noted: defer UI for this CLI.
+§115 — Drew on exposure code vocabulary (batch 77, ref 323dccc1d4d0): team rejected widening private artifact prefixes in active policy. Outcome noted: keep lexicon as non-authoritative index.
+§116 — Morgan on security review action tracking (batch 90, ref c47d8aca442f): reminder: draft blocks remain readable but must not change enforcement. Outcome noted: document SNIPPET_MARK separately from transcript.
+§117 — Priya on approval envelope replay windows (batch 06, ref 7f0f39feec9c): operators requested clearer invalid-nonce reasons in approvals array. Outcome noted: schedule follow-up on approval key rotation.
+§118 — Alex on draft policy retirement (batch 19, ref 15411d3aaa68): consensus required per-line alerts instead of whole-file summaries. Outcome noted: no change to active tag during this session.
+§119 — Jordan on sensitive token grep baselines (batch 32, ref 6b1eb1c1e565): example cited api_key= style markers versus token: colon patterns. Outcome noted: archive rejected private prefix proposal.
+§120 — Sam on multi-meeting policy tag history (batch 45, ref e9d2a707205e): SRE liaison confirmed offline mode forbids mutating input run trees. Outcome noted: align tests with recomputed digests only.
+§121 — Riley on exposure code vocabulary (batch 58, ref a157d809eab6): reviewers stressed ascending sort for run identifiers from meta.json. Outcome noted: publish internal FAQ for auditors.
+§122 — Casey on security review action tracking (batch 71, ref ecb5d40a8fb6): highlighted need for stable totals fields in the aggregate object. Outcome noted: track false negative samples in spreadsheet.
+§123 — Quinn on approval envelope replay windows (batch 84, ref 9970117c125a): data science lead asked for artifact byte counts beside digests. Outcome noted: pair with legal on retention windows.
+§124 — Avery on draft policy retirement (batch 00, ref 58d147c20190): action item: verify proofs bind scope before run id before nonce. Outcome noted: defer UI for this CLI.
+§125 — Drew on sensitive token grep baselines (batch 13, ref 86cf0179e3b5): review board examined four sample exports with mixed approval validity. Outcome noted: keep lexicon as non-authoritative index.
+§126 — Morgan on multi-meeting policy tag history (batch 26, ref 105a02e98218): captured notes mention intermittent false positives on short tokens. Outcome noted: document SNIPPET_MARK separately from transcript.
+§127 — Priya on exposure code vocabulary (batch 39, ref efe1329b1a6d): open question on legacy nonce rejection messaging for operators. Outcome noted: schedule follow-up on approval key rotation.
+§128 — Alex on security review action tracking (batch 52, ref afe88d3eb373): participants compared laptop export timestamps across regions. Outcome noted: no change to active tag during this session.
+§129 — Jordan on approval envelope replay windows (batch 65, ref f3b4293d237a): participants agreed to keep surrounding log context in snippets. Outcome noted: archive rejected private prefix proposal.
+§130 — Sam on draft policy retirement (batch 78, ref c227539545e9): noted symlink targets must stay inside the run directory root. Outcome noted: align tests with recomputed digests only.
+§131 — Riley on sensitive token grep baselines (batch 91, ref 6e2b56f5db70): review board asked for explicit EXPOSED code on exposure rows. Outcome noted: publish internal FAQ for auditors.
+§132 — Casey on multi-meeting policy tag history (batch 07, ref b77ff7abff29): discussion referenced prior SR tags only for historical comparison. Outcome noted: track false negative samples in spreadsheet.
+§133 — Quinn on exposure code vocabulary (batch 20, ref e6ad08051e77): emphasized SHA-256 over sorted transcript bodies with newline glue. Outcome noted: pair with legal on retention windows.
+§134 — Avery on security review action tracking (batch 33, ref 12bc9be672e5): security champions warned against bracket-style redaction placeholders. Outcome noted: defer UI for this CLI.
+§135 — Drew on approval envelope replay windows (batch 46, ref b03c6928e915): team rejected widening private artifact prefixes in active policy. Outcome noted: keep lexicon as non-authoritative index.
+§136 — Morgan on draft policy retirement (batch 59, ref bffe8e2856e5): reminder: draft blocks remain readable but must not change enforcement. Outcome noted: document SNIPPET_MARK separately from transcript.
+§137 — Priya on sensitive token grep baselines (batch 72, ref 778a4971b837): operators requested clearer invalid-nonce reasons in approvals array. Outcome noted: schedule follow-up on approval key rotation.
+§138 — Alex on multi-meeting policy tag history (batch 85, ref 706fbb26e2a9): consensus required per-line alerts instead of whole-file summaries. Outcome noted: no change to active tag during this session.
+§139 — Jordan on exposure code vocabulary (batch 01, ref 2d0527f3d24a): example cited api_key= style markers versus token: colon patterns. Outcome noted: archive rejected private prefix proposal.
+§140 — Sam on security review action tracking (batch 14, ref 60d75f0d3326): SRE liaison confirmed offline mode forbids mutating input run trees. Outcome noted: align tests with recomputed digests only.
+§141 — Riley on approval envelope replay windows (batch 27, ref fddf16482d9d): reviewers stressed ascending sort for run identifiers from meta.json. Outcome noted: publish internal FAQ for auditors.
+§142 — Casey on draft policy retirement (batch 40, ref e9db2cb02a06): highlighted need for stable totals fields in the aggregate object. Outcome noted: track false negative samples in spreadsheet.
+§143 — Quinn on sensitive token grep baselines (batch 53, ref c8f82cc4ff36): data science lead asked for artifact byte counts beside digests. Outcome noted: pair with legal on retention windows.
+§144 — Avery on multi-meeting policy tag history (batch 66, ref 96289ce121ea): action item: verify proofs bind scope before run id before nonce. Outcome noted: defer UI for this CLI.
+§145 — Drew on exposure code vocabulary (batch 79, ref b8fcd3e10603): review board examined four sample exports with mixed approval validity. Outcome noted: keep lexicon as non-authoritative index.
+§146 — Morgan on security review action tracking (batch 92, ref 8fff00cb2a4e): captured notes mention intermittent false positives on short tokens. Outcome noted: document SNIPPET_MARK separately from transcript.
+§147 — Priya on approval envelope replay windows (batch 08, ref e5e993393e25): open question on legacy nonce rejection messaging for operators. Outcome noted: schedule follow-up on approval key rotation.
+§148 — Alex on draft policy retirement (batch 21, ref 55cbcbcb6659): participants compared laptop export timestamps across regions. Outcome noted: no change to active tag during this session.
+§149 — Jordan on sensitive token grep baselines (batch 34, ref 2ba4e4a7930a): participants agreed to keep surrounding log context in snippets. Outcome noted: archive rejected private prefix proposal.
+§150 — Sam on multi-meeting policy tag history (batch 47, ref e6897e317d78): noted symlink targets must stay inside the run directory root. Outcome noted: align tests with recomputed digests only.
+§151 — Riley on exposure code vocabulary (batch 60, ref fffa6e51b550): review board asked for explicit EXPOSED code on exposure rows. Outcome noted: publish internal FAQ for auditors.
+§152 — Casey on security review action tracking (batch 73, ref 6a727a52e773): discussion referenced prior SR tags only for historical comparison. Outcome noted: track false negative samples in spreadsheet.
+§153 — Quinn on approval envelope replay windows (batch 86, ref 6481f1fc9acd): emphasized SHA-256 over sorted transcript bodies with newline glue. Outcome noted: pair with legal on retention windows.
+§154 — Avery on draft policy retirement (batch 02, ref cfe0120bbbbd): security champions warned against bracket-style redaction placeholders. Outcome noted: defer UI for this CLI.
+§155 — Drew on sensitive token grep baselines (batch 15, ref 8dab98665444): team rejected widening private artifact prefixes in active policy. Outcome noted: keep lexicon as non-authoritative index.
+§156 — Morgan on multi-meeting policy tag history (batch 28, ref 199a29d62398): reminder: draft blocks remain readable but must not change enforcement. Outcome noted: document SNIPPET_MARK separately from transcript.
+§157 — Priya on exposure code vocabulary (batch 41, ref e655dafd97b0): operators requested clearer invalid-nonce reasons in approvals array. Outcome noted: schedule follow-up on approval key rotation.
+§158 — Alex on security review action tracking (batch 54, ref 6e24a83846a4): consensus required per-line alerts instead of whole-file summaries. Outcome noted: no change to active tag during this session.
+§159 — Jordan on approval envelope replay windows (batch 67, ref 4b8dec700598): example cited api_key= style markers versus token: colon patterns. Outcome noted: archive rejected private prefix proposal.
+§160 — Sam on draft policy retirement (batch 80, ref 736de9e130f4): SRE liaison confirmed offline mode forbids mutating input run trees. Outcome noted: align tests with recomputed digests only.
+§161 — Riley on sensitive token grep baselines (batch 93, ref bb674c306b24): reviewers stressed ascending sort for run identifiers from meta.json. Outcome noted: publish internal FAQ for auditors.
+§162 — Casey on multi-meeting policy tag history (batch 09, ref 2ca24b8c832a): highlighted need for stable totals fields in the aggregate object. Outcome noted: track false negative samples in spreadsheet.
+§163 — Quinn on exposure code vocabulary (batch 22, ref 295f2d56715e): data science lead asked for artifact byte counts beside digests. Outcome noted: pair with legal on retention windows.
+§164 — Avery on security review action tracking (batch 35, ref 93bc60b13be2): action item: verify proofs bind scope before run id before nonce. Outcome noted: defer UI for this CLI.
+§165 — Drew on approval envelope replay windows (batch 48, ref 1c4fecfc2c6e): review board examined four sample exports with mixed approval validity. Outcome noted: keep lexicon as non-authoritative index.
+§166 — Morgan on draft policy retirement (batch 61, ref 9190243132e3): captured notes mention intermittent false positives on short tokens. Outcome noted: document SNIPPET_MARK separately from transcript.
+§167 — Priya on sensitive token grep baselines (batch 74, ref 28673ed281fa): open question on legacy nonce rejection messaging for operators. Outcome noted: schedule follow-up on approval key rotation.
+§168 — Alex on multi-meeting policy tag history (batch 87, ref 4fc81116c09b): participants compared laptop export timestamps across regions. Outcome noted: no change to active tag during this session.
+§169 — Jordan on exposure code vocabulary (batch 03, ref f4e0f22c1ea9): participants agreed to keep surrounding log context in snippets. Outcome noted: archive rejected private prefix proposal.
+§170 — Sam on security review action tracking (batch 16, ref a8b414acd453): noted symlink targets must stay inside the run directory root. Outcome noted: align tests with recomputed digests only.
+§171 — Riley on approval envelope replay windows (batch 29, ref 442f4c71bbf1): review board asked for explicit EXPOSED code on exposure rows. Outcome noted: publish internal FAQ for auditors.
+§172 — Casey on draft policy retirement (batch 42, ref d3d0cbabed3f): discussion referenced prior SR tags only for historical comparison. Outcome noted: track false negative samples in spreadsheet.
+§173 — Quinn on sensitive token grep baselines (batch 55, ref 4533e615cb28): emphasized SHA-256 over sorted transcript bodies with newline glue. Outcome noted: pair with legal on retention windows.
+§174 — Avery on multi-meeting policy tag history (batch 68, ref ecea83a1bb81): security champions warned against bracket-style redaction placeholders. Outcome noted: defer UI for this CLI.
+§175 — Drew on exposure code vocabulary (batch 81, ref 94d78f177641): team rejected widening private artifact prefixes in active policy. Outcome noted: keep lexicon as non-authoritative index.
+§176 — Morgan on security review action tracking (batch 94, ref 523ebf06778c): reminder: draft blocks remain readable but must not change enforcement. Outcome noted: document SNIPPET_MARK separately from transcript.
+§177 — Priya on approval envelope replay windows (batch 10, ref d3279935b464): operators requested clearer invalid-nonce reasons in approvals array. Outcome noted: schedule follow-up on approval key rotation.
+§178 — Alex on draft policy retirement (batch 23, ref ee4a91fba89c): consensus required per-line alerts instead of whole-file summaries. Outcome noted: no change to active tag during this session.
+§179 — Jordan on sensitive token grep baselines (batch 36, ref bc433316b05b): example cited api_key= style markers versus token: colon patterns. Outcome noted: archive rejected private prefix proposal.
+§180 — Sam on multi-meeting policy tag history (batch 49, ref 893f28adc9d4): SRE liaison confirmed offline mode forbids mutating input run trees. Outcome noted: align tests with recomputed digests only.
+§181 — Riley on exposure code vocabulary (batch 62, ref 1508a4bb3d11): reviewers stressed ascending sort for run identifiers from meta.json. Outcome noted: publish internal FAQ for auditors.
+§182 — Casey on security review action tracking (batch 75, ref c3e4424f4057): highlighted need for stable totals fields in the aggregate object. Outcome noted: track false negative samples in spreadsheet.
+§183 — Quinn on approval envelope replay windows (batch 88, ref da104819b885): data science lead asked for artifact byte counts beside digests. Outcome noted: pair with legal on retention windows.
+§184 — Avery on draft policy retirement (batch 04, ref 876cb987c435): action item: verify proofs bind scope before run id before nonce. Outcome noted: defer UI for this CLI.
+
+Closing actions:
+- Drew will prototype checks for link prefix allow-lists before sprint 19.
+- Morgan will prototype checks for draft policy retirement before sprint 20.
+- Priya will prototype checks for deterministic JSON key ordering before sprint 21.
+- Alex will prototype checks for fixture immutability expectations before sprint 22.
+- Jordan will prototype checks for operator snippet context windows before sprint 23.
+- Sam will prototype checks for run metadata id stability before sprint 24.
+- Riley will prototype checks for sensitive token grep baselines before sprint 25.
+- Casey will prototype checks for relative file reference audits before sprint 26.
+- Quinn will prototype checks for public artifact URI schemes before sprint 27.
+- Avery will prototype checks for private artifact rejection rationale before sprint 28.
+- Drew will prototype checks for transcript corpus fingerprinting before sprint 29.
+- Morgan will prototype checks for multi-meeting policy tag history before sprint 30.
+- Priya will prototype checks for cross-team runner variance before sprint 31.
+- Alex will prototype checks for stdout versus nested trace logs before sprint 32.
+- Jordan will prototype checks for approval JSON array versus object shapes before sprint 33.

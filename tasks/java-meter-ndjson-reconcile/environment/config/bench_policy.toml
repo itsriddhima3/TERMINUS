@@ -1,0 +1,9 @@
+# Bench policy overrides for MTR-2024-Q1 (see /app/docs/bench_precedence.md)
+
+meter_id = "MTR-2024-Q1"
+gap_tolerance_min = 15
+delta_tolerance_kwh = 0.001
+
+[reconciliation]
+duplicate_key_fields = ["device_id", "reading_at"]
+max_delta_field = "max_delta_kwh_per_interval"

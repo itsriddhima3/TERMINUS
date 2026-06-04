@@ -1,0 +1,2 @@
+CI invokes go test under /app before packaging line_audit releases.
+Verifier grading may rebuild the driver to /tmp/line_audit_verify_bin before running packs.

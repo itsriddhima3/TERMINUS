@@ -1,0 +1,40 @@
+user_visible_outputs = [
+  "/app/scripts/start-api.sh",
+  "/app/bin/arcctl",
+  "/app/var/records.jsonl",
+  "/app/var/records.csv",
+  "/app/output/linked.json",
+  "/app/output/compliance.json",
+  "/app/output/unresolved.jsonl",
+]
+
+internal_harness_files = [
+  "/app/scripts/build-cli.sh",
+  "/app/scripts/build-api.sh",
+  "/app/scripts/init-workspace.sh",
+]
+
+[structured_outputs.records_jsonl]
+target = "/app/var/records.jsonl"
+format = "jsonl"
+instruction_checks = ["collection_id", "title", "date_span", "creators", "type", "name"]
+
+[structured_outputs.records_csv]
+target = "/app/var/records.csv"
+format = "csv"
+instruction_checks = ["collection_id", "title", "date_span"]
+
+[structured_outputs.linked]
+target = "/app/output/linked.json"
+format = "json"
+instruction_checks = ["batch_id", "records", "creator_primary", "subject_headings", "place_names", "accession_candidate", "accession_valid", "geo_heading_count"]
+
+[structured_outputs.compliance]
+target = "/app/output/compliance.json"
+format = "json"
+instruction_checks = ["batch_id", "summary", "records", "total", "fully_linked", "accession_pass", "accession_fail", "unresolved_count", "geo_heading_count"]
+
+[structured_outputs.unresolved]
+target = "/app/output/unresolved.jsonl"
+format = "jsonl"
+instruction_checks = ["collection_id", "unresolved_count"]

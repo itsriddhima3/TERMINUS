@@ -1,0 +1,5 @@
+Finish `ARC-2024-Q2` with `/app/bin/arcctl report ARC-2024-Q2`, producing `/app/output/compliance.json` (`batch_id`, `summary`, `records`) and `/app/output/unresolved.jsonl` (one line per collection still missing links, keyed by `collection_id`). The `summary` block reports `total`, `fully_linked`, `accession_pass`, `accession_fail`, and `unresolved_count`. Each `records` entry mirrors the linked row, including `geo_heading_count`. Full layout is in `/app/docs/compliance_layout.md`.
+
+Manuscript accession strings for this batch should stay on the `MS-` hyphen form even when `/app/config/bench_policy.toml` suggests alternate wire notation. University archive accession QA follows the dot-segment form described in the handbook for `UA` materials. Collections without geographic headings must not be treated as place failures. Unmatched entities belong in the unresolved queue, yet several fully linked rows vanish from the compliance bundle today. Precedence among handbook sections, bench policy, and the authority API is summarized in `/app/docs/bench_precedence.md`.
+
+Repair report. Signal completion with both output paths regenerated.

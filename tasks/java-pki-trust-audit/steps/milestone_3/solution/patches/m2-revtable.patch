@@ -1,0 +1,60 @@
+--- a/cli/src/main/java/trust/policy/RevTable.java
++++ b/cli/src/main/java/trust/policy/RevTable.java
+@@ -14,7 +14,7 @@
+ import trust.parse.CertSlice;
+ 
+ public final class RevTable {
+-  private final Set<String> revokedSerials = new HashSet<>();
++  private final Map<String, Set<String>> revokedByIssuer = new HashMap<>();
+   private final Map<String, String> issuerThisUpdate = new HashMap<>();
+ 
+   public static RevTable empty() {
+@@ -23,8 +23,7 @@
+ 
+   public static RevTable mergeGlob(String globPattern) throws Exception {
+     RevTable acc = new RevTable();
+-    String prefix = globPattern.replace("*", "");
+-    Path dir = Path.of(prefix).getParent();
++    Path dir = Path.of(globPattern).getParent();
+     String tail = Path.of(globPattern).getFileName().toString().replace("*", ".*");
+     Pattern pat = Pattern.compile(tail);
+     if (dir == null || !Files.isDirectory(dir)) {
+@@ -47,19 +46,33 @@
+             java.security.cert.CertificateFactory.getInstance("X.509")
+                 .generateCRL(new ByteArrayInputStream(der));
+     String issuer = CertSlice.extractCn(crl.getIssuerX500Principal());
+-    String thisUpdate = crl.getThisUpdate().toInstant().toString();
++    String thisUpdate = generalized(crl.getThisUpdate());
+     String prev = issuerThisUpdate.get(issuer);
+-    if (prev == null || thisUpdate.compareTo(prev) <= 0) {
+-      issuerThisUpdate.put(issuer, thisUpdate);
++    if (prev == null || thisUpdate.compareTo(prev) > 0) {
++      Set<String> serials = new HashSet<>();
+       if (crl.getRevokedCertificates() != null) {
+         for (X509CRLEntry e : crl.getRevokedCertificates()) {
+-          revokedSerials.add(e.getSerialNumber().toString(16).toLowerCase());
++          serials.add(e.getSerialNumber().toString(16).toLowerCase());
+         }
+       }
++      revokedByIssuer.put(issuer, serials);
++      issuerThisUpdate.put(issuer, thisUpdate);
+     }
+   }
+ 
+   public boolean isRevoked(String serialHex) {
+-    return revokedSerials.contains(serialHex.toLowerCase());
++    String norm = serialHex.toLowerCase();
++    for (Set<String> serials : revokedByIssuer.values()) {
++      if (serials.contains(norm)) {
++        return true;
++      }
++    }
++    return false;
++  }
++
++  private static String generalized(java.util.Date d) {
++    return java.time.format.DateTimeFormatter.ofPattern("yyyyMMddHHmmss'Z'")
++        .withZone(java.time.ZoneOffset.UTC)
++        .format(d.toInstant());
+   }
+ }

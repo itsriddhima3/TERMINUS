@@ -1,0 +1,3 @@
+#!/bin/bash
+set -euo pipefail
+exec php /app/cli/guardctl.php "$@"

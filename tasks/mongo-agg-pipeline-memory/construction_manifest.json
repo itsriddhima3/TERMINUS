@@ -1,0 +1,141 @@
+{
+  "symbol_table": [
+    {
+      "path": "x9/p9a_bundle.js",
+      "symbol": "phase_bundle",
+      "kind": "function",
+      "signature": "function phase_bundle(cfg) { return Array; }",
+      "purpose": "Builds ordered aggregation stage array for WK-SPINE workloads."
+    },
+    {
+      "path": "r7/h3v_invoke.js",
+      "symbol": "op_exec",
+      "kind": "function",
+      "signature": "function op_exec(db, coll, stages, opts) { return cursor; }",
+      "purpose": "Invokes aggregate on collection with caller options object."
+    },
+    {
+      "path": "m4/q2m_attach.js",
+      "symbol": "step_tail",
+      "kind": "function",
+      "signature": "function step_tail(stages, cfg) { return Array; }",
+      "purpose": "Appends trailing predicate stages to supplied stage array."
+    },
+    {
+      "path": "config/invoke_policy.json",
+      "symbol": "spine_defaults",
+      "kind": "constant",
+      "signature": "spine_defaults.allow_disk_use",
+      "purpose": "Policy gate for allowDiskUse merged before aggregate()."
+    }
+  ],
+  "flipping_point_contract": {
+    "locations": [
+      {
+        "id": "A",
+        "path": "x9/p9a_bundle.js",
+        "controls_tests": [
+          "test_first_stage_is_match",
+          "test_match_stage_index_zero",
+          "test_examined_ratio_below_cap",
+          "test_examined_ratio_reflects_selective_scan",
+          "test_live_bundle_stage_count_three",
+          "test_live_bundle_opens_with_raw_field_match",
+          "test_pipeline_hash_stable"
+        ]
+      },
+      {
+        "id": "B",
+        "path": "r7/h3v_invoke.js",
+        "controls_tests": [
+          "test_memory_limit_not_exceeded",
+          "test_allow_disk_enabled",
+          "test_lane_job_exit_zero",
+          "test_invoke_policy_allows_spill",
+          "test_independent_aggregate_matches_audit"
+        ]
+      },
+      {
+        "id": "C",
+        "path": "m4/q2m_attach.js",
+        "controls_tests": [
+          "test_result_total_in_band",
+          "test_grouped_keys_in_band",
+          "test_live_bundle_no_document_level_tail_match",
+          "test_decoy_rollup_untouched",
+          "test_triple_audit_hash_and_total_stable"
+        ]
+      },
+      {
+        "id": "D",
+        "path": "config/invoke_policy.json",
+        "controls_tests": [
+          "test_invoke_policy_allows_spill",
+          "test_allow_disk_enabled",
+          "test_memory_limit_not_exceeded",
+          "test_rerun_idempotent",
+          "test_lane_job_exit_zero"
+        ]
+      }
+    ],
+    "no_single_location_flips_majority": true,
+    "concentration_cap": 0.5
+  },
+  "code_forbidden_tokens": [
+    "telemetry",
+    "rollup",
+    "mongodb",
+    "memory",
+    "limit",
+    "exceeded",
+    "spine",
+    "aggregation",
+    "events",
+    "store",
+    "pipelines",
+    "audit",
+    "harness",
+    "output",
+    "workload",
+    "matrix",
+    "predicate",
+    "registry",
+    "analyst",
+    "repair",
+    "report",
+    "schema",
+    "operators",
+    "nightly",
+    "aborts",
+    "grouping",
+    "production",
+    "replica",
+    "failure",
+    "definitions",
+    "runners",
+    "bands",
+    "groups",
+    "filters",
+    "access",
+    "collection",
+    "region",
+    "purchase",
+    "totals",
+    "keys",
+    "disk",
+    "enabled",
+    "stage",
+    "index",
+    "examined",
+    "returned",
+    "ratio",
+    "hash",
+    "decoy",
+    "mongosh",
+    "javascript",
+    "bash",
+    "performance",
+    "data",
+    "processing"
+  ]
+}

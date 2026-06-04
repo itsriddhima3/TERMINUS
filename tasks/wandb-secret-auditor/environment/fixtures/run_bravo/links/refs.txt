@@ -1,0 +1,4 @@
+artifact://public/model-B@v1
+artifact://private/model-B@v1
+file:./artifacts/data.txt
+

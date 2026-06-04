@@ -1,0 +1,5 @@
+[
+  {"id":"ap-delta-1","run_id":"delta","scope":"publish:model-D","nonce":"NNC-v2:delta:00000000","proof":"f9b1d559883181fcb4087c4b2e4428bda03fa5ef8194572e9a2751b78609ee99"},
+  {"id":"ap-delta-2","run_id":"delta","scope":"publish:model-D","nonce":"NNC-v1:delta:00000000","proof":"deadbeef"},
+  {"id":"ap-delta-3","run_id":"delta","scope":"publish:model-D","nonce":"NNC-v2:delta:deadbeef","proof":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}
+]

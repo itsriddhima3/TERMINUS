@@ -1,0 +1,4 @@
+{
+  "default_q_size": 3,
+  "default_drift_tight_ms": 25
+}

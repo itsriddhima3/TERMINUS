@@ -1,0 +1,5 @@
+Meridian retail wire integration under `/app` is failing QA on the compliance harness. Run `/app/app/compliance_audit.sh` and inspect `/app/output/wire_audit.json`. `/app/data/scenario_matrix.json` lists twenty scenario keys (Acme-Origin, Beta-Dest, gamma_spaced, gamma_compact, gamma_alt, delta_cents, delta_major_alias). Normative caller rules live under `/app/docs/meridian_spec/index.md`; `/app/docs/meridian_precedence.md` resolves conflicts with volume 04.
+
+Parallel stress lanes duplicate settlement postings for one logical transfer; single-threaded replays stay clean. Mock gateway throttle responses leave some lanes permanently failed even though the bundled OpenAPI compendium tells callers how to recover.
+
+Report shape is defined in `/app/docs/meridian_spec/volume_06_reporting.md` (`schema_version`, `scenarios`, `duplicate_postings`, `completed`, `attempts`, `final_settlement_count`, `outbound_token`, `compliance_ok`). Fix the shipped SDK so the compliance report shows clean results for every scenario row in the matrix.

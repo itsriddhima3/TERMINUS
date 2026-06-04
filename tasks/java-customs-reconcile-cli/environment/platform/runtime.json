@@ -1,0 +1,6 @@
+{
+  "api_port": 3921,
+  "shipments_dir": "/app/data/shipments",
+  "var_dir": "/app/var",
+  "output_dir": "/app/output"
+}

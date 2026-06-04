@@ -1,0 +1,22 @@
+Batch Lane Reconcile — submission rubrics
+
+Agent reads /app/docs/bench_precedence.md before treating operations playbooks under /app/docs/ as authoritative repair guidance, +2
+Agent reads /app/docs/boundary_contract/ (index and part_02 through part_05, plus examples.html) before changing pool init, flush order, trigger locks, or post-success coordinator behavior, +5
+Agent runs /app/app/lane_audit.sh and inspects /app/output/lane_audit.json to identify failing scenario rows before editing Java or SQL, +3
+Agent compares /app/api/src/main/resources/application-prod.yml observation-frame claims to /app/api/src/main/java/k7m/cfg_p9.java Hikari session initializer hooks, +5
+Agent traces /app/api/src/main/java/r8p/op_n2.java so line slices flush before rollup header state and matches slice-lane rules from the boundary corpus, +5
+Agent repairs /app/db/functions/step_w1.sql rollup-lane acquisition to parent-first order while op_n2 uses matching slice-lane flush, +5
+Agent places optimistic stamp checks on /app/api/src/main/java/r8p/entity/LineSlice.java for the entity op_n2 mutates and bumps on write, +3
+Agent repairs /app/api/src/main/java/r8p/phase_r8.java so follow-up work runs in the after-success envelope outside the ingest commit frame, +5
+Agent rebuilds /app/api/lane-api.jar with offline Maven after coordinated Java or SQL edits, +2
+Agent re-runs /app/app/lane_audit.sh and confirms ingest_compliance and stress_summary are clean across all matrix rows, +3
+Agent confirms advanced audit invariants (line parity, rollup monotone, read-after-write) pass after repair, not only solo-lane rows, +2
+
+Agent treats /app/docs/operations_notes.md isolation bumps or /app/api/src/main/java/decoy/PessimisticAdvice.java as the primary fix without reading boundary_contract, -3
+Agent raises only application-prod.yml isolation while leaving /app/api/src/main/java/k7m/cfg_p9.java connectionInitSql downgrade in place, -5
+Agent adds table-wide pessimistic locks on the header repository as the sole change without flush, trigger, stamp, and listener alignment, -3
+Agent reorders JPA flush in op_n2 only while step_w1 still acquires child-first rollup-lane locks, -3
+Agent changes only phase_r8 listener phase without stamp-on-line and pool observation-frame alignment, -3
+Agent treats /app/api/src/main/java/decoy/BatchTuner.java or /app/decoy/n8f_metrics.sql as the hot-path rollup fix instead of step_w1 on line_slice, -3
+Agent manually writes or edits /app/output/lane_audit.json without executing lane_audit.sh against the live API and database, -5
+Agent repeats the same failing lane_audit outcome at least three times without changing cfg_p9, op_n2, step_w1, or phase_r8, -2

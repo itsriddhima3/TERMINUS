@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "description": "Scenario index and required report fields. Numeric acceptance bands are defined in instruction.md and applied at grade time.",
+  "base_rows": {
+    "burst_delivery": ["observed_revision", "expected_revision", "stale_read"],
+    "graceful_stop": ["observed_revision", "expected_revision", "stale_read"],
+    "late_attach": ["observed_revision", "expected_revision", "stale_read"],
+    "backlog_clear": ["observed_revision", "expected_revision", "stale_read"]
+  },
+  "advanced_rows": {
+    "fanout_triple": ["observed_revision", "expected_revision", "stale_read", "seq_monotonic"],
+    "mid_detach": ["observed_revision", "expected_revision", "stale_read", "detached_peer_frozen"],
+    "branch_toggle": ["observed_revision", "expected_revision", "stale_read"],
+    "drain_zero_edge": ["observed_revision", "expected_revision", "stale_read", "zero_slot_confused"],
+    "relay_sidecar": ["observed_revision", "expected_revision", "stale_read", "metrics_ok"],
+    "coalesce_trace": ["observed_revision", "expected_revision", "stale_read", "coalesce_events"],
+    "registry_grow": ["observed_revision", "expected_revision", "stale_read", "slot_count_delta"],
+    "ack_barrier": ["observed_revision", "expected_revision", "stale_read", "barrier_hits"],
+    "ring_rotate": ["observed_revision", "expected_revision", "stale_read", "slot_index", "body_digest"]
+  },
+  "stress_summary": ["race_exit_code", "iterations_clean"]
+}

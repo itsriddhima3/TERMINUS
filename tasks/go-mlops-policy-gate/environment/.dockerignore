@@ -1,0 +1,16 @@
+.git
+__pycache__
+node_modules
+target
+dist
+build
+.venv
+env
+logs
+solution
+tests
+**/*.reference
+*.md.reference
+.DS_Store
+*.swp
+*.swo

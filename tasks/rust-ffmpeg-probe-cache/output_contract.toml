@@ -1,0 +1,24 @@
+user_visible_outputs = [
+  "/app/output/stress_ledger.json",
+  "/app/data/stress_manifest.toml",
+]
+
+internal_harness_files = [
+  "/app/scripts/build.sh",
+  "/app/data/stress_manifest.toml",
+  "/tmp/m7desk_stress",
+  "/tmp/vr_stress_ledger.json",
+  "/tmp/vr_stress_rerun.json",
+]
+
+[structured_outputs.stress_ledger]
+target = "/app/output/stress_ledger.json"
+format = "json"
+instruction_checks = [
+  "lanes",
+  "busy_events",
+  "all_complete",
+  "ingest_contract",
+  "lane_matrix",
+  "stress_ledger.json",
+]

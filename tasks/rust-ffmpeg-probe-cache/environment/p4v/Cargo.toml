@@ -1,0 +1,10 @@
+[package]
+name = "p4v"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+rusqlite = { version = "0.32", features = ["bundled"] }
+
+[lib]
+path = "op_p2.rs"

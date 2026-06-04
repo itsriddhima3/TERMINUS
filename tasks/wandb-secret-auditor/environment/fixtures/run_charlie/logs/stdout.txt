@@ -1,0 +1,5 @@
+starting
+api_key=CHARLIE-KEY-0a0b0c0d
+warning: rotated token: charlie_live_token_ff00aa
+done
+

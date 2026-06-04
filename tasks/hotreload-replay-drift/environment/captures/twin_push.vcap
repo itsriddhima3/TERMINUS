@@ -1,0 +1,12 @@
+session twin_push
+frames 130
+body lane_a red 0 0 0 0 28 0.500
+body lane_b blue 5 0 0 0 28 0.500
+original
+event 55 1 lane_a push 0.180 0
+event 90 2 lane_b push -0.140 0
+end
+playback
+event 55 1 lane_a push 0.180 0
+event 90 2 lane_b push -0.140 0
+end

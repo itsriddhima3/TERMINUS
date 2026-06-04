@@ -1,0 +1,4 @@
+runtime:
+  tool: vaultctl
+  default_key: /app/keys/test_master.key
+  manifest_member: vault/manifest.json

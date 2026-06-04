@@ -1,0 +1,49 @@
+--- a/cli/src/main/java/trust/parse/step_p4.java
++++ b/cli/src/main/java/trust/parse/step_p4.java
+@@ -1,6 +1,5 @@
+ package trust.parse;
+ 
+-import java.util.Comparator;
+ import java.util.ArrayList;
+ import java.util.HashMap;
+ import java.util.List;
+@@ -18,15 +17,32 @@ public final class step_p4 {
+     if (!byCn.containsKey(anchorCn) || !byCn.containsKey(leafCn)) {
+       return List.of();
+     }
+-    List<CertSlice> ordered = new ArrayList<>(slices);
+-    ordered.sort(Comparator.comparing(CertSlice::cn));
+-    List<String> chain = new ArrayList<>();
+-    for (CertSlice s : ordered) {
+-      chain.add(s.cn());
++    List<String> chain = new ArrayList<>();
++    CertSlice cursor = byCn.get(leafCn);
++    while (cursor != null) {
++      chain.add(0, cursor.cn());
++      if (cursor.cn().equals(anchorCn)) {
++        break;
++      }
++      String parentCn = cursor.issuerCn();
++      cursor = byCn.get(parentCn);
+     }
+-    if (!chain.contains(anchorCn) || !chain.contains(leafCn)) {
++    if (chain.isEmpty() || !chain.get(0).equals(anchorCn) || !chain.get(chain.size() - 1).equals(leafCn)) {
+       return List.of();
+     }
+     return chain;
+   }
+@@ -40,11 +56,11 @@ public final class step_p4 {
+       if (child == null || parent == null) {
+         return false;
+       }
+-      String aki = child.extensionHex("2.5.29.14");
+-      String parentDn = parent.cn();
+-      if (aki != null && parentDn != null && !aki.contains(parentDn)) {
++      String aki = child.keyIdHex("2.5.29.35");
++      String parentSki = parent.keyIdHex("2.5.29.14");
++      if (aki != null && parentSki != null && !aki.equals(parentSki)) {
+         return false;
+       }
+     }
+     return true;
+   }

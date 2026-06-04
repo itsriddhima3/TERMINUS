@@ -1,0 +1,210 @@
+Security review transcript — working session 27
+Facilitator notes: this appendix is historical color only; enforcement follows the ACTIVE block elsewhere in the corpus.
+
+Agenda highlights:
+- Review offline export 27 anomalies
+- Compare redaction operator strings against the lexicon index
+- Capture open risks for deterministic reporting
+
+Discussion record:
+§001 — Alex on artifact digest recomputation (batch 20, ref c495f1c4b237): participants compared laptop export timestamps across regions. Outcome noted: defer UI for this CLI.
+§002 — Jordan on link prefix allow-lists (batch 33, ref 877a6aec21dc): participants agreed to keep surrounding log context in snippets. Outcome noted: keep lexicon as non-authoritative index.
+§003 — Sam on run metadata id stability (batch 46, ref 5dac5ee1f97d): noted symlink targets must stay inside the run directory root. Outcome noted: document SNIPPET_MARK separately from transcript.
+§004 — Riley on transcript corpus fingerprinting (batch 59, ref 1229600bc273): review board asked for explicit EXPOSED code on exposure rows. Outcome noted: schedule follow-up on approval key rotation.
+§005 — Casey on invalid proof reason taxonomies (batch 72, ref ff9d340b5b72): discussion referenced prior SR tags only for historical comparison. Outcome noted: no change to active tag during this session.
+§006 — Quinn on Kotlin CLI packaging constraints (batch 85, ref 55ad4e7093a6): emphasized SHA-256 over sorted transcript bodies with newline glue. Outcome noted: archive rejected private prefix proposal.
+§007 — Avery on artifact digest recomputation (batch 01, ref c04ddb2ee9b8): security champions warned against bracket-style redaction placeholders. Outcome noted: align tests with recomputed digests only.
+§008 — Drew on link prefix allow-lists (batch 14, ref 1868dc15b8a9): team rejected widening private artifact prefixes in active policy. Outcome noted: publish internal FAQ for auditors.
+§009 — Morgan on run metadata id stability (batch 27, ref b25e64709159): reminder: draft blocks remain readable but must not change enforcement. Outcome noted: track false negative samples in spreadsheet.
+§010 — Priya on transcript corpus fingerprinting (batch 40, ref 727ca95bc4c5): operators requested clearer invalid-nonce reasons in approvals array. Outcome noted: pair with legal on retention windows.
+§011 — Alex on invalid proof reason taxonomies (batch 53, ref dccd875fb3dc): consensus required per-line alerts instead of whole-file summaries. Outcome noted: defer UI for this CLI.
+§012 — Jordan on Kotlin CLI packaging constraints (batch 66, ref 70a0766a81a9): example cited api_key= style markers versus token: colon patterns. Outcome noted: keep lexicon as non-authoritative index.
+§013 — Sam on artifact digest recomputation (batch 79, ref 39470739b310): SRE liaison confirmed offline mode forbids mutating input run trees. Outcome noted: document SNIPPET_MARK separately from transcript.
+§014 — Riley on link prefix allow-lists (batch 92, ref a6e15ddbd42a): reviewers stressed ascending sort for run identifiers from meta.json. Outcome noted: schedule follow-up on approval key rotation.
+§015 — Casey on run metadata id stability (batch 08, ref 005a1f52d4c9): highlighted need for stable totals fields in the aggregate object. Outcome noted: no change to active tag during this session.
+§016 — Quinn on transcript corpus fingerprinting (batch 21, ref 3e21cf78a814): data science lead asked for artifact byte counts beside digests. Outcome noted: archive rejected private prefix proposal.
+§017 — Avery on invalid proof reason taxonomies (batch 34, ref 2b502065acfb): action item: verify proofs bind scope before run id before nonce. Outcome noted: align tests with recomputed digests only.
+§018 — Drew on Kotlin CLI packaging constraints (batch 47, ref 9e3648b74f60): review board examined four sample exports with mixed approval validity. Outcome noted: publish internal FAQ for auditors.
+§019 — Morgan on artifact digest recomputation (batch 60, ref 62af9b368b34): captured notes mention intermittent false positives on short tokens. Outcome noted: track false negative samples in spreadsheet.
+§020 — Priya on link prefix allow-lists (batch 73, ref 560b54d91435): open question on legacy nonce rejection messaging for operators. Outcome noted: pair with legal on retention windows.
+§021 — Alex on run metadata id stability (batch 86, ref e60c2dc1bc0e): participants compared laptop export timestamps across regions. Outcome noted: defer UI for this CLI.
+§022 — Jordan on transcript corpus fingerprinting (batch 02, ref 8b2b9152c943): participants agreed to keep surrounding log context in snippets. Outcome noted: keep lexicon as non-authoritative index.
+§023 — Sam on invalid proof reason taxonomies (batch 15, ref d0b426cd563f): noted symlink targets must stay inside the run directory root. Outcome noted: document SNIPPET_MARK separately from transcript.
+§024 — Riley on Kotlin CLI packaging constraints (batch 28, ref a49c7f4333c2): review board asked for explicit EXPOSED code on exposure rows. Outcome noted: schedule follow-up on approval key rotation.
+§025 — Casey on artifact digest recomputation (batch 41, ref 8c8492a40d16): discussion referenced prior SR tags only for historical comparison. Outcome noted: no change to active tag during this session.
+§026 — Quinn on link prefix allow-lists (batch 54, ref 7db7f31be81c): emphasized SHA-256 over sorted transcript bodies with newline glue. Outcome noted: archive rejected private prefix proposal.
+§027 — Avery on run metadata id stability (batch 67, ref b7e1bdd86c23): security champions warned against bracket-style redaction placeholders. Outcome noted: align tests with recomputed digests only.
+§028 — Drew on transcript corpus fingerprinting (batch 80, ref 5e0a778d3c6b): team rejected widening private artifact prefixes in active policy. Outcome noted: publish internal FAQ for auditors.
+§029 — Morgan on invalid proof reason taxonomies (batch 93, ref 9d3b40b4365a): reminder: draft blocks remain readable but must not change enforcement. Outcome noted: track false negative samples in spreadsheet.
+§030 — Priya on Kotlin CLI packaging constraints (batch 09, ref f5c36d1c38d6): operators requested clearer invalid-nonce reasons in approvals array. Outcome noted: pair with legal on retention windows.
+§031 — Alex on artifact digest recomputation (batch 22, ref 254aac6aceb2): consensus required per-line alerts instead of whole-file summaries. Outcome noted: defer UI for this CLI.
+§032 — Jordan on link prefix allow-lists (batch 35, ref 612a8f83e06e): example cited api_key= style markers versus token: colon patterns. Outcome noted: keep lexicon as non-authoritative index.
+§033 — Sam on run metadata id stability (batch 48, ref a8cc8f1afc21): SRE liaison confirmed offline mode forbids mutating input run trees. Outcome noted: document SNIPPET_MARK separately from transcript.
+§034 — Riley on transcript corpus fingerprinting (batch 61, ref 8d913ab389ef): reviewers stressed ascending sort for run identifiers from meta.json. Outcome noted: schedule follow-up on approval key rotation.
+§035 — Casey on invalid proof reason taxonomies (batch 74, ref f6e3724e80d8): highlighted need for stable totals fields in the aggregate object. Outcome noted: no change to active tag during this session.
+§036 — Quinn on Kotlin CLI packaging constraints (batch 87, ref b424650435ad): data science lead asked for artifact byte counts beside digests. Outcome noted: archive rejected private prefix proposal.
+§037 — Avery on artifact digest recomputation (batch 03, ref cf1ac5b96540): action item: verify proofs bind scope before run id before nonce. Outcome noted: align tests with recomputed digests only.
+§038 — Drew on link prefix allow-lists (batch 16, ref 3666f36ede28): review board examined four sample exports with mixed approval validity. Outcome noted: publish internal FAQ for auditors.
+§039 — Morgan on run metadata id stability (batch 29, ref e2d152b3b953): captured notes mention intermittent false positives on short tokens. Outcome noted: track false negative samples in spreadsheet.
+§040 — Priya on transcript corpus fingerprinting (batch 42, ref 5d0e41db92c7): open question on legacy nonce rejection messaging for operators. Outcome noted: pair with legal on retention windows.
+§041 — Alex on invalid proof reason taxonomies (batch 55, ref b7074f7fbe57): participants compared laptop export timestamps across regions. Outcome noted: defer UI for this CLI.
+§042 — Jordan on Kotlin CLI packaging constraints (batch 68, ref 571e1dd82f3f): participants agreed to keep surrounding log context in snippets. Outcome noted: keep lexicon as non-authoritative index.
+§043 — Sam on artifact digest recomputation (batch 81, ref ee0d143ef01f): noted symlink targets must stay inside the run directory root. Outcome noted: document SNIPPET_MARK separately from transcript.
+§044 — Riley on link prefix allow-lists (batch 94, ref ce8121e83aea): review board asked for explicit EXPOSED code on exposure rows. Outcome noted: schedule follow-up on approval key rotation.
+§045 — Casey on run metadata id stability (batch 10, ref 2f3b6bc113f5): discussion referenced prior SR tags only for historical comparison. Outcome noted: no change to active tag during this session.
+§046 — Quinn on transcript corpus fingerprinting (batch 23, ref e7bd3d90aead): emphasized SHA-256 over sorted transcript bodies with newline glue. Outcome noted: archive rejected private prefix proposal.
+§047 — Avery on invalid proof reason taxonomies (batch 36, ref 4e3d3ca3b5a7): security champions warned against bracket-style redaction placeholders. Outcome noted: align tests with recomputed digests only.
+§048 — Drew on Kotlin CLI packaging constraints (batch 49, ref a0897e0750f3): team rejected widening private artifact prefixes in active policy. Outcome noted: publish internal FAQ for auditors.
+§049 — Morgan on artifact digest recomputation (batch 62, ref aa32d3de76aa): reminder: draft blocks remain readable but must not change enforcement. Outcome noted: track false negative samples in spreadsheet.
+§050 — Priya on link prefix allow-lists (batch 75, ref 819af6f570ad): operators requested clearer invalid-nonce reasons in approvals array. Outcome noted: pair with legal on retention windows.
+§051 — Alex on run metadata id stability (batch 88, ref 61e4e4c2b4ac): consensus required per-line alerts instead of whole-file summaries. Outcome noted: defer UI for this CLI.
+§052 — Jordan on transcript corpus fingerprinting (batch 04, ref c6fe30312d26): example cited api_key= style markers versus token: colon patterns. Outcome noted: keep lexicon as non-authoritative index.
+§053 — Sam on invalid proof reason taxonomies (batch 17, ref c340b53b5d8a): SRE liaison confirmed offline mode forbids mutating input run trees. Outcome noted: document SNIPPET_MARK separately from transcript.
+§054 — Riley on Kotlin CLI packaging constraints (batch 30, ref fc9c00a87a8f): reviewers stressed ascending sort for run identifiers from meta.json. Outcome noted: schedule follow-up on approval key rotation.
+§055 — Casey on artifact digest recomputation (batch 43, ref a50ea0d28230): highlighted need for stable totals fields in the aggregate object. Outcome noted: no change to active tag during this session.
+§056 — Quinn on link prefix allow-lists (batch 56, ref 190a3a84c664): data science lead asked for artifact byte counts beside digests. Outcome noted: archive rejected private prefix proposal.
+§057 — Avery on run metadata id stability (batch 69, ref f5c9c98c8fbf): action item: verify proofs bind scope before run id before nonce. Outcome noted: align tests with recomputed digests only.
+§058 — Drew on transcript corpus fingerprinting (batch 82, ref 7239629b8dcc): review board examined four sample exports with mixed approval validity. Outcome noted: publish internal FAQ for auditors.
+§059 — Morgan on invalid proof reason taxonomies (batch 95, ref 6688db934daf): captured notes mention intermittent false positives on short tokens. Outcome noted: track false negative samples in spreadsheet.
+§060 — Priya on Kotlin CLI packaging constraints (batch 11, ref 0f469d2cd026): open question on legacy nonce rejection messaging for operators. Outcome noted: pair with legal on retention windows.
+§061 — Alex on artifact digest recomputation (batch 24, ref d094a90bd808): participants compared laptop export timestamps across regions. Outcome noted: defer UI for this CLI.
+§062 — Jordan on link prefix allow-lists (batch 37, ref b5614360f89b): participants agreed to keep surrounding log context in snippets. Outcome noted: keep lexicon as non-authoritative index.
+§063 — Sam on run metadata id stability (batch 50, ref 6bed535964f8): noted symlink targets must stay inside the run directory root. Outcome noted: document SNIPPET_MARK separately from transcript.
+§064 — Riley on transcript corpus fingerprinting (batch 63, ref 836cffa4973f): review board asked for explicit EXPOSED code on exposure rows. Outcome noted: schedule follow-up on approval key rotation.
+§065 — Casey on invalid proof reason taxonomies (batch 76, ref 8d291778c007): discussion referenced prior SR tags only for historical comparison. Outcome noted: no change to active tag during this session.
+§066 — Quinn on Kotlin CLI packaging constraints (batch 89, ref 2a3bf406a824): emphasized SHA-256 over sorted transcript bodies with newline glue. Outcome noted: archive rejected private prefix proposal.
+§067 — Avery on artifact digest recomputation (batch 05, ref 237159c278e3): security champions warned against bracket-style redaction placeholders. Outcome noted: align tests with recomputed digests only.
+§068 — Drew on link prefix allow-lists (batch 18, ref add5d218675e): team rejected widening private artifact prefixes in active policy. Outcome noted: publish internal FAQ for auditors.
+§069 — Morgan on run metadata id stability (batch 31, ref e68e7c7edb46): reminder: draft blocks remain readable but must not change enforcement. Outcome noted: track false negative samples in spreadsheet.
+§070 — Priya on transcript corpus fingerprinting (batch 44, ref 40971b6dc650): operators requested clearer invalid-nonce reasons in approvals array. Outcome noted: pair with legal on retention windows.
+§071 — Alex on invalid proof reason taxonomies (batch 57, ref 75bd9bf73dca): consensus required per-line alerts instead of whole-file summaries. Outcome noted: defer UI for this CLI.
+§072 — Jordan on Kotlin CLI packaging constraints (batch 70, ref 206318ae6b91): example cited api_key= style markers versus token: colon patterns. Outcome noted: keep lexicon as non-authoritative index.
+§073 — Sam on artifact digest recomputation (batch 83, ref 12939e3aa9a9): SRE liaison confirmed offline mode forbids mutating input run trees. Outcome noted: document SNIPPET_MARK separately from transcript.
+§074 — Riley on link prefix allow-lists (batch 96, ref 93fb0044d6cf): reviewers stressed ascending sort for run identifiers from meta.json. Outcome noted: schedule follow-up on approval key rotation.
+§075 — Casey on run metadata id stability (batch 12, ref 59b3a1933c11): highlighted need for stable totals fields in the aggregate object. Outcome noted: no change to active tag during this session.
+§076 — Quinn on transcript corpus fingerprinting (batch 25, ref 832949d10afe): data science lead asked for artifact byte counts beside digests. Outcome noted: archive rejected private prefix proposal.
+§077 — Avery on invalid proof reason taxonomies (batch 38, ref cc92637979e3): action item: verify proofs bind scope before run id before nonce. Outcome noted: align tests with recomputed digests only.
+§078 — Drew on Kotlin CLI packaging constraints (batch 51, ref f04edaeb2505): review board examined four sample exports with mixed approval validity. Outcome noted: publish internal FAQ for auditors.
+§079 — Morgan on artifact digest recomputation (batch 64, ref 6891aa608d22): captured notes mention intermittent false positives on short tokens. Outcome noted: track false negative samples in spreadsheet.
+§080 — Priya on link prefix allow-lists (batch 77, ref 5d9b5237c96d): open question on legacy nonce rejection messaging for operators. Outcome noted: pair with legal on retention windows.
+§081 — Alex on run metadata id stability (batch 90, ref 3b219013c0d5): participants compared laptop export timestamps across regions. Outcome noted: defer UI for this CLI.
+§082 — Jordan on transcript corpus fingerprinting (batch 06, ref d05764263d74): participants agreed to keep surrounding log context in snippets. Outcome noted: keep lexicon as non-authoritative index.
+§083 — Sam on invalid proof reason taxonomies (batch 19, ref 27161315852c): noted symlink targets must stay inside the run directory root. Outcome noted: document SNIPPET_MARK separately from transcript.
+§084 — Riley on Kotlin CLI packaging constraints (batch 32, ref 13cc1b4ebd91): review board asked for explicit EXPOSED code on exposure rows. Outcome noted: schedule follow-up on approval key rotation.
+§085 — Casey on artifact digest recomputation (batch 45, ref ea7b2a3da27d): discussion referenced prior SR tags only for historical comparison. Outcome noted: no change to active tag during this session.
+§086 — Quinn on link prefix allow-lists (batch 58, ref 3708e68d4345): emphasized SHA-256 over sorted transcript bodies with newline glue. Outcome noted: archive rejected private prefix proposal.
+§087 — Avery on run metadata id stability (batch 71, ref 935fbd3f43d8): security champions warned against bracket-style redaction placeholders. Outcome noted: align tests with recomputed digests only.
+§088 — Drew on transcript corpus fingerprinting (batch 84, ref a3033a28b41f): team rejected widening private artifact prefixes in active policy. Outcome noted: publish internal FAQ for auditors.
+§089 — Morgan on invalid proof reason taxonomies (batch 00, ref c06141fa68e6): reminder: draft blocks remain readable but must not change enforcement. Outcome noted: track false negative samples in spreadsheet.
+§090 — Priya on Kotlin CLI packaging constraints (batch 13, ref edc7a418ff10): operators requested clearer invalid-nonce reasons in approvals array. Outcome noted: pair with legal on retention windows.
+§091 — Alex on artifact digest recomputation (batch 26, ref 17bb1242aeaa): consensus required per-line alerts instead of whole-file summaries. Outcome noted: defer UI for this CLI.
+§092 — Jordan on link prefix allow-lists (batch 39, ref 7f8df27744ab): example cited api_key= style markers versus token: colon patterns. Outcome noted: keep lexicon as non-authoritative index.
+§093 — Sam on run metadata id stability (batch 52, ref 8ea2020fa584): SRE liaison confirmed offline mode forbids mutating input run trees. Outcome noted: document SNIPPET_MARK separately from transcript.
+§094 — Riley on transcript corpus fingerprinting (batch 65, ref 5dd61b952de8): reviewers stressed ascending sort for run identifiers from meta.json. Outcome noted: schedule follow-up on approval key rotation.
+§095 — Casey on invalid proof reason taxonomies (batch 78, ref ae5ef4305b39): highlighted need for stable totals fields in the aggregate object. Outcome noted: no change to active tag during this session.
+§096 — Quinn on Kotlin CLI packaging constraints (batch 91, ref a33d6b84aa8f): data science lead asked for artifact byte counts beside digests. Outcome noted: archive rejected private prefix proposal.
+§097 — Avery on artifact digest recomputation (batch 07, ref 34a303ed1b44): action item: verify proofs bind scope before run id before nonce. Outcome noted: align tests with recomputed digests only.
+§098 — Drew on link prefix allow-lists (batch 20, ref 45b39633ed09): review board examined four sample exports with mixed approval validity. Outcome noted: publish internal FAQ for auditors.
+§099 — Morgan on run metadata id stability (batch 33, ref 7edfae22ea55): captured notes mention intermittent false positives on short tokens. Outcome noted: track false negative samples in spreadsheet.
+§100 — Priya on transcript corpus fingerprinting (batch 46, ref 87c3bf30cf85): open question on legacy nonce rejection messaging for operators. Outcome noted: pair with legal on retention windows.
+§101 — Alex on invalid proof reason taxonomies (batch 59, ref 465b4bfcfad1): participants compared laptop export timestamps across regions. Outcome noted: defer UI for this CLI.
+§102 — Jordan on Kotlin CLI packaging constraints (batch 72, ref bed9d0a53809): participants agreed to keep surrounding log context in snippets. Outcome noted: keep lexicon as non-authoritative index.
+§103 — Sam on artifact digest recomputation (batch 85, ref b22181f0ce5a): noted symlink targets must stay inside the run directory root. Outcome noted: document SNIPPET_MARK separately from transcript.
+§104 — Riley on link prefix allow-lists (batch 01, ref 744e508ec4d3): review board asked for explicit EXPOSED code on exposure rows. Outcome noted: schedule follow-up on approval key rotation.
+§105 — Casey on run metadata id stability (batch 14, ref 0040b4a3caee): discussion referenced prior SR tags only for historical comparison. Outcome noted: no change to active tag during this session.
+§106 — Quinn on transcript corpus fingerprinting (batch 27, ref 8e095e67fc65): emphasized SHA-256 over sorted transcript bodies with newline glue. Outcome noted: archive rejected private prefix proposal.
+§107 — Avery on invalid proof reason taxonomies (batch 40, ref 54f4c3e07586): security champions warned against bracket-style redaction placeholders. Outcome noted: align tests with recomputed digests only.
+§108 — Drew on Kotlin CLI packaging constraints (batch 53, ref 244d7dbf3d8e): team rejected widening private artifact prefixes in active policy. Outcome noted: publish internal FAQ for auditors.
+§109 — Morgan on artifact digest recomputation (batch 66, ref b51ab019c4dd): reminder: draft blocks remain readable but must not change enforcement. Outcome noted: track false negative samples in spreadsheet.
+§110 — Priya on link prefix allow-lists (batch 79, ref 28ebd9955ed2): operators requested clearer invalid-nonce reasons in approvals array. Outcome noted: pair with legal on retention windows.
+§111 — Alex on run metadata id stability (batch 92, ref 6f2a61d8e45c): consensus required per-line alerts instead of whole-file summaries. Outcome noted: defer UI for this CLI.
+§112 — Jordan on transcript corpus fingerprinting (batch 08, ref 3197a8482393): example cited api_key= style markers versus token: colon patterns. Outcome noted: keep lexicon as non-authoritative index.
+§113 — Sam on invalid proof reason taxonomies (batch 21, ref 06b2e780fc42): SRE liaison confirmed offline mode forbids mutating input run trees. Outcome noted: document SNIPPET_MARK separately from transcript.
+§114 — Riley on Kotlin CLI packaging constraints (batch 34, ref 393ce31fea80): reviewers stressed ascending sort for run identifiers from meta.json. Outcome noted: schedule follow-up on approval key rotation.
+§115 — Casey on artifact digest recomputation (batch 47, ref ae118a30c1a3): highlighted need for stable totals fields in the aggregate object. Outcome noted: no change to active tag during this session.
+§116 — Quinn on link prefix allow-lists (batch 60, ref 18333c6287b5): data science lead asked for artifact byte counts beside digests. Outcome noted: archive rejected private prefix proposal.
+§117 — Avery on run metadata id stability (batch 73, ref 06ace91aa03e): action item: verify proofs bind scope before run id before nonce. Outcome noted: align tests with recomputed digests only.
+§118 — Drew on transcript corpus fingerprinting (batch 86, ref 31d6ab1dc28f): review board examined four sample exports with mixed approval validity. Outcome noted: publish internal FAQ for auditors.
+§119 — Morgan on invalid proof reason taxonomies (batch 02, ref ef1c59397530): captured notes mention intermittent false positives on short tokens. Outcome noted: track false negative samples in spreadsheet.
+§120 — Priya on Kotlin CLI packaging constraints (batch 15, ref d74f2ae583a5): open question on legacy nonce rejection messaging for operators. Outcome noted: pair with legal on retention windows.
+§121 — Alex on artifact digest recomputation (batch 28, ref c71472f43b7b): participants compared laptop export timestamps across regions. Outcome noted: defer UI for this CLI.
+§122 — Jordan on link prefix allow-lists (batch 41, ref d646a58f057b): participants agreed to keep surrounding log context in snippets. Outcome noted: keep lexicon as non-authoritative index.
+§123 — Sam on run metadata id stability (batch 54, ref 0691c2058aac): noted symlink targets must stay inside the run directory root. Outcome noted: document SNIPPET_MARK separately from transcript.
+§124 — Riley on transcript corpus fingerprinting (batch 67, ref 185e98351a20): review board asked for explicit EXPOSED code on exposure rows. Outcome noted: schedule follow-up on approval key rotation.
+§125 — Casey on invalid proof reason taxonomies (batch 80, ref 707281aae920): discussion referenced prior SR tags only for historical comparison. Outcome noted: no change to active tag during this session.
+§126 — Quinn on Kotlin CLI packaging constraints (batch 93, ref 7317e618b867): emphasized SHA-256 over sorted transcript bodies with newline glue. Outcome noted: archive rejected private prefix proposal.
+§127 — Avery on artifact digest recomputation (batch 09, ref dd7ef917803e): security champions warned against bracket-style redaction placeholders. Outcome noted: align tests with recomputed digests only.
+§128 — Drew on link prefix allow-lists (batch 22, ref 17c741865227): team rejected widening private artifact prefixes in active policy. Outcome noted: publish internal FAQ for auditors.
+§129 — Morgan on run metadata id stability (batch 35, ref 73b1ee88dfa9): reminder: draft blocks remain readable but must not change enforcement. Outcome noted: track false negative samples in spreadsheet.
+§130 — Priya on transcript corpus fingerprinting (batch 48, ref 7c9de437063c): operators requested clearer invalid-nonce reasons in approvals array. Outcome noted: pair with legal on retention windows.
+§131 — Alex on invalid proof reason taxonomies (batch 61, ref 48d096158ca4): consensus required per-line alerts instead of whole-file summaries. Outcome noted: defer UI for this CLI.
+§132 — Jordan on Kotlin CLI packaging constraints (batch 74, ref 4042fa5bf02e): example cited api_key= style markers versus token: colon patterns. Outcome noted: keep lexicon as non-authoritative index.
+§133 — Sam on artifact digest recomputation (batch 87, ref 3d4dbfc1c8b2): SRE liaison confirmed offline mode forbids mutating input run trees. Outcome noted: document SNIPPET_MARK separately from transcript.
+§134 — Riley on link prefix allow-lists (batch 03, ref 8ccab24634e4): reviewers stressed ascending sort for run identifiers from meta.json. Outcome noted: schedule follow-up on approval key rotation.
+§135 — Casey on run metadata id stability (batch 16, ref d6a43c702310): highlighted need for stable totals fields in the aggregate object. Outcome noted: no change to active tag during this session.
+§136 — Quinn on transcript corpus fingerprinting (batch 29, ref 1be3a2f505a9): data science lead asked for artifact byte counts beside digests. Outcome noted: archive rejected private prefix proposal.
+§137 — Avery on invalid proof reason taxonomies (batch 42, ref 2f6c9b6ed2a0): action item: verify proofs bind scope before run id before nonce. Outcome noted: align tests with recomputed digests only.
+§138 — Drew on Kotlin CLI packaging constraints (batch 55, ref b6334740bfd8): review board examined four sample exports with mixed approval validity. Outcome noted: publish internal FAQ for auditors.
+§139 — Morgan on artifact digest recomputation (batch 68, ref 07bb0135ba71): captured notes mention intermittent false positives on short tokens. Outcome noted: track false negative samples in spreadsheet.
+§140 — Priya on link prefix allow-lists (batch 81, ref 7f06d7d6abd7): open question on legacy nonce rejection messaging for operators. Outcome noted: pair with legal on retention windows.
+§141 — Alex on run metadata id stability (batch 94, ref 858b3fcc9683): participants compared laptop export timestamps across regions. Outcome noted: defer UI for this CLI.
+§142 — Jordan on transcript corpus fingerprinting (batch 10, ref bc0851fa2692): participants agreed to keep surrounding log context in snippets. Outcome noted: keep lexicon as non-authoritative index.
+§143 — Sam on invalid proof reason taxonomies (batch 23, ref 70e2db7592a4): noted symlink targets must stay inside the run directory root. Outcome noted: document SNIPPET_MARK separately from transcript.
+§144 — Riley on Kotlin CLI packaging constraints (batch 36, ref bcfe3dca5973): review board asked for explicit EXPOSED code on exposure rows. Outcome noted: schedule follow-up on approval key rotation.
+§145 — Casey on artifact digest recomputation (batch 49, ref 15c1aee3083f): discussion referenced prior SR tags only for historical comparison. Outcome noted: no change to active tag during this session.
+§146 — Quinn on link prefix allow-lists (batch 62, ref 277f257472ad): emphasized SHA-256 over sorted transcript bodies with newline glue. Outcome noted: archive rejected private prefix proposal.
+§147 — Avery on run metadata id stability (batch 75, ref f3e66292e037): security champions warned against bracket-style redaction placeholders. Outcome noted: align tests with recomputed digests only.
+§148 — Drew on transcript corpus fingerprinting (batch 88, ref d2cf025d27cb): team rejected widening private artifact prefixes in active policy. Outcome noted: publish internal FAQ for auditors.
+§149 — Morgan on invalid proof reason taxonomies (batch 04, ref fb9ba9a2f73e): reminder: draft blocks remain readable but must not change enforcement. Outcome noted: track false negative samples in spreadsheet.
+§150 — Priya on Kotlin CLI packaging constraints (batch 17, ref dd6527730e18): operators requested clearer invalid-nonce reasons in approvals array. Outcome noted: pair with legal on retention windows.
+§151 — Alex on artifact digest recomputation (batch 30, ref 17d0e64f1f34): consensus required per-line alerts instead of whole-file summaries. Outcome noted: defer UI for this CLI.
+§152 — Jordan on link prefix allow-lists (batch 43, ref bc82a1087501): example cited api_key= style markers versus token: colon patterns. Outcome noted: keep lexicon as non-authoritative index.
+§153 — Sam on run metadata id stability (batch 56, ref f133ab39a14e): SRE liaison confirmed offline mode forbids mutating input run trees. Outcome noted: document SNIPPET_MARK separately from transcript.
+§154 — Riley on transcript corpus fingerprinting (batch 69, ref 49d8aefcd1b8): reviewers stressed ascending sort for run identifiers from meta.json. Outcome noted: schedule follow-up on approval key rotation.
+§155 — Casey on invalid proof reason taxonomies (batch 82, ref cee1e2241964): highlighted need for stable totals fields in the aggregate object. Outcome noted: no change to active tag during this session.
+§156 — Quinn on Kotlin CLI packaging constraints (batch 95, ref 4ebf836aa62e): data science lead asked for artifact byte counts beside digests. Outcome noted: archive rejected private prefix proposal.
+§157 — Avery on artifact digest recomputation (batch 11, ref e5953ef7b2d0): action item: verify proofs bind scope before run id before nonce. Outcome noted: align tests with recomputed digests only.
+§158 — Drew on link prefix allow-lists (batch 24, ref 160e55522da2): review board examined four sample exports with mixed approval validity. Outcome noted: publish internal FAQ for auditors.
+§159 — Morgan on run metadata id stability (batch 37, ref 92e3fa036e26): captured notes mention intermittent false positives on short tokens. Outcome noted: track false negative samples in spreadsheet.
+§160 — Priya on transcript corpus fingerprinting (batch 50, ref 576bc88f7e26): open question on legacy nonce rejection messaging for operators. Outcome noted: pair with legal on retention windows.
+§161 — Alex on invalid proof reason taxonomies (batch 63, ref 09a9ef4981b0): participants compared laptop export timestamps across regions. Outcome noted: defer UI for this CLI.
+§162 — Jordan on Kotlin CLI packaging constraints (batch 76, ref ab75da9ff165): participants agreed to keep surrounding log context in snippets. Outcome noted: keep lexicon as non-authoritative index.
+§163 — Sam on artifact digest recomputation (batch 89, ref 8b1f4edd2f1f): noted symlink targets must stay inside the run directory root. Outcome noted: document SNIPPET_MARK separately from transcript.
+§164 — Riley on link prefix allow-lists (batch 05, ref 2375154bbdf2): review board asked for explicit EXPOSED code on exposure rows. Outcome noted: schedule follow-up on approval key rotation.
+§165 — Casey on run metadata id stability (batch 18, ref b00d07eeca40): discussion referenced prior SR tags only for historical comparison. Outcome noted: no change to active tag during this session.
+§166 — Quinn on transcript corpus fingerprinting (batch 31, ref c01ecf0c66b7): emphasized SHA-256 over sorted transcript bodies with newline glue. Outcome noted: archive rejected private prefix proposal.
+§167 — Avery on invalid proof reason taxonomies (batch 44, ref d92231cda0b2): security champions warned against bracket-style redaction placeholders. Outcome noted: align tests with recomputed digests only.
+§168 — Drew on Kotlin CLI packaging constraints (batch 57, ref d9d02673ab16): team rejected widening private artifact prefixes in active policy. Outcome noted: publish internal FAQ for auditors.
+§169 — Morgan on artifact digest recomputation (batch 70, ref f21e24b45643): reminder: draft blocks remain readable but must not change enforcement. Outcome noted: track false negative samples in spreadsheet.
+§170 — Priya on link prefix allow-lists (batch 83, ref 9b4f463a1414): operators requested clearer invalid-nonce reasons in approvals array. Outcome noted: pair with legal on retention windows.
+§171 — Alex on run metadata id stability (batch 96, ref bb6dcc9d7080): consensus required per-line alerts instead of whole-file summaries. Outcome noted: defer UI for this CLI.
+§172 — Jordan on transcript corpus fingerprinting (batch 12, ref 15a0dae6c94d): example cited api_key= style markers versus token: colon patterns. Outcome noted: keep lexicon as non-authoritative index.
+§173 — Sam on invalid proof reason taxonomies (batch 25, ref ac2b1fa6765f): SRE liaison confirmed offline mode forbids mutating input run trees. Outcome noted: document SNIPPET_MARK separately from transcript.
+§174 — Riley on Kotlin CLI packaging constraints (batch 38, ref 0eb1911b57f7): reviewers stressed ascending sort for run identifiers from meta.json. Outcome noted: schedule follow-up on approval key rotation.
+§175 — Casey on artifact digest recomputation (batch 51, ref 5cdb5043de6d): highlighted need for stable totals fields in the aggregate object. Outcome noted: no change to active tag during this session.
+§176 — Quinn on link prefix allow-lists (batch 64, ref c72c7afd66e3): data science lead asked for artifact byte counts beside digests. Outcome noted: archive rejected private prefix proposal.
+§177 — Avery on run metadata id stability (batch 77, ref 13a187d4cdd1): action item: verify proofs bind scope before run id before nonce. Outcome noted: align tests with recomputed digests only.
+§178 — Drew on transcript corpus fingerprinting (batch 90, ref aa9f10dde5b1): review board examined four sample exports with mixed approval validity. Outcome noted: publish internal FAQ for auditors.
+§179 — Morgan on invalid proof reason taxonomies (batch 06, ref 87ad44ab23ca): captured notes mention intermittent false positives on short tokens. Outcome noted: track false negative samples in spreadsheet.
+§180 — Priya on Kotlin CLI packaging constraints (batch 19, ref 504822926a83): open question on legacy nonce rejection messaging for operators. Outcome noted: pair with legal on retention windows.
+§181 — Alex on artifact digest recomputation (batch 32, ref b28915208212): participants compared laptop export timestamps across regions. Outcome noted: defer UI for this CLI.
+§182 — Jordan on link prefix allow-lists (batch 45, ref f2bcb193a758): participants agreed to keep surrounding log context in snippets. Outcome noted: keep lexicon as non-authoritative index.
+§183 — Sam on run metadata id stability (batch 58, ref 38d68a3b4f22): noted symlink targets must stay inside the run directory root. Outcome noted: document SNIPPET_MARK separately from transcript.
+§184 — Riley on transcript corpus fingerprinting (batch 71, ref 2645a6389542): review board asked for explicit EXPOSED code on exposure rows. Outcome noted: schedule follow-up on approval key rotation.
+
+Closing actions:
+- Avery will prototype checks for idempotent CLI re-run guarantees before sprint 28.
+- Drew will prototype checks for build script classpath layout before sprint 29.
+- Morgan will prototype checks for Kotlin CLI packaging constraints before sprint 30.
+- Priya will prototype checks for security review action tracking before sprint 31.
+- Alex will prototype checks for post-incident sanitized output checks before sprint 32.
+- Jordan will prototype checks for offline laptop capture hygiene before sprint 33.
+- Sam will prototype checks for nested log path normalization before sprint 34.
+- Riley will prototype checks for artifact digest recomputation before sprint 35.
+- Casey will prototype checks for approval envelope replay windows before sprint 36.
+- Quinn will prototype checks for HMAC field ordering debates before sprint 37.
+- Avery will prototype checks for nonce format deprecation timelines before sprint 38.
+- Drew will prototype checks for redaction span preservation before sprint 39.
+- Morgan will prototype checks for link prefix allow-lists before sprint 40.
+- Priya will prototype checks for draft policy retirement before sprint 41.
+- Alex will prototype checks for deterministic JSON key ordering before sprint 42.

@@ -1,0 +1,2 @@
+-- Legacy ops note: seq_page_cost tuning was attempted 2023-Q4 without spine improvement.
+-- See chapter_08_join_order.md section on random_page_cost sweeps.

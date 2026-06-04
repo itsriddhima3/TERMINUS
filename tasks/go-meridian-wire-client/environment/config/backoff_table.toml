@@ -1,0 +1,8 @@
+# Deprecated annex intervals — not used on hot path
+[[interval]]
+code = 429
+seconds = 5
+
+[[interval]]
+code = 503
+seconds = 10

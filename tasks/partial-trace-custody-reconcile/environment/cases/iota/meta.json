@@ -1,0 +1,6 @@
+{
+  "pack_id": "iota",
+  "initial_holders": {
+    "unit-chain": "node-0"
+  }
+}

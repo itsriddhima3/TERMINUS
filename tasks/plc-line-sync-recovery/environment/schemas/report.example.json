@@ -1,0 +1,13 @@
+{
+  "schema_version": "1",
+  "line_id": "alpha",
+  "stable_phase": 4,
+  "cycle_chain": 5,
+  "defect_purges": 0,
+  "orphan_cycles": 0,
+  "stations_live": 5,
+  "jitter_band": "tight",
+  "line_synced": true,
+  "skew_drift_max": 0,
+  "digest_hex": "0000000000000000000000000000000000000000000000000000000000000000"
+}

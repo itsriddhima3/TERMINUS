@@ -1,0 +1,4 @@
+oauth_providers:
+  - name: azure
+    client_secret: nested-oauth-secret-7711
+    tenant: contoso

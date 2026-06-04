@@ -1,0 +1,16 @@
+session reload_press
+frames 180
+reload 100 mod_b
+body helm red 0 0 0 0 30 0.500
+body spur blue 4 0 0 0 30 0.500
+body arc blue 9 2 0 0 22 0.500
+original
+event 85 1 helm push 0.400 0
+event 105 2 spur push -0.220 0
+event 130 3 arc push 0.150 -0.100
+end
+playback
+event 85 1 helm push 0.400 0
+event 105 2 spur push -0.220 0
+event 130 3 arc push 0.150 -0.100
+end

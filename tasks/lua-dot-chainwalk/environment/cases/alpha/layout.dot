@@ -1,0 +1,16 @@
+digraph alpha_pack {
+  anchor [role=anchor, cert="certs/root.pem"];
+  intermediate [cert="certs/intermediate.pem"];
+  svc_a [row=true, cert="certs/revoked.pem"];
+  svc_b [row=true, cert="certs/leaf.pem"];
+  ledger_ref [role=ledger];
+
+  svc_a -> intermediate [label="trusts"];
+  intermediate -> anchor [label="trusts"];
+  svc_b -> intermediate [label="trusts"];
+  ledger_ref -> svc_a [label="deny"];
+
+  svc_a -> intermediate [label="issued_by"];
+  svc_b -> intermediate [label="issued_by"];
+  intermediate -> anchor [label="issued_by"];
+}

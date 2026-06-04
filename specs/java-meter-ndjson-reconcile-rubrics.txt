@@ -1,0 +1,20 @@
+Agent starts the Spring Boot service via /app/scripts/start-api.sh and confirms /health before invoking meterctl, +2
+Agent follows paginated NDJSON stream across all cursor pages before storing readings, +5
+Agent preserves wire order of readings (page zero then page one) in /app/var/readings.json, +3
+Agent ensures all reading_at values carry a UTC Z suffix in /app/var/readings.json, +3
+Agent reads /app/data/devices.csv and joins rows by device_id to populate site_id and max_delta_kwh_per_interval, +3
+Agent selects tariff rate from /app/data/tariffs.csv using device site_id and reading clock window, +5
+Agent reads correction deltas from the Spring Boot corrections endpoint before normalizing, +2
+Agent applies the ledger delta to every row sharing the same device_id and reading_at stamp, +5
+Agent detects duplicate timestamps and applies the correction independently to each row at the same stamp, +3
+Agent detects the missing slot gap on DEV-A02 and emits gap_events with expected_at in /app/output/reconcile.json, +5
+Agent identifies duplicate timestamps and emits duplicate_events with corrected register values, +3
+Agent evaluates impossible deltas using corrected_register_kwh chains rather than raw register values, +5
+Agent bills energy between duplicate-stamped rows into cost_by_site rather than skipping the interval, +5
+Agent emits /app/output/normalized.csv with device_id, reading_at, register_kwh, site_id, rate_cents, and issue columns, +2
+Agent reverses row order in /app/var/readings.json relative to the NDJSON wire stream, -3
+Agent applies the ledger correction only once per timestamp leaving a second 00:30 row at the raw register value, -5
+Agent joins tariff rates using site_id directly without first resolving device_id through the device catalog, -3
+Agent compares raw register_kwh values for impossible-delta detection instead of corrected_register_kwh, -5
+Agent skips cost billing for intervals where consecutive rows share the same reading_at value, -5
+Agent manually writes /app/output/reconcile.json without executing meterctl reconcile, -5

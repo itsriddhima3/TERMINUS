@@ -1,0 +1,10 @@
+[package]
+name = "k9m"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+rusqlite = { version = "0.32", features = ["bundled"] }
+
+[lib]
+path = "op_m7.rs"

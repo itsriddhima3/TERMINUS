@@ -1,0 +1,25 @@
+workers = 8
+
+[[lanes]]
+lane_id = "lane_a"
+catalog = "lane_a"
+expected_rows = 8
+clips = ["a01.mp4", "a02.mp4", "a03.mp4", "a04.mp4", "a05.mp4", "a06.mp4", "a07.mp4", "a08.mp4"]
+
+[[lanes]]
+lane_id = "lane_b"
+catalog = "lane_b"
+expected_rows = 8
+clips = ["b01.mp4", "b02.mp4", "b03.mp4", "b04.mp4", "b05.mp4", "b06.mp4", "b07.mp4", "b08.mp4"]
+
+[[lanes]]
+lane_id = "lane_c"
+catalog = "lane_c"
+expected_rows = 8
+clips = ["c01.mp4", "c02.mp4", "c03.mp4", "c04.mp4", "c05.mp4", "c06.mp4", "c07.mp4", "c08.mp4"]
+
+[[lanes]]
+lane_id = "lane_d"
+catalog = "lane_d"
+expected_rows = 8
+clips = ["d01.mp4", "d02.mp4", "d03.mp4", "d04.mp4", "d05.mp4", "d06.mp4", "d07.mp4", "d08.mp4"]

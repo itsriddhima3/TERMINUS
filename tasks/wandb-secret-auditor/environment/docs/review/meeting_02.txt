@@ -1,0 +1,31 @@
+Continuation — security review transcript
+
+POLICY_TAG: SR-2026-04
+STATUS: ACTIVE
+
+Active reference rules:
+ALLOW_REF_PREFIX: artifact://public/
+ALLOW_REF_PREFIX: file:./artifacts/
+
+Active approvals:
+APPROVAL_KEY: alpha-review-key-seed
+NONCE_FMT: NNC-v2:<run>:<8hex>
+
+Approval binding:
+- message is canonical UTF-8 text
+- fields are joined with '|'
+- order: scope|run_id|nonce
+
+Exceptions:
+- artifact://public/ is always allowed
+- file: refs must be relative and stay under the run directory
+
+Additional redaction guidance:
+REDACT: token:\s*[a-zA-Z0-9_]{8,64}
+REDACT: api_key=[A-Z0-9\-]{8,64}
+
+Longer discussion (abridged):
+We expect to see a mix of 'api_key=' and 'token:' patterns. The auditor should preserve surrounding context in snippets while removing the sensitive value itself, so operators can still locate the problem without copying the secret.
+
+Normative cross-reference: SNIPPET_MARK, ALERT_GRANULARITY, RUN_LIST_ORDER, POLICY_BLOCK_SCOPE, APPROVAL_BINDING, NONCE_LEGACY_REJECT, and TRANSCRIPT_DIGEST are defined in `/app/docs/audit_signal_lexicon.md`.
+

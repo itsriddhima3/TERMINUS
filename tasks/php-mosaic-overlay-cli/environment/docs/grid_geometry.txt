@@ -1,0 +1,39 @@
+overlay-inspect rendered grid geometry
+=======================================
+
+Target terminal grid:    80 columns x 40 rows
+Source image dimensions: declared per challenge (challenges.source_width / source_height)
+
+Terminal cells are not square. A standard monospaced glyph cell is
+roughly twice as tall as it is wide on most font configurations, so
+when a source image is fitted to the 80x40 grid, the horizontal
+mapping uses one cell per source-pixel column block and the
+vertical mapping uses one cell per source-pixel row block at a
+ratio that approximates the inverse of the cell aspect.
+
+The `Stretch::apply` pipeline stage computes the fitted render
+rectangle (`fitted_w`, `fitted_h`) inside the target grid. Those
+fitted dimensions — not the raw 80x40 target — are what the play
+path passes into `Imaging\Coord\AffineWarp` as (tw, th). The
+forward and inverse transforms must project between source pixels
+and cells within that fitted rectangle only; downstream consumers
+(the overlap classifier, the highlight overlay, the ASCII shader)
+all rely on a single authoritative coordinate transformation.
+
+Authoritative projector: `Imaging\Coord\AffineWarp` (not the polygon
+classifier). `Overlap` only ray-casts in source pixel space after
+`AffineWarp::cellToPixel`; editing containment logic there cannot
+repair a folded row axis.
+
+Invariant: `cell_aspect_ratio_w_over_h` is consumed when Stretch
+computes `fitted_w` / `fitted_h`. The projector's `pixelToCell` and
+`cellToPixel` must use only (sw, sh, tw, th) — the same linear
+maps on both axes. Re-applying cell aspect on the row axis while
+tw/th are already fitted double-counts aspect, pushes row indices out
+of range, and breaks edge marks. Replacing multiply with divide on
+that factor inverts the fold and makes misses worse, not better.
+
+If the rendered grid dimensions ever need to change, edit
+`config/grid_dimensions.json` rather than threading new values
+through the call sites; `Bootstrap` reads the config at startup
+and injects the dimensions into the imaging stack.

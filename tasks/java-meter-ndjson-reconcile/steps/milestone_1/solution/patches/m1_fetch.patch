@@ -1,0 +1,65 @@
+--- a/cli/src/main/java/meter/ingest/NdjsonFetch.java
++++ b/cli/src/main/java/meter/ingest/NdjsonFetch.java
+@@ -6,7 +6,6 @@
+ import java.net.URL;
+ import java.nio.charset.StandardCharsets;
+ import java.util.ArrayList;
+-import java.util.Collections;
+ import java.util.LinkedHashMap;
+ import java.util.List;
+ import java.util.Map;
+@@ -23,13 +22,21 @@
+   /** Pull one NDJSON page from the readings stream endpoint. */
+   public static List<Map<String, Object>> op_fetch_c(String a) throws Exception {
+     List<Map<String, Object>> out = new ArrayList<>();
+-    String body = httpGet(Paths.API_BASE + "/api/v1/readings/stream?meterId=" + a + "&cursor=");
+-    for (String line : body.split("\n")) {
+-      String trimmed = line.trim();
+-      if (trimmed.isEmpty()) continue;
+-      out.add(op_parse_a(trimmed));
++    String cursor = "";
++    while (true) {
++      HttpPage page =
++          httpPage(Paths.API_BASE + "/api/v1/readings/stream?meterId=" + a + "&cursor=" + cursor);
++      for (String line : page.body.split("\n")) {
++        String trimmed = line.trim();
++        if (trimmed.isEmpty()) continue;
++        out.add(op_parse_a(trimmed));
++      }
++      String next = page.nextCursor;
++      if (next == null || next.isEmpty()) {
++        break;
++      }
++      cursor = next;
+     }
+-    Collections.reverse(out);
+     return out;
+   }
+ 
+@@ -59,7 +66,7 @@
+     return row;
+   }
+ 
+-  private static String httpGet(String urlStr) throws Exception {
++  private static HttpPage httpPage(String urlStr) throws Exception {
+     URL url = new URL(urlStr);
+     HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+     conn.setRequestMethod("GET");
+@@ -77,6 +84,16 @@
+       if (!sb.isEmpty()) sb.append('\n');
+       sb.append(line);
+     }
+-    return sb.toString();
++    return new HttpPage(sb.toString(), conn.getHeaderField("X-Next-Cursor"));
++  }
++
++  private static final class HttpPage {
++    final String body;
++    final String nextCursor;
++
++    HttpPage(String body, String nextCursor) {
++      this.body = body;
++      this.nextCursor = nextCursor;
++    }
+   }
+ }

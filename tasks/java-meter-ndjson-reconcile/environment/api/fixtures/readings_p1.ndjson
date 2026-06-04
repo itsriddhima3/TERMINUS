@@ -1,0 +1,3 @@
+{"device_id":"DEV-B01","reading_at":"2024-01-01T00:15:00Z","register_kwh":201.5,"interval_min":15}
+{"device_id":"DEV-A01","reading_at":"2024-01-01T00:30:00Z","register_kwh":100.5,"interval_min":15}
+{"device_id":"DEV-A01","reading_at":"2024-01-01T00:30:00Z","register_kwh":105.0,"interval_min":15}

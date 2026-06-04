@@ -1,0 +1,11 @@
+--- a/platform/run_cases.sh
++++ b/platform/run_cases.sh
+@@ -20,7 +20,7 @@
+   fi
+   lua5.4 "$runner" "$pack_id"
+   pack_rc=$?
+-  sweep_rc=$pack_rc
++  sweep_rc=$((sweep_rc | pack_rc))
+ done
+ 
+ python3 /app/scripts/bundle_merge.py

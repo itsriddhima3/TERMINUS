@@ -1,0 +1,1 @@
+Lane catalogs under /tmp/clipvault_stress are ephemeral per stress invocation.

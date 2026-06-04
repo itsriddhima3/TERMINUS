@@ -1,0 +1,18 @@
+{
+  "symbol_table": [
+    {"path": "n2w/stage_a.rs", "symbol": "op_p3", "kind": "function"},
+    {"path": "n2w/stage_a.rs", "symbol": "op_l4", "kind": "function"},
+    {"path": "k9m/op_m7.rs", "symbol": "op_e2", "kind": "function"},
+    {"path": "k9m/op_m7.rs", "symbol": "op_e3", "kind": "function"},
+    {"path": "m7desk/src/cmd/render.rs", "symbol": "op_x1", "kind": "function"}
+  ],
+  "flipping_point_contract": {
+    "locations": [
+      {"id": "A", "path": "n2w/stage_filters.gvpr", "controls_tests": ["test_plateau_pruned_dot_has_no_isolated_nodes", "test_plateau_svg_excludes_isolated_ids"]},
+      {"id": "B", "path": "n2w/stage_a.rs", "controls_tests": ["test_prune_pass_not_noop_on_plateau", "test_wk_plateau_node_accounting"]},
+      {"id": "C", "path": "k9m/op_m7.rs", "controls_tests": ["test_layout_engine_uses_sfdp_binary", "test_compact_svg_lists_all_core_nodes"]}
+    ],
+    "concentration_cap": 0.5
+  },
+  "code_forbidden_tokens": ["graph", "layout", "prune", "isolated", "plateau", "compact", "workload", "render", "manual", "matrix", "vertex", "engine", "sparse", "node", "report", "batch", "export", "service", "acceptance"]
+}

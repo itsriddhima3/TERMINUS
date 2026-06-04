@@ -1,0 +1,108 @@
+{
+  "symbol_table": [
+    {
+      "path": "worker/phase_r8.sh",
+      "symbol": "phase_r8",
+      "kind": "function",
+      "signature": "phase_r8() { local a=$1; local b=$2; ... }",
+      "purpose": "dispatches grant attempts through observation gate and commit script"
+    },
+    {
+      "path": "lib/k7m/q7n_frame.sh",
+      "symbol": "q7n_frame",
+      "kind": "function",
+      "signature": "q7n_frame() { local slot=$1; ... }",
+      "purpose": "host-side observation frame tally read before commit scheduling"
+    },
+    {
+      "path": "lua/op_n2.lua",
+      "symbol": "op_n2",
+      "kind": "function",
+      "signature": "-- KEYS[1] slot key, ARGV[1] quantity, optional ARGV[2] auxiliary frame",
+      "purpose": "server-side commit body applying quantity against slot state"
+    },
+    {
+      "path": "lib/k7m/step_w1.sh",
+      "symbol": "step_w1",
+      "kind": "function",
+      "signature": "step_w1() { local a=$1; ... }",
+      "purpose": "maps catalog label string to durable slot key"
+    }
+  ],
+  "flipping_point_contract": {
+    "locations": [
+      {
+        "id": "A",
+        "path": "worker/phase_r8.sh",
+        "controls_tests": [
+          "test_burst_dual_no_oversell",
+          "test_stagger_race_no_oversell",
+          "test_two_phase_drain_conservation",
+          "test_compliance_posture"
+        ]
+      },
+      {
+        "id": "B",
+        "path": "lib/k7m/q7n_frame.sh",
+        "controls_tests": [
+          "test_pipe_burst_clean",
+          "test_retry_lane_clean",
+          "test_saturated_fan_no_oversell"
+        ]
+      },
+      {
+        "id": "C",
+        "path": "lua/op_n2.lua",
+        "controls_tests": [
+          "test_unit_rush_conservation",
+          "test_odd_remainder_bound",
+          "test_bimodal_demand_no_oversell",
+          "test_reject_over_cap"
+        ]
+      },
+      {
+        "id": "D",
+        "path": "lib/k7m/step_w1.sh",
+        "controls_tests": [
+          "test_worker_canonical_key_aligned",
+          "test_triple_sku_interleave_clean",
+          "test_mixed_skus_isolated"
+        ]
+      }
+    ],
+    "no_single_location_flips_majority": true,
+    "concentration_cap": 0.5
+  },
+  "decoy_manifest": [
+    {
+      "path": "lua/q3l_probe.lua",
+      "kind": "module",
+      "rhymes_with": "op_n2",
+      "non_fix_purpose": "read-only stock probe used by metrics sidecar"
+    },
+    {
+      "path": "lua/m2p_commit.lua",
+      "kind": "module",
+      "rhymes_with": "op_n2",
+      "non_fix_purpose": "archive registry commit body for cold-path tooling"
+    },
+    {
+      "path": "decoy/p4x_flush.sh",
+      "kind": "helper",
+      "rhymes_with": "phase_r8",
+      "non_fix_purpose": "periodic TTL sweep for ancillary cache keys"
+    },
+    {
+      "path": "lib/k7m/q7n_metrics.sh",
+      "kind": "helper",
+      "rhymes_with": "q7n_frame",
+      "non_fix_purpose": "probe sidecar metrics publisher"
+    }
+  ],
+  "code_forbidden_tokens": [
+    "warehouse", "hold", "service", "reservation", "oversell", "catalog", "stock",
+    "pipeline", "grant", "workers", "parallel", "units", "alpha-unit", "beta-crate",
+    "gamma-tote", "audit", "scenario", "compliance", "lane", "burst", "retry", "pipe", "stress",
+    "observation", "forward", "frame", "canonical", "binding", "revision"
+  ]
+}

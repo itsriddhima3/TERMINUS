@@ -1,0 +1,16 @@
+{
+  "lanes": [
+    {
+      "lane_id": "lane_a",
+      "expected_rows": 8,
+      "observed_rows": 8,
+      "busy_events": 0,
+      "journal_mode": "wal",
+      "integrity_ok": true
+    }
+  ],
+  "summary": {
+    "all_complete": true,
+    "ledger_digest": "0000000000000000000000000000000000000000000000000000000000000000"
+  }
+}

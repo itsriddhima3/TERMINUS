@@ -212,3 +212,35 @@ class ValidateSubmissionZipRegressionTest(unittest.TestCase):
         ]
         self.assertEqual(ai_failures, [], payload["failures"])
 
+    def test_milestone_archive_layout_passes(self) -> None:
+        payload_bytes = _build_minimal_zip(
+            {
+                "steps/milestone_1/instruction.md": b"Repair bootstrap.\n",
+                "steps/milestone_1/tests/test.sh": b"#!/usr/bin/env bash\n",
+                "steps/milestone_1/tests/test_m1.py": b"# test\n",
+                "steps/milestone_1/solution/solve.sh": b"#!/usr/bin/env bash\n",
+            }
+        )
+        # Drop deprecated root-level single-step entries.
+        buffer = io.BytesIO(payload_bytes)
+        with zipfile.ZipFile(buffer, "r") as src:
+            names = {
+                name
+                for name in src.namelist()
+                if name not in {"instruction.md", "solution/solve.sh", "tests/test.sh"}
+            }
+            out = io.BytesIO()
+            with zipfile.ZipFile(out, "w", compression=zipfile.ZIP_DEFLATED) as dst:
+                for name in names:
+                    dst.writestr(name, src.read(name))
+        zip_path = Path(self.id() + "-milestone.zip")
+        try:
+            zip_path.write_bytes(out.getvalue())
+            payload = validate_submission_zip.build_report(zip_path)
+        finally:
+            if zip_path.exists():
+                zip_path.unlink()
+
+        self.assertTrue(payload["valid"], payload["failures"])
+        self.assertTrue(payload["milestone_layout"])
+

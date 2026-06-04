@@ -1,0 +1,4 @@
+primary:
+  sqlalchemy_uri: postgresql://array:array-db-primary-1122@db/primary
+  password: array-db-primary-1122
+engine: postgres

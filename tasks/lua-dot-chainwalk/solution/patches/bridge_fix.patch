@@ -1,0 +1,28 @@
+--- a/openssl-src/bridge.lua
++++ b/openssl-src/bridge.lua
+@@ -3,7 +3,7 @@
+ local M = {}
+ 
+ local function fingerprint_hex(pem_path, digest_mode)
+-  digest_mode = digest_mode or "sha1"
++  digest_mode = digest_mode or "sha256"
+   local cmd = string.format(
+     'openssl x509 -in %s -noout -fingerprint -%s',
+     pem_path,
+@@ -18,14 +18,14 @@
+ end
+ 
+ function M.reconcile_b(leaf_path, store_path, anchor_path, digest_mode)
+-  digest_mode = digest_mode or "sha1"
++  digest_mode = digest_mode or "sha256"
+   local chain_ok = true
+   local cmd
+   if store_path and store_path ~= "" and util.file_exists(store_path) then
+     cmd = string.format(
+       "openssl verify -CAfile %s -untrusted %s %s",
+-      store_path,
+       anchor_path,
++      store_path,
+       leaf_path
+     )
+   else

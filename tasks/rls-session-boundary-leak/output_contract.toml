@@ -1,0 +1,37 @@
+user_visible_outputs = ["/app/output/boundary_audit.json"]
+
+internal_harness_files = [
+  "/app/app/scenario_a.sh",
+  "/app/app/scenario_b.sh",
+  "/app/app/scenario_c.sh",
+  "/app/app/scenario_d.sh",
+  "/app/app/scenario_e.sh",
+  "/app/app/scenario_f.sh",
+  "/app/app/scenario_g.sh",
+  "/app/app/scenario_h.sh",
+  "/app/app/scenario_i.sh",
+  "/app/app/scenario_j.sh",
+  "/app/app/scenario_k.sh",
+  "/app/app/scenario_l.sh",
+  "/app/app/scenario_m.sh",
+  "/app/app/scenario_n.sh",
+  "/app/app/scenario_o.sh",
+  "/app/app/scenario_p.sh",
+  "/app/lib/scenario_parse.sh",
+  "/app/init/ensure_pg.sh",
+]
+
+[structured_outputs.boundary_audit]
+target = "/app/output/boundary_audit.json"
+format = "json"
+instruction_checks = [
+  "schema_version",
+  "catalog_labels",
+  "scenarios",
+  "cross_scope_visible",
+  "foreign_labels_seen",
+  "owned_row_count",
+  "catalog_compliance",
+  "tenant_policies_use_accessor",
+  "scope_accessor_volatile",
+]

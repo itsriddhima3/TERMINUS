@@ -1,0 +1,10 @@
+--- a/cli/src/main/java/customs/ingest/CcyMap.java
++++ b/cli/src/main/java/customs/ingest/CcyMap.java
+@@ -17,6 +17,6 @@
+   /** Map currency aliases to ISO uppercase tags. */
+   public static String op_ccy_c(String raw) {
+     String key = raw.trim().toLowerCase(Locale.ROOT);
+-    return ALIASES.getOrDefault(key, raw.trim());
++    return ALIASES.getOrDefault(key, raw.trim().toUpperCase(Locale.ROOT));
+   }
+ }

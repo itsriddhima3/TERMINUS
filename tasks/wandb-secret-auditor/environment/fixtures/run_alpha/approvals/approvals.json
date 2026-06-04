@@ -1,0 +1,5 @@
+[
+  {"id":"ap-alpha-1","run_id":"alpha","scope":"publish:model-A","nonce":"NNC-v2:alpha:00000000","proof":"8562f7caf15f7f1e5fde680536f88b3b196549fef9c87dcbca34650f713f44d8"},
+  {"id":"ap-alpha-2","run_id":"alpha","scope":"publish:model-A","nonce":"NNC-v2:alpha:ffffffff","proof":"00"}
+]
+

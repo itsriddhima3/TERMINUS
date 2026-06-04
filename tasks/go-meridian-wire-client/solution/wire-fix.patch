@@ -1,0 +1,92 @@
+--- p4k/vault.go
++++ p4k/vault.go
+@@ -4,20 +4,31 @@
+ 	"crypto/rand"
+ 	"encoding/hex"
+ 	"fmt"
++	"sync"
+ 	"time"
+ )
+ 
+-var store = map[[32]byte]string{}
++var (
++	vaultMu sync.Mutex
++	store   = map[[32]byte]string{}
++	expiry  = map[[32]byte]time.Time{}
++)
+ 
+ func op_vault(slot [32]byte, anchor time.Time) (token string, ok bool) {
+-	_ = anchor
++	vaultMu.Lock()
++	defer vaultMu.Unlock()
+ 	if t, found := store[slot]; found {
+-		return t, true
++		if exp, has := expiry[slot]; has && time.Now().Before(exp) {
++			return t, true
++		}
++		delete(store, slot)
++		delete(expiry, slot)
+ 	}
+ 	buf := make([]byte, 16)
+ 	_, _ = rand.Read(buf)
+ 	t := hex.EncodeToString(buf)
+ 	store[slot] = t
++	expiry[slot] = anchor.Add(24 * time.Hour)
+ 	return t, false
+ }
+ 
+--- t7m/backoff.go
++++ t7m/backoff.go
+@@ -14,9 +14,18 @@
+ 	if raw == "" {
+ 		return time.Second, true
+ 	}
+-	sec, err := strconv.Atoi(raw)
+-	if err != nil || sec <= 0 {
+-		return 0, false
++	if sec, err := strconv.Atoi(raw); err == nil && sec > 0 {
++		return time.Duration(sec) * time.Second, true
+ 	}
+-	return time.Duration(sec) * time.Second, true
++	if when, err := http.ParseTime(raw); err == nil {
++		d := time.Until(when)
++		if d < 0 {
++			d = 0
++		}
++		if d == 0 {
++			d = time.Millisecond
++		}
++		return d, true
++	}
++	return 0, false
+ }
+--- d2w/bind.go
++++ d2w/bind.go
+@@ -3,17 +3,23 @@
+ import (
+ 	"crypto/sha256"
+ 	"encoding/binary"
++	"strings"
+ )
+ 
+ func step_m5(a, b, c string, n int64) ([32]byte, error) {
++	ben := strings.Join(strings.Fields(strings.TrimSpace(c)), "")
++	amt := n
++	if strings.Contains(c, "major_alias") && n > 0 && n < 10000 {
++		amt = n * 100
++	}
+ 	h := sha256.New()
+-	_, _ = h.Write([]byte(a))
++	_, _ = h.Write([]byte(strings.TrimSpace(a)))
+ 	_, _ = h.Write([]byte{0})
+-	_, _ = h.Write([]byte(b))
++	_, _ = h.Write([]byte(strings.TrimSpace(b)))
+ 	_, _ = h.Write([]byte{0})
+-	_, _ = h.Write([]byte(c))
++	_, _ = h.Write([]byte(ben))
+ 	var buf [8]byte
+-	binary.BigEndian.PutUint64(buf[:], uint64(n))
++	binary.BigEndian.PutUint64(buf[:], uint64(amt))
+ 	_, _ = h.Write(buf[:])
+ 	var out [32]byte
+ 	copy(out[:], h.Sum(nil))

@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "scenario_order": [
+    "adhoc_single",
+    "reuse_stmt",
+    "pool_rotate",
+    "join_path",
+    "view_path",
+    "batch_fetch",
+    "triple_hop",
+    "savepoint_cycle",
+    "nested_subquery",
+    "aggregate_reuse",
+    "cte_chain",
+    "inventory_lane",
+    "audit_log_chain",
+    "union_rotate",
+    "window_rank",
+    "reader_lane",
+    "warm_cache_first",
+    "dual_stmt_interleave",
+    "lateral_correlation"
+  ]
+}

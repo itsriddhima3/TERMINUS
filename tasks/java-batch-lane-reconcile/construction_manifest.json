@@ -1,0 +1,169 @@
+{
+  "symbol_table": [
+    {
+      "path": "api/src/main/java/r8p/op_n2.java",
+      "symbol": "op_n2",
+      "kind": "method",
+      "signature": "public IngestResult op_n2(String label, List<RowPayload> chunk)",
+      "purpose": "persists a chunked ingest for a catalog label with flush boundaries"
+    },
+    {
+      "path": "api/src/main/java/r8p/phase_r8.java",
+      "symbol": "phase_r8",
+      "kind": "class",
+      "signature": "@Component class phase_r8 implements ApplicationListener<LaneCommittedEvent>",
+      "purpose": "schedules follow-up work when a lane chunk reports success"
+    },
+    {
+      "path": "db/functions/step_w1.sql",
+      "symbol": "step_w1",
+      "kind": "function",
+      "signature": "step_w1() RETURNS trigger LANGUAGE plpgsql",
+      "purpose": "maintains partition rollup counters on line mutations"
+    },
+    {
+      "path": "api/src/main/java/k7m/cfg_p9.java",
+      "symbol": "cfg_p9",
+      "kind": "constant",
+      "signature": "@Bean HikariDataSource cfg_p9(DataSourceProperties props)",
+      "purpose": "builds the runtime pool with session initializer hooks"
+    }
+  ],
+  "flipping_point_contract": {
+    "locations": [
+      {
+        "id": "A",
+        "path": "api/src/main/java/r8p/op_n2.java",
+        "controls_tests": [
+          "test_w2_pair",
+          "test_w4_quad",
+          "test_backlog_ok",
+          "test_mix_ok",
+          "test_global_ok",
+          "test_interleave_ab",
+          "test_partial_abort_ok",
+          "test_line_parity_matrix",
+          "test_race_one_winner",
+          "test_snapshot_consistent",
+          "test_tri_fanout_ok"
+        ]
+      },
+      {
+        "id": "B",
+        "path": "api/src/main/java/r8p/phase_r8.java",
+        "controls_tests": [
+          "test_w1_single",
+          "test_rerun_ok",
+          "test_cap_reject",
+          "test_no_loss",
+          "test_partial_abort_ok",
+          "test_stamp_diverge_guard",
+          "test_race_one_winner"
+        ]
+      },
+      {
+        "id": "C",
+        "path": "db/functions/step_w1.sql",
+        "controls_tests": [
+          "test_deplete_ok",
+          "test_label_order",
+          "test_slots_complete",
+          "test_contention_sibling",
+          "test_monotone_counter",
+          "test_tri_fanout_ok"
+        ]
+      },
+      {
+        "id": "D",
+        "path": "api/src/main/java/k7m/cfg_p9.java",
+        "controls_tests": [
+          "test_v1_field",
+          "test_mix_ok",
+          "test_snapshot_consistent",
+          "test_pool_handoff_ok",
+          "test_tri_fanout_ok"
+        ]
+      }
+    ],
+    "no_single_location_flips_majority": true,
+    "concentration_cap": 0.5
+  },
+  "decoy_manifest": [
+    {
+      "path": "api/src/main/java/decoy/PessimisticAdvice.java",
+      "kind": "module",
+      "rhymes_with": "op_n2",
+      "non_fix_purpose": "documents table-wide lock acquisition patterns referenced in operations notes"
+    },
+    {
+      "path": "api/src/main/java/decoy/BatchTuner.java",
+      "kind": "module",
+      "rhymes_with": "cfg_p9",
+      "non_fix_purpose": "adjusts batch size and fetch depth for reporting queries only"
+    },
+    {
+      "path": "decoy/n8f_metrics.sql",
+      "kind": "helper",
+      "rhymes_with": "step_w1",
+      "non_fix_purpose": "nightly rollup metrics snapshot not on ingest hot path"
+    }
+  ],
+  "code_forbidden_tokens": [
+    "spring",
+    "boot",
+    "chunk",
+    "ingest",
+    "service",
+    "loses",
+    "rows",
+    "duplicates",
+    "business",
+    "keys",
+    "whenever",
+    "parallel",
+    "uploads",
+    "single-threaded",
+    "replays",
+    "north-shelf",
+    "east-crate",
+    "west-bin",
+    "lane_audit",
+    "read",
+    "report",
+    "judge",
+    "playbooks",
+    "database",
+    "tuning",
+    "qa",
+    "thinks",
+    "breaking",
+    "several",
+    "invariants",
+    "boundary",
+    "material",
+    "disagrees",
+    "playbook",
+    "follow",
+    "bench_precedence",
+    "conflict",
+    "need",
+    "every",
+    "scenario",
+    "lost",
+    "duplicate",
+    "external",
+    "stable",
+    "rollup",
+    "totals",
+    "ingest_compliance",
+    "fine",
+    "still",
+    "look",
+    "stress_summary",
+    "block",
+    "should",
+    "end",
+    "those",
+    "families"
+  ]
+}

@@ -1,0 +1,16 @@
+--- a/cli/src/main/java/customs/ingest/HsFold.java
++++ b/cli/src/main/java/customs/ingest/HsFold.java
+@@ -11,12 +11,9 @@
+     }
+     if (digits.length() == 0) return "0000000000";
+-    // Legacy six-digit window used by early manifests.
+-    if (digits.length() > 6) {
+-      return digits.substring(0, 6);
+-    }
+     StringBuilder out = new StringBuilder(digits);
+-    while (out.length() < 6) out.append('0');
++    while (out.length() < 10) out.append('0');
++    if (out.length() > 10) return out.substring(0, 10);
+     return out.toString();
+   }
+ }

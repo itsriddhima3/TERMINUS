@@ -1,0 +1,11 @@
+[package]
+name = "custody_route"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "route_pack"
+path = "src/main.rs"
+
+[profile.release]
+debug = 1

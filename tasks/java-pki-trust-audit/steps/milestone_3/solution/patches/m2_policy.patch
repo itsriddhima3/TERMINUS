@@ -1,0 +1,11 @@
+--- a/cli/src/main/java/trust/policy/op_k7.java
++++ b/cli/src/main/java/trust/policy/op_k7.java
+@@ -28,7 +28,7 @@ public final class op_k7 {
+     if (anchor != null && notAfterBefore(anchor, evalInstant)) {
+       return "expired_root";
+     }
+-    if (chain.size() > 6) {
++    if (chain.size() > 4) {
+       return "path_length";
+     }
+     for (CertSlice s : slices) {

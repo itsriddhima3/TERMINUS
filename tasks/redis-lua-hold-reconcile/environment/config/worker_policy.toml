@@ -1,0 +1,12 @@
+[defaults]
+connect_timeout_ms = 1500
+read_timeout_ms = 1500
+parallel_workers = 4
+retry_backoff_ms = 50
+
+[lane]
+solo_workers = 1
+burst_workers = 4
+
+[commit]
+forward_observation_frame = true

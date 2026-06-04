@@ -443,6 +443,24 @@ def classify_trial(trial_dir: Path) -> dict[str, Any]:
     exception_info = result.get("exception_info")
     ctrf = load_ctrf(trial_dir / "verifier" / "ctrf.json")
     stdout_text = load_text(trial_dir / "verifier" / "test-stdout.txt")
+
+    if ctrf is None:
+        merged_tests: list[dict] = []
+        merged_stdout_parts: list[str] = []
+        for step_dir in sorted((trial_dir / "steps").glob("*")):
+            step_ctrf = load_ctrf(step_dir / "verifier" / "ctrf.json")
+            if step_ctrf is not None:
+                merged_tests.extend(
+                    (step_ctrf.get("results") or {}).get("tests") or []
+                )
+            step_stdout = load_text(step_dir / "verifier" / "test-stdout.txt")
+            if step_stdout:
+                merged_stdout_parts.append(step_stdout)
+        if merged_tests:
+            ctrf = {"results": {"tests": merged_tests}}
+        if merged_stdout_parts:
+            stdout_text = "\n".join(merged_stdout_parts)
+
     reward = (
         ((result.get("verifier_result") or {}).get("rewards") or {}).get("reward")
     )
@@ -506,6 +524,51 @@ def classify_trial(trial_dir: Path) -> dict[str, Any]:
         "exception_type": (exception_info or {}).get("exception_type"),
         "stdout_excerpt": summarize_text(stdout_text),
     }
+
+
+def get_test_sh_paths(task_dir: Path) -> list[Path]:
+    """Return all test.sh paths for a task.
+
+    Single-step tasks use ``tests/test.sh``. Milestone tasks use
+    ``steps/<name>/tests/test.sh`` for each step, sorted alphabetically.
+    """
+    root_test_sh = task_dir / "tests" / "test.sh"
+    if root_test_sh.exists():
+        return [root_test_sh]
+    step_paths = sorted((task_dir / "steps").glob("*/tests/test.sh"))
+    if step_paths:
+        return step_paths
+    raise FileNotFoundError(
+        f"could not find tests/test.sh or steps/*/tests/test.sh under {task_dir}"
+    )
+
+
+def get_solve_sh_for_partial_oracle(task_dir: Path) -> Path:
+    """Return the solve.sh to use for partial-oracle ablation.
+
+    Single-step tasks use ``solution/solve.sh``. Milestone tasks use
+    the first step's actual solution script (e.g. ``solve1.sh``) rather
+    than the thin wrapper ``solve.sh``, because the wrapper has too few
+    non-trivial lines for the ablation algorithm.  Using the first step
+    is intentional: ablating its commands breaks the foundational outputs
+    and causes behavioral failures in the verifier without any step
+    passing due to redundant intermediate outputs.  If no numbered script
+    exists, falls back to the first step's ``solve.sh``.
+    """
+    root_solve = task_dir / "solution" / "solve.sh"
+    if root_solve.exists():
+        return root_solve
+    # Prefer the numbered scripts (solve1.sh, solve2.sh, …) over wrappers.
+    # Use the first step's script so that ablations break foundational outputs.
+    numbered_paths = sorted((task_dir / "steps").glob("*/solution/solve[0-9]*.sh"))
+    if numbered_paths:
+        return numbered_paths[0]
+    step_paths = sorted((task_dir / "steps").glob("*/solution/solve.sh"))
+    if step_paths:
+        return step_paths[0]
+    raise FileNotFoundError(
+        f"could not find solution/solve.sh or steps/*/solution/solve.sh under {task_dir}"
+    )
 
 
 def copy_task_dir(task_dir: Path, root: Path, label: str) -> Path:
@@ -776,7 +839,8 @@ def _run_randomized_seed(
     concurrent calls do not collide.
     """
     copied_task = copy_task_dir(task_dir, work_root, f"randomized_seed_{seed}")
-    ensure_randomized_pytest(copied_task / "tests" / "test.sh", seed)
+    for test_sh in get_test_sh_paths(copied_task):
+        ensure_randomized_pytest(test_sh, seed)
     harbor_run = run_harbor_oracle(copied_task, jobs_dir)
     single_trial_dirs = trial_dirs(harbor_run["job_dir"])
     if len(single_trial_dirs) != 1:
@@ -845,6 +909,8 @@ def _run_partial_variant(
     """Execute one partial-oracle harbor run for a single ablation variant."""
     copied_task = copy_task_dir(task_dir, work_root, f"partial_{variant['label']}")
     copied_solve = copied_task / "solution" / "solve.sh"
+    if not copied_solve.exists():
+        copied_solve = get_solve_sh_for_partial_oracle(copied_task)
     copied_solve.write_text(
         render_partial_oracle(script_text, variant["ablated_line_indexes"]),
         encoding="utf-8",
@@ -874,7 +940,7 @@ def summarize_partial_oracle_check(
     *,
     pool: ThreadPoolExecutor | None = None,
 ) -> dict[str, Any]:
-    solve_path = task_dir / "solution" / "solve.sh"
+    solve_path = get_solve_sh_for_partial_oracle(task_dir)
     script_text = solve_path.read_text(encoding="utf-8")
     variants = build_partial_variants(script_text)
     if variant_labels:

@@ -1,0 +1,16 @@
+[cluster]
+name = "telemetry-lab"
+version = "7.0"
+
+[paths]
+pipelines_root = "/app/pipelines"
+runners_root = "/app/runners"
+output_root = "/app/output"
+invoke_policy = "/app/config/invoke_policy.json"
+
+[invoke]
+policy_file = "/app/config/invoke_policy.json"
+
+[verifier]
+# Grading uses UV_OFFLINE=1 with pytest wheels warmed into /opt/uv-cache at image build.
+offline_env = "UV_OFFLINE=1"

@@ -1,0 +1,10 @@
+{
+  "penalty_per_hint": 75,
+  "bonus_per_match": 43,
+  "hint_reveal_bonus": 5,
+  "decay_per_second": 1,
+  "throttle_bucket_width_ms": 5000,
+  "throttle_free_quota": 1,
+  "rounding_step": 5,
+  "notes": "All values are integer units. The rate-bucket admits up to throttle_free_quota draws per bucket window at zero cost; subsequent draws in the same bucket incur penalty_per_hint each. bonusUnits aggregates bonus_per_match for each classified mark plus hint_reveal_bonus for each hint command issued (including across pause/resume). Compose: base - decay - discretePenalties + bonusUnits, then snap to rounding_step. The persisted score must be a multiple of rounding_step and must not increase when an extra penalised hint is added within the same scenario."
+}

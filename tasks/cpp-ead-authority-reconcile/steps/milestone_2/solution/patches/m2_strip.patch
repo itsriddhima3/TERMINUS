@@ -1,0 +1,14 @@
+--- a/cli/src/link/op_strip_b.cpp
++++ b/cli/src/link/op_strip_b.cpp
+@@ -3,6 +3,10 @@
+ namespace arc {
+ 
+ std::string strip_subject_head(const std::string& raw) {
+-  return raw;
++  auto pos = raw.find("--");
++  if (pos != std::string::npos) {
++    return raw.substr(0, pos);
++  }
++  return raw;
+ }
+ 

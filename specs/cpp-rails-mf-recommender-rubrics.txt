@@ -1,0 +1,20 @@
+Agent reads /app/docs/bench_precedence.md or /app/docs/catalog/INDEX.md before changing pull, fit, pack, or submit behavior, +2
+Agent reads /app/docs/catalog/part_01_pagination.md before editing remote lane pull or manifest materialization logic, +2
+Agent reads /app/docs/catalog/part_02_training.md or /app/docs/catalog/part_03_pack_format.md before changing fit loop or pack serialization code, +2
+Agent reads /app/docs/catalog/part_04_submission.md or /app/docs/catalog/part_05_wire_encoding.md before changing holdout POST or wire decode logic, +2
+Agent starts /app/scripts/start_api.sh and probes http://127.0.0.1:4567 before diagnosing curl or connection failures in ratectl, +3
+Agent runs /app/bin/ratectl fetch --base http://127.0.0.1:4567 and inspects /app/output/splits/manifest.json and /app/output/splits/train.jsonl before repairing pull code, +3
+Agent repairs op_fetch in /app/client/k3p/pull.cpp so paginated lane pulls exhaust the service ceiling, use the canonical response array key, and write manifest hyperparameters plus a stable train_sha256 over the jsonl body, +5
+Agent runs /app/bin/ratectl train --manifest /app/output/splits/manifest.json --pack /app/output/model/pack.bin and inspects pack header fields before repairing fit or pack code, +3
+Agent repairs phase_fit in /app/core/r7n/loop.cpp so hyperparameters come from manifest, visits shuffle per epoch with fit_seed plus epoch, learning rate decays, and bias offsets update during fit, +5
+Agent repairs step_q2 in /app/core/m4t/pack.cpp so header seed and train_sha256 match manifest, per-row band scales are encoded, wire bytes apply the catalog offset, and on-disk size matches the catalog layout, +5
+Agent runs /app/bin/ratectl submit --pack /app/output/model/pack.bin --base http://127.0.0.1:4567 and inspects /app/output/submission/receipt.json before repairing submit code, +3
+Agent repairs emit_v3 in /app/core/p1v/submit.cpp so holdout pairs are dequantized, quarter-star scores are posted with the active bench id, and receipt rmse meets the service cutoff, +5
+Agent rebuilds /app/bin/ratectl via /app/scripts/build.sh or cmake after C++ source edits, +3
+Agent re-runs fetch, train, and submit in sequence and confirms manifest row counts, pack fingerprint stability, and receipt acceptance before finishing, +3
+Agent treats /app/docs/archive/legacy_pagination.md or /app/docs/archive/legacy_training.md as normative instead of catalog memos after reading bench_precedence.md, -3
+Agent treats /app/decoy/q2n/page.cpp or /app/decoy/n8f/codec.cpp as the primary lane pull or band-scale repair instead of client/k3p or core/m4t sources, -3
+Agent patches only pull.cpp while leaving fit loop shuffle, learning-rate decay, or per-row band scale defects in core/r7n or core/m4t, -3
+Agent posts holdout scores without the active bench split id or edits /app/output/submission/receipt.json by hand instead of running ratectl submit, -5
+Agent hardcodes manifest, pack header, or receipt fields in /app/output without executing the ratectl pipeline, -5
+Agent repeats the same failing ratectl fetch, train, or submit outcome at least three times without changing pull, fit, pack, or submit source, -2

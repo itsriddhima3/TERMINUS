@@ -230,24 +230,7 @@ Keep the existing canary string convention in `solveN.sh` files (Terminal-Bench 
 #### Deprecated milestone layout (do not use for new or in-progress tasks)
 
 The old shape — root-level `instruction.md` plus `milestone_1.md ... milestone_N.md`, root-level `tests/` with `test_m1.py ... test_mN.py`, root-level `solution/` chaining `solve1.sh ... solveN.sh` — is deprecated. New submissions and in-progress submissions must migrate to the `steps/milestone_N/` layout above. The migration steps are listed under "Migration checklist for existing milestone tasks" below.
-
-### UI task
-```
-<task-folder>/
-├── instruction.md
-├── task.toml
-├── output_contract.toml
-├── environment/
-│   └── Dockerfile
-├── solution/
-│   └── solve.sh
-├── tests/
-│   ├── test.sh
-│   ├── README.md, package.json, .gitignore
-│   ├── playwright.config.ts, vitest.config.ts
-│   ├── unit/, e2e/
-└── index.html
-```
+s
 
 Do NOT include `rubrics.txt` — rubrics are edited in the submission UI.
 
@@ -335,27 +318,38 @@ version = "2.0"
 [metadata]
 author_name = "anonymous"
 author_email = "anonymous"
-difficulty = "hard"
-category = "security"        # one of the 9 accepted values
-tags = ["ssh", "hardening", "chroot"]  # 3-6 descriptive values
-languages = ["bash"]
-codebase_size = "small"      # Count files under environment/ EXCLUDING Dockerfile and docker-compose. minimal (0-19) is a blocking failure on the default Edition 2 path. small (20-200). large (200+). This is a realism floor, not hardness evidence; stay comfortably above it with genuine task components, not filler.
-number_of_milestones = 0     # 0 for non-milestone tasks
-subcategories = []           # or ["tool_specific"], etc.
-expert_time_estimate_min = 30
+difficulty = "unknown"
+category = "software-engineering"
+# Options for subcategories are: "long_context", "tool_specific", "api_integration", "db_interaction"
+subcategories = [ ]
+# The number of milestones in the task (can be zero if not a milestone task)
+number_of_milestones = 0
+# Size of the codebase: minimal -> 0-20 files, small -> 20+ files, large -> 200+ files. Count includes all files in the environment (not files the agent produces).
+codebase_size = "minimal"
+# Coding languages used in the oracle solution or required by the agent
+languages = [ "bash" ]
+# For tool_specific, api_integration, and db_interaction subcategories, please include specific tool, api framework, or database software
+tags = [ "file-operations",]
+# Estimated time to complete (minutes)
+expert_time_estimate_min = 60
 junior_time_estimate_min = 120
 
-[agent]
-timeout_sec = 900            # Hard platform cap: 1800. Anything above is rejected by upstream harbor CI.
-
+# Verifier: runs the test script to check task completion
 [verifier]
-timeout_sec = 300            # Hard platform cap: 1800. Raise to ≥ build_timeout_sec if tests/ invokes cmake / cargo / go build / make / npm install / pip install from source. `run_static_checks.py --only timeout_coherence` enforces both the floor (≥ build_timeout_sec when tests do builds) and the ceiling (≤ 1800). If a task needs more than 1800s of verifier time, reduce verifier-side work (cache builds between scenarios, parallelize, split the matrix) — do not argue for a higher budget; the platform will reject it.
+timeout_sec = 450.0
 
+# Agent: limits how long the agent can run when attempting the task
+[agent]
+timeout_sec = 900.0
+
+# Sandbox environment limits
 [environment]
-build_timeout_sec = 600
+build_timeout_sec = 600.0
 cpus = 2
 memory_mb = 4096
 storage_mb = 10240
+allow_internet = false
+# workdir = "/app"  # Milestone tasks only — sets the working directory shared across all milestones
 ```
 
 ### Milestone task.toml shape
@@ -363,12 +357,11 @@ storage_mb = 10240
 Milestone tasks use the same top-level metadata, but add per-step `[[steps]]` blocks (one per milestone) and remove the top-level `[agent]` / `[verifier]` blocks. `[metadata].number_of_milestones` MUST equal the number of `[[steps]]` blocks.
 
 ```toml
-# Task configuration schema version
 version = "2.0"
 
 [metadata]
-author_name = "your-name"
-author_email = "your-email"
+author_name = "anonymous"
+author_email = "anonymous"
 difficulty = "hard"
 category = "software-engineering"
 subcategories = []
@@ -417,12 +410,12 @@ Milestone task.toml rules:
 - `[environment]` is still global — one container shared across all milestones.
 - Keep author placeholders anonymous (`"your-name"` / `"your-email"`, or equivalents like `"anonymous"`). Do not substitute real author identifiers.
 
-Accepted `subcategories` values: `long_context`, `tool_specific`, `api_integration`, `db_interaction`, `ui_building`. Do not use `task_subtypes`.
+Accepted `subcategories` values: `long_context`, `tool_specific`, `api_integration`, `db_interaction`. Do not use `task_subtypes`.
 
 **Subcategory guardrails (do not label a task with a subcategory unless it meets the criteria):**
 - `long_context`: only when the task truly depends on at least 50k tokens of reading (roughly 50-150 pages) AND semantic reasoning. Simple parsing, filtering, or keyword search does not qualify.
 - `api_integration`: only when the API is mocked locally in Docker with no external web access. Tasks that depend on a live remote API do not qualify.
-- `ui_building`: only for genuine UI tasks that use the UI verifier stack (unit + E2E). Ordinary pytest-only backend validation does not qualify. **NOTE:** New `ui_building` tasks are NOT being accepted — see "Task types we no longer accept" below.
+- `Tool Specific` : only when the tasks that target tools that provide SDK & APIs where models generally underperform. 
 
 If `environment/docker-compose.yaml` exists: set `custom_docker_compose = true`. If multiple services: also set `is_multi_container = true`. **NOTE:** New multi-container tasks are NOT being accepted — see "Task types we no longer accept" above.
 

@@ -1,0 +1,17 @@
+Agent reads /app/docs/bench_precedence.md or lane-contract material under /app/docs/lane_contract/ before changing dispatch, commit, or slot binding behavior, +2
+Agent reads /app/config/worker_policy.toml or /app/config/script_registry.toml before editing worker dispatch or script selection, +2
+Agent inspects /app/data/sku_catalog.json and compares canonical key values to live Redis state before repairing routing or seed logic, +3
+Agent runs /app/init/ensure_redis.sh and /app/app/stock_audit.sh, then inspects /app/output/stock_audit.json for overshoot and compliance posture before finishing, +3
+Agent repairs step_w1 in /app/lib/k7m/step_w1.sh so catalog labels resolve to the durable sku keys declared in sku_catalog.json instead of hold-prefixed alias slots, +5
+Agent repairs op_n2 in /app/lua/op_n2.lua so quantity deduction uses an atomic in-script read and DECRBY path rather than a host-supplied baseline with SET, +5
+Agent disables forward_observation_frame in /app/config/worker_policy.toml or otherwise stops phase_r8 from forwarding a stale host observation tally into the commit argv list, +5
+Agent updates /app/lib/seed_helpers.sh to seed only canonical catalog keys and reseeds Redis before re-running the audit harness, +3
+Agent traces the grant hot path through phase_r8, q7n_frame, step_w1, and op_n2 rather than patching decoy metrics or flush helpers first, +3
+Agent re-runs /app/app/stock_audit.sh after repairs and confirms stock_compliance and stress_summary indicate clean concurrent accounting across matrix rows, +3
+Agent treats /app/docs/archive/legacy_slot_map.md or operations backoff bulletins as the primary repair instead of lane-contract precedence and catalog key binding, -3
+Agent treats /app/lua/m2p_commit.lua, /app/lua/q3l_probe.lua, /app/decoy/p4x_flush.sh, or /app/lib/k7m/q7n_metrics.sh as the authoritative grant commit fix instead of op_n2 on the live dispatch path, -3
+Agent wraps redis-cli EVAL in MULTI or EXEC from bash while leaving split host reads, alias slot routing, or SET-based commit logic unchanged, -3
+Agent patches only op_n2.lua while leaving step_w1 mapped to hold-prefixed alias keys that diverge from seeded catalog slots, -3
+Agent increases retry backoff or client timeouts in worker_policy.toml as the sole change without repairing atomic commit or canonical key alignment, -3
+Agent manually writes or edits /app/output/stock_audit.json without executing stock_audit.sh against live Redis, -5
+Agent repeats the same failing stock_audit.sh outcome at least three times without changing worker dispatch, Lua commit, policy, or seed source, -2

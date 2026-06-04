@@ -1,0 +1,20 @@
+--- a/flow-src/run_pack.lua
++++ b/flow-src/run_pack.lua
+@@ -36,13 +36,15 @@
+   local walk_ok, walk_path = walk.op_walk_a(g, row_id, anchor_id, nil)
+   local ledger_hits = walk.count_ledger_hits(g, row_id)
+   local identity_hex, chain_ok = bridge.reconcile_b(leaf, store, anchor_path, nil)
+-  local window_row = gate.window_from_pem(leaf, "America/Chicago")
++  local window_row = gate.window_from_pem(leaf, require("lib.tz_io").load_tz_base())
+   local route_state, window_state, handoff_ok, row_rc =
+     gate.phase_c(walk_ok, chain_ok, ledger_hits, window_row, severed)
+   if not handoff_ok and row_rc == 0 then
+     row_rc = 1
+   end
+-  pack_rc = row_rc
++  if row_rc ~= 0 or not handoff_ok then
++    pack_rc = 1
++  end
+   if #walk_path > 0 then
+     path_ids = walk_path
+   elseif row_id == anchor_id then

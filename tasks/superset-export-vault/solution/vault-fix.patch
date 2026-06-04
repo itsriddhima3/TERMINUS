@@ -1,0 +1,215 @@
+--- a/hub/q7m/paths.go	2026-06-03 15:18:29.127549144 +0530
++++ b/hub/q7m/paths.go	2026-06-03 15:09:22.271235329 +0530
+@@ -2,6 +2,7 @@
+ 
+ import (
+ 	"encoding/json"
++	"fmt"
+ 	"strings"
+ 
+ 	"github.com/example/superset-export-vault/internal/config"
+@@ -10,64 +11,84 @@
+ )
+ 
+ func DiscoverFields(member string, payload []byte, rules config.RedactionDoc) ([]types.FieldHit, error) {
+-	_ = DefaultWalkerPolicy()
+ 	return walk_q3(member, payload, rules)
+ }
+ 
+ func walk_q3(member string, payload []byte, rules config.RedactionDoc) ([]types.FieldHit, error) {
+ 	if strings.HasSuffix(member, ".json") {
+-		return op_j8(member, payload, rules)
++		var root any
++		if err := json.Unmarshal(payload, &root); err != nil {
++			return nil, err
++		}
++		return phase_j2(member, "", root, rules), nil
+ 	}
+ 	if strings.HasSuffix(member, ".yaml") || strings.HasSuffix(member, ".yml") {
+-		return op_y8(member, payload, rules)
++		var root yaml.Node
++		if err := yaml.Unmarshal(payload, &root); err != nil {
++			return nil, err
++		}
++		if len(root.Content) == 0 {
++			return nil, nil
++		}
++		return phase_j3(member, "", root.Content[0], rules), nil
+ 	}
+ 	return nil, nil
+ }
+ 
+-func op_j8(member string, payload []byte, rules config.RedactionDoc) ([]types.FieldHit, error) {
+-	var root map[string]any
+-	if err := json.Unmarshal(payload, &root); err != nil {
+-		return nil, err
+-	}
++func phase_j2(member, prefix string, val any, rules config.RedactionDoc) []types.FieldHit {
+ 	var hits []types.FieldHit
+-	for key, val := range root {
+-		if str, ok := val.(string); ok && tokenMatch(key, rules, member) {
+-			hits = append(hits, types.FieldHit{
+-				MemberPath: member,
+-				FieldPath:  key,
+-				Value:      str,
+-			})
++	switch typed := val.(type) {
++	case map[string]any:
++		for key, child := range typed {
++			path := key
++			if prefix != "" {
++				path = prefix + "." + key
++			}
++			if str, ok := child.(string); ok && tokenMatch(key, rules, member) {
++				hits = append(hits, types.FieldHit{MemberPath: member, FieldPath: path, Value: str})
++				continue
++			}
++			hits = append(hits, phase_j2(member, path, child, rules)...)
++		}
++	case []any:
++		for idx, child := range typed {
++			path := fmt.Sprintf("%d", idx)
++			if prefix != "" {
++				path = fmt.Sprintf("%s.%d", prefix, idx)
++			}
++			hits = append(hits, phase_j2(member, path, child, rules)...)
+ 		}
+ 	}
+-	return hits, nil
++	return hits
+ }
+ 
+-func op_y8(member string, payload []byte, rules config.RedactionDoc) ([]types.FieldHit, error) {
+-	var root yaml.Node
+-	if err := yaml.Unmarshal(payload, &root); err != nil {
+-		return nil, err
+-	}
+-	if len(root.Content) == 0 {
+-		return nil, nil
+-	}
+-	doc := root.Content[0]
+-	if doc.Kind != yaml.MappingNode {
+-		return nil, nil
+-	}
++func phase_j3(member, prefix string, node *yaml.Node, rules config.RedactionDoc) []types.FieldHit {
+ 	var hits []types.FieldHit
+-	for i := 0; i < len(doc.Content); i += 2 {
+-		keyNode := doc.Content[i]
+-		valNode := doc.Content[i+1]
+-		key := keyNode.Value
+-		if valNode.Kind == yaml.ScalarNode && tokenMatch(key, rules, member) {
+-			hits = append(hits, types.FieldHit{
+-				MemberPath: member,
+-				FieldPath:  key,
+-				Value:      valNode.Value,
+-			})
++	switch node.Kind {
++	case yaml.MappingNode:
++		for i := 0; i < len(node.Content); i += 2 {
++			keyNode := node.Content[i]
++			valNode := node.Content[i+1]
++			path := keyNode.Value
++			if prefix != "" {
++				path = prefix + "." + keyNode.Value
++			}
++			if valNode.Kind == yaml.ScalarNode && tokenMatch(keyNode.Value, rules, member) {
++				hits = append(hits, types.FieldHit{MemberPath: member, FieldPath: path, Value: valNode.Value})
++				continue
++			}
++			hits = append(hits, phase_j3(member, path, valNode, rules)...)
++		}
++	case yaml.SequenceNode:
++		for idx, child := range node.Content {
++			path := fmt.Sprintf("%d", idx)
++			if prefix != "" {
++				path = fmt.Sprintf("%s.%d", prefix, idx)
++			}
++			hits = append(hits, phase_j3(member, path, child, rules)...)
+ 		}
+ 	}
+-	return hits, nil
++	return hits
+ }
+ 
+ func tokenMatch(key string, rules config.RedactionDoc, member string) bool {
+@@ -85,7 +106,6 @@
+ 	return false
+ }
+ 
+-// LegacyPathScan counts legacy sqlite dump password markers only.
+ func legacy_n0(member string, payload []byte) int {
+ 	if !strings.Contains(member, "legacy") {
+ 		return 0
+--- a/pkg/k2n/envelope.go	2026-06-03 15:18:31.258971095 +0530
++++ b/pkg/k2n/envelope.go	2026-06-03 15:20:20.467312509 +0530
+@@ -37,8 +37,7 @@
+ 		return "", err
+ 	}
+ 	slot := []byte(a + "\x00" + b)
+-	_ = slot
+-	sealed := gcm.Seal(nil, nonce, plain, nil)
++	sealed := gcm.Seal(nil, nonce, plain, slot)
+ 	out := append(nonce, sealed...)
+ 	return prefix + base64.StdEncoding.EncodeToString(out), nil
+ }
+@@ -68,8 +67,7 @@
+ 	nonce := raw[:gcm.NonceSize()]
+ 	ciphertext := raw[gcm.NonceSize():]
+ 	slot := []byte(a + "\x00" + b)
+-	_ = slot
+-	return gcm.Open(nil, nonce, ciphertext, nil)
++	return gcm.Open(nil, nonce, ciphertext, slot)
+ }
+ 
+ func stringsHasPrefix(s, p string) bool {
+--- a/ledger/h5r/digest.go	2026-06-03 15:18:31.742546908 +0530
++++ b/ledger/h5r/digest.go	2026-06-03 15:06:59.657999883 +0530
+@@ -7,6 +7,7 @@
+ 	"strings"
+ 
+ 	"github.com/example/superset-export-vault/internal/types"
++	"github.com/example/superset-export-vault/pkg/k2n"
+ )
+ 
+ func RelayH4(member string, payload []byte) string {
+@@ -14,10 +15,6 @@
+ }
+ 
+ func GateF8(member string, payload []byte, expect string) error {
+-	// Deferred relay tier for metadata-class members (see relay_fingerprint.md).
+-	if strings.HasPrefix(member, "metadata/") {
+-		return nil
+-	}
+ 	got := RelayH4(member, payload)
+ 	if got != expect {
+ 		return fmt.Errorf("digest mismatch for %s", member)
+@@ -27,21 +24,20 @@
+ 
+ func GateZ1(key []byte, man types.Manifest) error {
+ 	for id, token := range man.Envelopes {
+-		_ = id
+-		_ = token
++		parts := strings.SplitN(id, ":", 2)
++		if len(parts) != 2 {
++			return fmt.Errorf("bad envelope id")
++		}
++		if _, err := k2n.OpenEnvelope(key, parts[0], parts[1], token); err != nil {
++			return fmt.Errorf("envelope open failed for %s: %w", id, err)
++		}
+ 	}
+ 	return nil
+ }
+ 
+ func fold_r2(member string, payload []byte) string {
+ 	_ = member
+-	// Staging relay normalization (relay_fingerprint.md); FoldCanonical is logging-only.
+-	lines := strings.Split(string(payload), "\n")
+-	var joined []string
+-	for _, line := range lines {
+-		joined = append(joined, strings.TrimSpace(line))
+-	}
+-	sum := sha256.Sum256([]byte(strings.Join(joined, "\n")))
++	sum := sha256.Sum256(payload)
+ 	return hex.EncodeToString(sum[:])
+ }
+ 

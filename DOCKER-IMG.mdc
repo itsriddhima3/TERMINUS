@@ -1,0 +1,341 @@
+---
+alwaysApply: false
+---
+---
+description: Dockerfile and image quality rules for task environments
+globs:
+  - environment/Dockerfile
+  - environment/.dockerignore
+  - environment/docker-compose.yaml
+  - environment/docker-compose.yml
+  - task.toml
+alwaysApply: true
+---
+
+# Docker Image Rules
+
+## Base Images
+
+Every FROM instruction must use digest pinning.
+
+Required:
+
+FROM image:tag@sha256:<digest>
+
+Forbidden:
+
+FROM image:latest
+
+FROM image:tag
+
+Final runtime stages must use sanctioned or approved runtime bases.
+
+Allowed runtime families:
+
+- python:*@sha256:<digest>
+- mcr.microsoft.com/*@sha256:<digest>
+- ghcr.io/snorkel-ai/*@sha256:<digest>
+- scratch
+
+Custom runtime bases require explicit approval.
+
+---
+
+# Reproducibility Rules
+
+Images must build reproducibly.
+
+Requirements:
+
+- Pin dependency versions
+- Use lockfiles where applicable
+- Pin downloaded artifacts by version + checksum
+- Avoid nondeterministic build steps
+
+Forbidden:
+
+curl | sh
+
+floating dependency versions
+
+runtime dependency fetching
+
+Avoid embedding:
+
+- timestamps
+- random paths
+- hostnames
+- usernames
+- nondeterministic generated output
+
+---
+
+# Layer Structure Rules
+
+Build layers from least volatile → most volatile.
+
+Preferred order:
+
+1. OS packages
+2. Runtime setup
+3. Dependency manifests
+4. Dependency installation
+5. Source files
+6. Build steps
+
+Avoid:
+
+COPY . /app
+
+unless .dockerignore is strict and directory size is minimal.
+
+Use narrow COPY operations whenever possible.
+
+---
+
+# Apt Rules
+
+Requirements:
+
+- Single apt transaction per volatility class
+- Use --no-install-recommends
+- Remove apt cache in same layer
+
+Forbidden:
+
+apt-get upgrade
+
+multiple unnecessary apt layers
+
+leaving:
+
+/var/lib/apt/lists/*
+
+inside images
+
+---
+
+# Multi-Stage Build Rules
+
+Use multi-stage builds when compiling or bundling.
+
+Examples requiring multi-stage:
+
+- cargo build
+- go build
+- npm build pipelines
+- Maven / Gradle packaging
+- C/C++ compilation
+- dotnet publish
+
+Keep build tooling outside runtime images unless required by task design.
+
+---
+
+# Runtime Dependency Rules
+
+Final runtime images must work completely offline.
+
+Requirements:
+
+- tmux installed
+- asciinema installed
+- all dependencies preloaded
+- test.sh must run without network
+
+task.toml must include:
+
+allow_internet = false
+
+Forbidden during runtime:
+
+- pip install
+- npm install
+- cargo fetch
+- curl downloads
+- wget downloads
+- runtime package installs
+
+---
+
+# Asset Isolation Rules
+
+Never expose hidden assets.
+
+Forbidden:
+
+- copying solution/
+- copying hidden tests
+- exposing expected outputs
+- writable ground truth files
+
+Hidden verifier assets must remain isolated.
+
+---
+
+# Docker Ignore Rules
+
+Non-trivial environments require:
+
+environment/.dockerignore
+
+Requirements:
+
+- environment <= 100MB total
+- files <= 50MB each
+
+Recommended exclusions:
+
+.git
+__pycache__
+node_modules
+target
+dist
+build
+.venv
+env
+logs
+solution
+tests
+
+Do not copy:
+
+- credentials
+- caches
+- local build outputs
+- editor files
+
+---
+
+# Source Storage Rules
+
+Store source as files.
+
+Forbidden:
+
+embedded source via heredocs
+
+large opaque archives
+
+Prefer:
+
+COPY source_file.ext /path/
+
+instead of generating source inside RUN commands.
+
+Extract archives during build.
+
+---
+
+# Metadata Rules
+
+Avoid recursive permission rewrites.
+
+Forbidden:
+
+chmod -R
+
+chown -R
+
+Preferred:
+
+COPY --chmod=0755 script.sh /usr/local/bin/
+
+COPY --chown=user:group src/ /app/src/
+
+---
+
+# Image Hygiene Rules
+
+Images should not contain:
+
+- .git
+- .env
+- secrets
+- credentials
+- tokens
+- SSH keys
+- caches
+- unused build tools
+- hidden datasets
+- solution artifacts
+
+Cleanup must occur in the same layer that creates files.
+
+---
+
+# Performance Rules
+
+Startup-critical files should exist in earlier layers.
+
+Avoid:
+
+- huge early layers
+- compressing runtime files unnecessarily
+- placing required startup assets in cold layers
+
+Prefer:
+
+- small dependency layers
+- smaller runtime layers
+- lazy-pull friendly layouts
+
+---
+
+# Resource Declaration Rules
+
+task.toml must declare realistic resources.
+
+Required sections:
+
+[agent]
+
+[verifier]
+
+[environment]
+
+Requirements:
+
+- realistic CPU limits
+- realistic memory limits
+- realistic storage limits
+- bounded build timeout
+- realistic verifier timeout
+
+Oracle runs must pass under declared limits.
+
+---
+
+# Audit Metadata Rules
+
+Images should include OCI metadata labels.
+
+Recommended:
+
+LABEL org.opencontainers.image.source="..."
+
+LABEL org.opencontainers.image.revision="..."
+
+LABEL org.opencontainers.image.version="..."
+
+LABEL org.opencontainers.image.created="..."
+
+LABEL org.opencontainers.image.licenses="..."
+
+---
+
+# Final Validation
+
+Before completion verify:
+
+- Images are reproducible
+- Every image uses digest pinning
+- Runtime works offline
+- Hidden assets are isolated
+- Dependencies are fully baked in
+- Size limits are respected
+- Runtime image is minimal
+- task.toml resources are defined
+
+If any check fails, fix before completion.
+```

@@ -1,0 +1,5 @@
+{
+  "platform": "terminal-bench-3",
+  "workdir": "/app",
+  "verifier_python": "3.13"
+}

@@ -1,0 +1,1 @@
+Segment retention is seven days per member; freeze marks are not auto-trimmed.

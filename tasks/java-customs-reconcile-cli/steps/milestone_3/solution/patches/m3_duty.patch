@@ -1,0 +1,11 @@
+--- a/cli/src/main/java/customs/recon/DutyCalc.java
++++ b/cli/src/main/java/customs/recon/DutyCalc.java
+@@ -14,7 +14,7 @@
+     }
+     double rate = row.tariffPct() / 100.0;
+     double basis = ValueScale.op_scale_g(row.declaredValue(), row.currency());
+-    double core = basis * rate;
++    double core = basis * row.fxToUsd() * rate;
+     double uplift = PolicyLoad.quotaUplift();
+     boolean blocked = Boolean.TRUE.equals(row.quotaBlocked());
+     return QuotaAdj.op_uplift_h(core, blocked, uplift);

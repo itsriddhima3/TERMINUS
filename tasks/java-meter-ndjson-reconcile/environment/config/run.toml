@@ -1,0 +1,4 @@
+meter_id = "MTR-2024-Q1"
+api_base = "http://127.0.0.1:8080"
+gap_tolerance_min = 15
+delta_tolerance_kwh = 0.001

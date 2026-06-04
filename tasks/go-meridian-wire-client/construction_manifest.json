@@ -1,0 +1,103 @@
+{
+  "symbol_table": [
+    {
+      "path": "p4k/vault.go",
+      "symbol": "op_vault",
+      "kind": "function",
+      "signature": "func op_vault(slot [32]byte, anchor time.Time) (token string, ok bool)",
+      "purpose": "Returns or mints a stable outbound token for a slot with expiry computed from anchor."
+    },
+    {
+      "path": "t7m/backoff.go",
+      "symbol": "phase_b3",
+      "kind": "function",
+      "signature": "func phase_b3(h http.Header, code int) (wait time.Duration, more bool)",
+      "purpose": "Derives next wait duration from response metadata for retriable codes."
+    },
+    {
+      "path": "d2w/bind.go",
+      "symbol": "step_m5",
+      "kind": "function",
+      "signature": "func step_m5(a, b, c string, n int64) ([32]byte, error)",
+      "purpose": "Hashes caller fields into a stable slot identity for downstream token lookup."
+    }
+  ],
+  "flipping_point_contract": {
+    "locations": [
+      {
+        "id": "A",
+        "path": "p4k/vault.go",
+        "controls_tests": [
+          "test_burst_fan_one_posting",
+          "test_reuse_within_window",
+          "test_expired_key_rotates",
+          "test_hidden_burst_clean",
+          "test_anchor_clock_from_acceptance",
+          "test_eight_worker_race",
+          "test_precedence_errata_window"
+        ]
+      },
+      {
+        "id": "B",
+        "path": "t7m/backoff.go",
+        "controls_tests": [
+          "test_rate_limit_eventually_succeeds",
+          "test_http_date_retry_after",
+          "test_solo_lane_single_post",
+          "test_global_audit_clean",
+          "test_escalating_429_staircase",
+          "test_mixed_code_429_then_503"
+        ]
+      },
+      {
+        "id": "C",
+        "path": "d2w/bind.go",
+        "controls_tests": [
+          "test_cross_intent_isolation",
+          "test_mixed_amounts_isolated",
+          "test_catalog_scenarios_present",
+          "test_schema_version",
+          "test_probe_commit_shared_token",
+          "test_beneficiary_normalization_hash",
+          "test_minor_unit_fingerprint"
+        ]
+      }
+    ],
+    "no_single_location_flips_majority": true,
+    "concentration_cap": 0.5
+  },
+  "decoy_manifest": [
+    {
+      "path": "decoy/q8n/interval_stub.go",
+      "kind": "module",
+      "rhymes_with": "phase_b3",
+      "non_fix_purpose": "Fixed-interval helper used by deprecated CLI flag only."
+    },
+    {
+      "path": "decoy/n3f/keymint.go",
+      "kind": "helper",
+      "rhymes_with": "op_vault",
+      "non_fix_purpose": "UUID-per-request mint for load-test tooling, not on settlement hot path."
+    },
+    {
+      "path": "decoy/p2x/backoff_table.toml",
+      "kind": "config-reader",
+      "rhymes_with": "phase_b3",
+      "non_fix_purpose": "Stale retry intervals from deprecated annex; not on hot path."
+    },
+    {
+      "path": "hub/r1v/spec_scan.go",
+      "kind": "module",
+      "rhymes_with": "step_m5",
+      "non_fix_purpose": "Indexes OpenAPI headings for lint script without binding fingerprints."
+    }
+  ],
+  "code_forbidden_tokens": [
+    "Meridian", "retail", "wire", "integration", "app", "QA", "compliance", "harness",
+    "compliance_audit", "output", "wire_audit", "json", "Parallel", "stress", "lanes",
+    "duplicate", "settlement", "postings", "logical", "transfer", "single-threaded",
+    "replays", "Mock", "gateway", "throttle", "responses", "permanently", "failed",
+    "bundled", "OpenAPI", "compendium", "meridian_spec", "callers", "recover", "Reviewers",
+    "shipped", "Go", "client", "diverges", "contract", "ways"
+  ]
+}

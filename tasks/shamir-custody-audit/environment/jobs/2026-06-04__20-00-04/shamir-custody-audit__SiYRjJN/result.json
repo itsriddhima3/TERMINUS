@@ -1,0 +1,163 @@
+{
+    "id": "0911436a-8a15-40d2-a7d5-9a26f34094af",
+    "task_name": "shamir-custody-audit",
+    "trial_name": "shamir-custody-audit__SiYRjJN",
+    "trial_uri": "file:///home/riddhima/projects/TERMINUS/tasks/shamir-custody-audit/environment/jobs/2026-06-04__20-00-04/shamir-custody-audit__SiYRjJN",
+    "task_id": {
+        "path": "/home/riddhima/projects/TERMINUS/tasks/shamir-custody-audit"
+    },
+    "source": null,
+    "task_checksum": "a596370925c2f12810a1b0061591d4d8af14e6835636524c92d53d9dced4a065",
+    "config": {
+        "task": {
+            "path": "/home/riddhima/projects/TERMINUS/tasks/shamir-custody-audit",
+            "git_url": null,
+            "git_commit_id": null,
+            "name": null,
+            "ref": null,
+            "overwrite": false,
+            "download_dir": null,
+            "source": null
+        },
+        "trial_name": "shamir-custody-audit__SiYRjJN",
+        "trials_dir": "jobs/2026-06-04__20-00-04",
+        "timeout_multiplier": 1.0,
+        "agent_timeout_multiplier": null,
+        "verifier_timeout_multiplier": null,
+        "agent_setup_timeout_multiplier": null,
+        "environment_build_timeout_multiplier": null,
+        "agent": {
+            "name": "nop",
+            "import_path": null,
+            "model_name": null,
+            "override_timeout_sec": null,
+            "override_setup_timeout_sec": null,
+            "max_timeout_sec": null,
+            "kwargs": {},
+            "env": {}
+        },
+        "environment": {
+            "type": "docker",
+            "import_path": null,
+            "force_build": false,
+            "delete": true,
+            "override_cpus": null,
+            "override_memory_mb": null,
+            "override_storage_mb": null,
+            "override_gpus": null,
+            "suppress_override_warnings": false,
+            "mounts_json": null,
+            "env": {},
+            "kwargs": {}
+        },
+        "verifier": {
+            "override_timeout_sec": null,
+            "max_timeout_sec": null,
+            "env": {},
+            "disable": false
+        },
+        "artifacts": [],
+        "job_id": "faa71bfc-a923-4a79-8c8f-08f02e74ac31"
+    },
+    "agent_info": {
+        "name": "nop",
+        "version": "1.0.0",
+        "model_info": null
+    },
+    "agent_result": null,
+    "verifier_result": {
+        "rewards": {
+            "reward": 0.0
+        }
+    },
+    "exception_info": null,
+    "started_at": "2026-06-04T14:30:07.313526Z",
+    "finished_at": "2026-06-04T14:30:27.894015Z",
+    "environment_setup": {
+        "started_at": "2026-06-04T14:30:07.349428Z",
+        "finished_at": "2026-06-04T14:30:16.889080Z"
+    },
+    "agent_setup": {
+        "started_at": "2026-06-04T14:30:16.889147Z",
+        "finished_at": "2026-06-04T14:30:16.889229Z"
+    },
+    "agent_execution": null,
+    "verifier": null,
+    "step_results": [
+        {
+            "step_name": "milestone_1",
+            "agent_result": {
+                "n_input_tokens": null,
+                "n_cache_tokens": null,
+                "n_output_tokens": null,
+                "cost_usd": null,
+                "rollout_details": null,
+                "metadata": null
+            },
+            "verifier_result": {
+                "rewards": {
+                    "reward": 0.0
+                }
+            },
+            "exception_info": null,
+            "agent_execution": {
+                "started_at": "2026-06-04T14:30:17.286741Z",
+                "finished_at": "2026-06-04T14:30:17.286913Z"
+            },
+            "verifier": {
+                "started_at": "2026-06-04T14:30:17.645381Z",
+                "finished_at": "2026-06-04T14:30:20.530146Z"
+            }
+        },
+        {
+            "step_name": "milestone_2",
+            "agent_result": {
+                "n_input_tokens": null,
+                "n_cache_tokens": null,
+                "n_output_tokens": null,
+                "cost_usd": null,
+                "rollout_details": null,
+                "metadata": null
+            },
+            "verifier_result": {
+                "rewards": {
+                    "reward": 0.0
+                }
+            },
+            "exception_info": null,
+            "agent_execution": {
+                "started_at": "2026-06-04T14:30:20.884431Z",
+                "finished_at": "2026-06-04T14:30:20.884560Z"
+            },
+            "verifier": {
+                "started_at": "2026-06-04T14:30:21.201038Z",
+                "finished_at": "2026-06-04T14:30:22.829944Z"
+            }
+        },
+        {
+            "step_name": "milestone_3",
+            "agent_result": {
+                "n_input_tokens": null,
+                "n_cache_tokens": null,
+                "n_output_tokens": null,
+                "cost_usd": null,
+                "rollout_details": null,
+                "metadata": null
+            },
+            "verifier_result": {
+                "rewards": {
+                    "reward": 0.0
+                }
+            },
+            "exception_info": null,
+            "agent_execution": {
+                "started_at": "2026-06-04T14:30:23.094923Z",
+                "finished_at": "2026-06-04T14:30:23.095022Z"
+            },
+            "verifier": {
+                "started_at": "2026-06-04T14:30:23.390760Z",
+                "finished_at": "2026-06-04T14:30:25.064147Z"
+            }
+        }
+    ]
+}

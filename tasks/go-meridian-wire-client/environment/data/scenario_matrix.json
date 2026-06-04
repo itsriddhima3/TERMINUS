@@ -1,0 +1,226 @@
+{
+  "schema_version": 1,
+  "scenarios": {
+    "scenario_a": {
+      "origin": "Acme-Origin",
+      "dest": "Beta-Dest",
+      "beneficiary": "Gamma-Vault",
+      "amount": 10000,
+      "workers": 1,
+      "mode": "direct",
+      "throttle": "none",
+      "anchor_offset_sec": 0
+    },
+    "scenario_b": {
+      "origin": "Acme-Origin",
+      "dest": "Beta-Dest",
+      "beneficiary": "Gamma-Vault",
+      "amount": 10000,
+      "workers": 4,
+      "mode": "direct",
+      "throttle": "none",
+      "anchor_offset_sec": 0
+    },
+    "scenario_c": {
+      "origin": "Acme-Origin",
+      "dest": "Beta-Dest",
+      "beneficiary": "Gamma-Vault",
+      "amount": 10000,
+      "workers": 1,
+      "mode": "direct",
+      "throttle": "429_delta",
+      "anchor_offset_sec": 0
+    },
+    "scenario_d": {
+      "origin": "Acme-Origin",
+      "dest": "Beta-Dest",
+      "beneficiary": "Gamma-Vault",
+      "amount": 10000,
+      "workers": 1,
+      "mode": "direct",
+      "throttle": "503_date",
+      "anchor_offset_sec": 0
+    },
+    "scenario_e": {
+      "origin": "Acme-Origin",
+      "dest": "Beta-Dest",
+      "beneficiary": "Gamma-Vault",
+      "amount": 10000,
+      "workers": 1,
+      "mode": "direct",
+      "throttle": "none",
+      "anchor_offset_sec": 0,
+      "sequential_passes": 2,
+      "gap_ms": 50
+    },
+    "scenario_f": {
+      "origin": "Acme-Origin",
+      "dest": "Beta-Dest",
+      "beneficiary": "Gamma-Vault",
+      "amount": 10000,
+      "workers": 1,
+      "mode": "direct",
+      "throttle": "none",
+      "anchor_offset_sec": 90000,
+      "sequential_passes": 2,
+      "gap_ms": 50
+    },
+    "scenario_g": {
+      "origin": "Acme-Origin",
+      "dest": "Beta-Dest",
+      "beneficiary": "Gamma-Vault",
+      "amount": 10000,
+      "workers": 2,
+      "mode": "direct",
+      "throttle": "none",
+      "anchor_offset_sec": 0,
+      "secondary_beneficiary": "gamma_alt",
+      "secondary_amount": 10000
+    },
+    "scenario_h": {
+      "origin": "Acme-Origin",
+      "dest": "Beta-Dest",
+      "beneficiary": "Gamma-Vault",
+      "amount": 10000,
+      "workers": 2,
+      "mode": "direct",
+      "throttle": "none",
+      "anchor_offset_sec": 0,
+      "secondary_beneficiary": "Gamma-Vault",
+      "secondary_amount": 25000
+    },
+    "scenario_i": {
+      "origin": "Acme-Origin",
+      "dest": "Beta-Dest",
+      "beneficiary": "Gamma-Vault",
+      "amount": 10000,
+      "workers": 4,
+      "mode": "direct",
+      "throttle": "none",
+      "anchor_offset_sec": 0
+    },
+    "scenario_j": {
+      "origin": "Acme-Origin",
+      "dest": "Beta-Dest",
+      "beneficiary": "Gamma-Vault",
+      "amount": 5000,
+      "workers": 1,
+      "mode": "direct",
+      "throttle": "none",
+      "anchor_offset_sec": 0
+    },
+    "scenario_k": {
+      "origin": "Acme-Origin",
+      "dest": "Beta-Dest",
+      "beneficiary": "Gamma-Vault",
+      "amount": 10000,
+      "workers": 1,
+      "mode": "direct",
+      "throttle": "escalating_429",
+      "anchor_offset_sec": 0
+    },
+    "scenario_l": {
+      "origin": "Acme-Origin",
+      "dest": "Beta-Dest",
+      "beneficiary": "Gamma-Vault",
+      "amount": 10000,
+      "workers": 1,
+      "mode": "probe_commit",
+      "throttle": "none",
+      "anchor_offset_sec": 0
+    },
+    "scenario_m": {
+      "origin": "Acme-Origin",
+      "dest": "Beta-Dest",
+      "beneficiary": "Gamma-Vault",
+      "amount": 10000,
+      "workers": 1,
+      "mode": "direct",
+      "throttle": "delayed_accept",
+      "anchor_offset_sec": 0
+    },
+    "scenario_n": {
+      "origin": "Acme-Origin",
+      "dest": "Beta-Dest",
+      "beneficiary": "gamma_spaced",
+      "amount": 10000,
+      "workers": 1,
+      "mode": "direct",
+      "throttle": "none",
+      "anchor_offset_sec": 0,
+      "beneficiary_variants": [
+        {"key": "gamma_spaced", "label": "Gamma  Vault", "amount": 10000},
+        {"key": "gamma_compact", "label": "GammaVault", "amount": 10000},
+        {"key": "gamma_alt", "label": "gamma_alt", "amount": 10000}
+      ]
+    },
+    "scenario_o": {
+      "origin": "Acme-Origin",
+      "dest": "Beta-Dest",
+      "beneficiary": "Gamma-Vault",
+      "amount": 10000,
+      "workers": 1,
+      "mode": "direct",
+      "throttle": "mixed",
+      "anchor_offset_sec": 0
+    },
+    "scenario_p": {
+      "origin": "Acme-Origin",
+      "dest": "Beta-Dest",
+      "beneficiary": "Gamma-Vault",
+      "amount": 10000,
+      "workers": 8,
+      "mode": "direct",
+      "throttle": "none",
+      "anchor_offset_sec": 0
+    },
+    "scenario_q": {
+      "origin": "Acme-Origin",
+      "dest": "Beta-Dest",
+      "beneficiary": "Delta-Port",
+      "amount": 15000,
+      "workers": 2,
+      "mode": "direct",
+      "throttle": "none",
+      "anchor_offset_sec": 0,
+      "dual_amount": [
+        {"label": "delta_cents", "amount": 15000},
+        {"label": "delta_major_alias", "amount": 150}
+      ]
+    },
+    "scenario_r": {
+      "origin": "Acme-Origin",
+      "dest": "Beta-Dest",
+      "beneficiary": "Gamma-Vault",
+      "amount": 10000,
+      "workers": 1,
+      "mode": "direct",
+      "throttle": "none",
+      "anchor_offset_sec": 3600,
+      "sequential_passes": 2,
+      "gap_ms": 100
+    },
+    "scenario_s": {
+      "origin": "Acme-Origin",
+      "dest": "Beta-Dest",
+      "beneficiary": "Gamma-Vault",
+      "amount": 10000,
+      "workers": 1,
+      "mode": "direct",
+      "throttle": "staircase_reuse",
+      "anchor_offset_sec": 0,
+      "sequential_passes": 2,
+      "gap_ms": 80
+    },
+    "scenario_t": {
+      "origin": "Acme-Origin",
+      "dest": "Beta-Dest",
+      "beneficiary": "Gamma-Vault",
+      "amount": 10000,
+      "workers": 3,
+      "mode": "direct",
+      "throttle": "429_delta",
+      "anchor_offset_sec": 0
+    }
+  }
+}

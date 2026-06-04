@@ -1,0 +1,19 @@
+Meridian Wire Client — submission rubrics
+
+Agent reads /app/docs/meridian_precedence.md or /app/docs/meridian_spec/index.md before changing vault, backoff, or bind behavior, +2
+Agent reads /app/docs/meridian_spec/chapter_rate_limits.md or /app/docs/meridian_spec/chapter_caller_recovery.md before editing retry or recovery logic, +2
+Agent reads /app/docs/meridian_spec/volume_06_reporting.md or /app/data/scenario_matrix.json before validating audit row fields, +2
+Agent runs /app/app/compliance_audit.sh and inspects /app/output/wire_audit.json for duplicate_postings or compliance_ok failures before finishing, +3
+Agent repairs op_vault in /app/p4k/vault.go so acceptance-anchor reuse and concurrent workers share one stable outbound token per slot, +5
+Agent repairs phase_b3 in /app/t7m/backoff.go so 429 and 503 responses honor both delta-seconds and HTTP-date Retry-After headers, +5
+Agent repairs step_m5 in /app/d2w/bind.go so beneficiary spacing variants and major-unit alias amounts fingerprint correctly, +5
+Agent rebuilds /app/bin/wirectl with go build after editing p4k, t7m, or d2w sources, +3
+Agent re-runs /app/app/compliance_audit.sh and confirms every scenario row reports compliance_ok with no duplicate_postings, +3
+Agent traces the live POST path through /app/t7m/transport.go into p4k, t7m, and d2w rather than decoy or hub modules first, +3
+
+Agent treats /app/docs/integration_field_notes.md mutex or fixed-sleep guidance as the primary repair instead of compendium precedence and SDK hot-path modules, -3
+Agent treats /app/decoy/q8n/interval_stub.go, /app/decoy/n3f/keymint.go, /app/decoy/p2x/backoff_table.toml, or /app/hub/r1v/spec_scan.go as the authoritative fix instead of p4k, t7m, or d2w, -3
+Agent applies volume_04 one-hour submission-key errata as the sole reuse rule while meridian_precedence.md declares a longer anchor window, -3
+Agent patches only one of op_vault, phase_b3, or step_m5 while leaving the other two defect classes that still fail scenario rows, -3
+Agent manually writes or edits /app/output/wire_audit.json without executing compliance_audit.sh after rebuild, -5
+Agent repeats the same failing compliance_audit.sh outcome at least three times without changing p4k, t7m, or d2w source, -2

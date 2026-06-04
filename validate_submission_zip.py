@@ -24,6 +24,21 @@ REQUIRED_ROOT_DIRS = (
     "solution",
     "tests",
 )
+MILESTONE_REQUIRED_ROOT_FILES = (
+    "task.toml",
+)
+MILESTONE_REQUIRED_ROOT_DIRS = (
+    "environment",
+    "steps",
+)
+DEPRECATED_MILESTONE_ROOT_FILES = (
+    "instruction.md",
+    "milestones.md",
+)
+DEPRECATED_MILESTONE_ROOT_DIRS = (
+    "solution",
+    "tests",
+)
 FORBIDDEN_ROOT_FILES = (
     "rubric.txt",
     "rubrics.txt",
@@ -136,11 +151,33 @@ def collect_root_entries(members: list[dict[str, Any]]) -> tuple[set[str], set[s
     return root_files, root_dirs
 
 
+def is_milestone_archive(root_files: set[str], root_dirs: set[str]) -> bool:
+    """Edition 2 milestone archives ship steps/ instead of root instruction/tests/solution."""
+    return (
+        "steps" in root_dirs
+        and "environment" in root_dirs
+        and "task.toml" in root_files
+        and "instruction.md" not in root_files
+        and "solution" not in root_dirs
+        and "tests" not in root_dirs
+    )
+
+
+def layout_requirements(
+    root_files: set[str],
+    root_dirs: set[str],
+) -> tuple[tuple[str, ...], tuple[str, ...], bool]:
+    if is_milestone_archive(root_files, root_dirs):
+        return MILESTONE_REQUIRED_ROOT_FILES, MILESTONE_REQUIRED_ROOT_DIRS, True
+    return REQUIRED_ROOT_FILES, REQUIRED_ROOT_DIRS, False
+
+
 def detect_wrapping_folder(
     members: list[dict[str, Any]],
     root_files: set[str],
     root_dirs: set[str],
 ) -> dict[str, Any] | None:
+    required_root_files, required_root_dirs, _ = layout_requirements(root_files, root_dirs)
     if root_files or len(root_dirs) != 1:
         return None
 
@@ -157,8 +194,8 @@ def detect_wrapping_folder(
         else:
             nested_root_dirs.add(parts[1])
 
-    recognized_nested_files = sorted(name for name in nested_root_files if name in REQUIRED_ROOT_FILES)
-    recognized_nested_dirs = sorted(name for name in nested_root_dirs if name in REQUIRED_ROOT_DIRS)
+    recognized_nested_files = sorted(name for name in nested_root_files if name in required_root_files)
+    recognized_nested_dirs = sorted(name for name in nested_root_dirs if name in required_root_dirs)
     if not recognized_nested_files and not recognized_nested_dirs:
         return None
 
@@ -225,9 +262,16 @@ def build_report(zip_path: Path) -> dict[str, Any]:
 
     root_files, root_dirs = collect_root_entries(members)
     member_names = [str(member["name"]) for member in members]
-    missing_root_files = sorted(set(REQUIRED_ROOT_FILES) - root_files)
-    missing_root_dirs = sorted(set(REQUIRED_ROOT_DIRS) - root_dirs)
+    required_root_files, required_root_dirs, milestone_layout = layout_requirements(
+        root_files, root_dirs
+    )
+    missing_root_files = sorted(set(required_root_files) - root_files)
+    missing_root_dirs = sorted(set(required_root_dirs) - root_dirs)
     forbidden_root_files = sorted(set(FORBIDDEN_ROOT_FILES) & root_files)
+    deprecated_milestone_root = sorted(
+        (set(DEPRECATED_MILESTONE_ROOT_FILES) & root_files)
+        | {name for name in DEPRECATED_MILESTONE_ROOT_DIRS if name in root_dirs}
+    )
     forbidden_members = sorted(
         name
         for name in member_names
@@ -257,6 +301,14 @@ def build_report(zip_path: Path) -> dict[str, Any]:
     elif not forbidden_members:
         passes.append("no forbidden archive-root files present")
 
+    if milestone_layout and deprecated_milestone_root:
+        failures.append(
+            "deprecated root-level milestone entries present: "
+            + ", ".join(deprecated_milestone_root)
+        )
+    elif milestone_layout:
+        passes.append("milestone archive uses canonical steps/ layout")
+
     if forbidden_members:
         failures.append("forbidden archive member(s) present: " + ", ".join(forbidden_members))
     else:
@@ -282,8 +334,9 @@ def build_report(zip_path: Path) -> dict[str, Any]:
         "zip_path": str(resolved_path),
         "valid": not failures,
         "member_count": len(members),
-        "required_root_files": list(REQUIRED_ROOT_FILES),
-        "required_root_dirs": [f"{name}/" for name in REQUIRED_ROOT_DIRS],
+        "milestone_layout": milestone_layout,
+        "required_root_files": list(required_root_files),
+        "required_root_dirs": [f"{name}/" for name in required_root_dirs],
         "root_files": sorted(root_files),
         "root_dirs": sorted(f"{name}/" for name in root_dirs),
         "root_entries": sorted(root_files) + sorted(f"{name}/" for name in root_dirs),

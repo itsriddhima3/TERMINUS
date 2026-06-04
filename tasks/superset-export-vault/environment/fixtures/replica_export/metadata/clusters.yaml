@@ -1,0 +1,14 @@
+clusters:
+  - name: east
+    nodes:
+      - role: primary
+        host: east-p1
+        password: replica-node-east-4419
+      - role: standby
+        host: east-s1
+        password: replica-node-east-9923
+  - name: west
+    nodes:
+      - role: primary
+        host: west-p1
+        password: replica-node-west-5518

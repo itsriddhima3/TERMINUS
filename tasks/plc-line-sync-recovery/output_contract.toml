@@ -1,0 +1,22 @@
+user_visible_outputs = ["/app/output/sync_report.json"]
+
+internal_harness_files = [
+  "/app/tools/digest_cli",
+  "/app/scripts/build.sh",
+  "/tests/fixtures/line_alpha",
+  "/tests/fixtures/line_beta",
+  "/tests/fixtures/line_gamma",
+  "/tests/fixtures/line_delta",
+  "/tests/fixtures/line_epsilon",
+]
+
+[structured_outputs.sync_report]
+target = "/app/output/sync_report.json"
+format = "json"
+instruction_checks = [
+  "schema",
+  "sync_report.json",
+  "defect",
+  "purge",
+  "line_synced",
+]

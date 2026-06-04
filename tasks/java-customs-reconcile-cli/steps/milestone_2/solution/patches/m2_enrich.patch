@@ -1,0 +1,12 @@
+--- a/cli/src/main/java/customs/net/ApiEnrich.java
++++ b/cli/src/main/java/customs/net/ApiEnrich.java
+@@ -65,8 +65,7 @@
+       Matcher nm = NUM.matcher(fxBody.substring(fxm.end()));
+       if (nm.lookingAt()) {
+         double raw = Double.parseDouble(nm.group());
+-        // Table stores USD-per-unit; enrichment divides to normalize.
+-        fxToUsd = raw == 0.0 ? 0.0 : 1.0 / raw;
++        fxToUsd = raw;
+       }
+     }
+ 

@@ -1,0 +1,14 @@
+[package]
+name = "r2n"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+rusqlite = { version = "0.32", features = ["bundled"] }
+r2d2 = "0.8"
+r2d2_sqlite = "0.25"
+k9m = { path = "../k9m" }
+p4v = { path = "../p4v" }
+
+[lib]
+path = "q3_wire.rs"

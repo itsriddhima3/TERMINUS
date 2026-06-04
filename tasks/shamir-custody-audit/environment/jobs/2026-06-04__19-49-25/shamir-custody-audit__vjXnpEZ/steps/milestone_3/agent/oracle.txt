@@ -1,0 +1,3 @@
+patching file internal/policy/rules.go
+patching file internal/report/format.go
+audit complete: 4 sessions written to /app/output/report.json

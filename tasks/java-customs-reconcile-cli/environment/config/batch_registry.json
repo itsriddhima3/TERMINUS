@@ -1,0 +1,9 @@
+{
+  "batches": [
+    {
+      "batch_id": "SHIP-2024-Q1",
+      "csv": "SHIP-2024-Q1.csv",
+      "line_count": 6
+    }
+  ]
+}

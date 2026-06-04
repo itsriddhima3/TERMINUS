@@ -1,0 +1,28 @@
+user_visible_outputs = [
+  "/app/output/vault_report.json",
+  "/app/data/fixture_catalog.json",
+  "/app/data/scenario_matrix.json",
+  "/app/docs/export_format.md",
+  "/app/keys/test_master.key",
+  "/app/scripts/vault_audit.sh",
+  "/app/cmd/vaultctl",
+  "/app/bin/vaultctl",
+]
+
+internal_harness_files = [
+  "/app/bin/vaultctl",
+  "/app/scripts/vault_audit.sh",
+  "/app/scripts/build.sh",
+  "/app/scripts/pack_fixtures.sh",
+  "/app/lib/run_go.sh",
+  "/app/fixtures/acme_export.tgz",
+  "/app/fixtures/nested_export.tgz",
+]
+
+[structured_outputs.vault_report]
+target = "/app/output/vault_report.json"
+format = "json"
+instruction_checks = [
+  "schema_version",
+  "scenarios",
+]

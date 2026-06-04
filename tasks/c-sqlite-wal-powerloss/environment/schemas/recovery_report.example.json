@@ -1,0 +1,16 @@
+{
+  "scenarios": [
+    {
+      "id": "alpha",
+      "kit": "KIT-A",
+      "recovered": true,
+      "row_count": 48,
+      "integrity_ok": true,
+      "schema_marker": 2
+    }
+  ],
+  "summary": {
+    "all_recovered": true,
+    "audit_digest": "00000000"
+  }
+}

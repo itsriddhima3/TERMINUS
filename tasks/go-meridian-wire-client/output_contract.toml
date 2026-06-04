@@ -1,0 +1,24 @@
+user_visible_outputs = [
+  "/app/output/wire_audit.json",
+  "/app/app/compliance_audit.sh",
+  "/app/data/scenario_matrix.json",
+  "/app/docs/meridian_spec/index.md",
+  "/app/docs/meridian_precedence.md",
+]
+
+internal_harness_files = [
+  "/app/bin/wirectl",
+  "/app/lib/run_go.sh",
+]
+
+[structured_outputs.wire_audit]
+target = "/app/output/wire_audit.json"
+format = "json"
+instruction_checks = [
+  "schema_version",
+  "scenarios",
+  "duplicate_postings",
+  "completed",
+  "compliance_ok",
+  "wire_audit.json",
+]

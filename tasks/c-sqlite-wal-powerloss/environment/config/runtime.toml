@@ -1,0 +1,4 @@
+profile = "field"
+workdir = "/app"
+
+# Verifier pytest runs offline with UV_OFFLINE=1; dependencies are baked in the image at build time.

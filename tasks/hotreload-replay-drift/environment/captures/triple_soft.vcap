@@ -1,0 +1,17 @@
+session triple_soft
+frames 170
+reload 95 mod_d
+body one red 0 0 0 0 30 0.500
+body two blue 5 0 0 0 30 0.500
+body three blue 2 5 0 0 26 0.500
+body four red 10 1 0 0 26 0.500
+original
+event 75 1 one push 0.220 0
+event 100 2 two push -0.160 0
+event 130 3 three push 0.140 0.090
+end
+playback
+event 75 1 one push 0.220 0
+event 100 2 two push -0.160 0
+event 130 3 three push 0.140 0.090
+end

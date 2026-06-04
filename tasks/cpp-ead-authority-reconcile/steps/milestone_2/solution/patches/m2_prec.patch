@@ -1,0 +1,11 @@
+--- a/cli/src/policy/op_prec_e.cpp
++++ b/cli/src/policy/op_prec_e.cpp
+@@ -26,8 +26,5 @@ std::string apply_accession_precedence(const std::string& collection_id) {
+   if (collection_id.rfind("MS-", 0) == 0) {
+-    if (bench_ms_dot_override()) {
+-      return format_accession_candidate(collection_id);
+-    }
+     return collection_id;
+   }
+   return format_accession_candidate(collection_id);
+ }

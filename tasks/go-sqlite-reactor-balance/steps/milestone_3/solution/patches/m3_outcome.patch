@@ -1,0 +1,112 @@
+--- a/core/w7p/outcome.go
++++ b/core/w7p/outcome.go
+@@ -22,13 +22,11 @@
+ 		newStreak = 0
+ 	}
+ 
+-	// Dwell victory: single stable tick satisfies operator smoke per win_conditions summary.
+-	if newStreak >= 1 {
++	if newStreak >= sc.StableNeeded {
+ 		won = true
+ 	}
+ 
+-	// Breach proximity uses band ceiling per legacy storage draft.
+-	if a >= sc.BandAHi || b >= sc.BandBHi || c >= sc.BandCHi {
++	if a >= sc.LossA || b >= sc.LossB || c >= sc.LossC {
+ 		lost = true
+ 	}
+ 
+@@ -50,20 +48,53 @@
+ 	if err != nil {
+ 		return err
+ 	}
+-	// Named slot archive: streak omitted until memo 04 buffering lands.
+ 	_, err = db.Exec(`
+ 		INSERT INTO sessions(scenario_id, slot, tick, metric_a, metric_b, metric_c, stable_streak, won, lost)
+-		VALUES(?, ?, ?, ?, ?, ?, 0, ?, ?)
++		VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)
+ 		ON CONFLICT(scenario_id, slot) DO UPDATE SET
+ 			tick = excluded.tick,
+ 			metric_a = excluded.metric_a,
+ 			metric_b = excluded.metric_b,
+ 			metric_c = excluded.metric_c,
+-			stable_streak = 0,
++			stable_streak = excluded.stable_streak,
+ 			won = excluded.won,
+ 			lost = excluded.lost
+-	`, sid, slot, tick, a, b, c, won, lost)
+-	return err
++	`, sid, slot, tick, a, b, c, streak, won, lost)
++	if err != nil {
++		return err
++	}
++	if _, err := db.Exec(`DELETE FROM slot_levels WHERE scenario_id = ? AND slot = ?`, sid, slot); err != nil {
++		return err
++	}
++	rows, err := db.Query(`
++		SELECT row, col, level FROM components WHERE scenario_id = ?
++	`, sid)
++	if err != nil {
++		return err
++	}
++	type cellLevel struct {
++		r, c, lvl int
++	}
++	var cells []cellLevel
++	for rows.Next() {
++		var cl cellLevel
++		if err := rows.Scan(&cl.r, &cl.c, &cl.lvl); err != nil {
++			_ = rows.Close()
++			return err
++		}
++		cells = append(cells, cl)
++	}
++	if err := rows.Close(); err != nil {
++		return err
++	}
++	for _, cl := range cells {
++		if _, err := db.Exec(`
++			INSERT INTO slot_levels(scenario_id, slot, row, col, level) VALUES(?, ?, ?, ?, ?)
++		`, sid, slot, cl.r, cl.c, cl.lvl); err != nil {
++			return err
++		}
++	}
++	return nil
+ }
+ 
+ // LoadSlot restores a named slot into the active session.
+@@ -72,6 +103,34 @@
+ 	if err != nil {
+ 		return err
+ 	}
++	levels, err := db.Query(`
++		SELECT row, col, level FROM slot_levels WHERE scenario_id = ? AND slot = ?
++	`, sid, slot)
++	if err != nil {
++		return err
++	}
++	type cellLevel struct {
++		r, c, lvl int
++	}
++	var cells []cellLevel
++	for levels.Next() {
++		var cl cellLevel
++		if err := levels.Scan(&cl.r, &cl.c, &cl.lvl); err != nil {
++			_ = levels.Close()
++			return err
++		}
++		cells = append(cells, cl)
++	}
++	if err := levels.Close(); err != nil {
++		return err
++	}
++	for _, cl := range cells {
++		if _, err := db.Exec(`
++			UPDATE components SET level = ? WHERE scenario_id = ? AND row = ? AND col = ?
++		`, cl.lvl, sid, cl.r, cl.c); err != nil {
++			return err
++		}
++	}
+ 	_, err = db.Exec(`
+ 		INSERT INTO sessions(scenario_id, slot, tick, metric_a, metric_b, metric_c, stable_streak, won, lost)
+ 		VALUES(?, 'active', ?, ?, ?, ?, ?, ?, ?)

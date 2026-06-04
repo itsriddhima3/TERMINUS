@@ -1,0 +1,120 @@
+{
+  "symbol_table": [
+    {
+      "path": "client/k3p/pull.cpp",
+      "symbol": "op_fetch",
+      "kind": "function",
+      "signature": "int op_fetch(const char *base, const char *out_dir)"
+    },
+    {
+      "path": "core/r7n/loop.cpp",
+      "symbol": "phase_fit",
+      "kind": "function",
+      "signature": "int phase_fit(const char *manifest_path, const char *pack_path)"
+    },
+    {
+      "path": "core/m4t/pack.cpp",
+      "symbol": "step_q2",
+      "kind": "function",
+      "signature": "int step_q2(const char *path, const FitState *st)"
+    },
+    {
+      "path": "core/p1v/submit.cpp",
+      "symbol": "emit_v3",
+      "kind": "function",
+      "signature": "int emit_v3(const char *base, const char *pack_path, const char *receipt_path)"
+    }
+  ],
+  "flipping_point_contract": {
+    "locations": [
+      {
+        "id": "A",
+        "path": "client/k3p/pull.cpp",
+        "controls_tests": [
+          "test_m1_train_row_count",
+          "test_m1_train_sha256_matches_body",
+          "test_m1_pagination_exhaust",
+          "test_m1_no_holdout_leak",
+          "test_m1_manual_pagination_parity"
+        ]
+      },
+      {
+        "id": "B",
+        "path": "core/r7n/loop.cpp",
+        "controls_tests": [
+          "test_m2_pack_fingerprint_stable",
+          "test_m2_global_mean",
+          "test_m2_dequant_dot_sanity",
+          "test_m2_bias_nonzero"
+        ]
+      },
+      {
+        "id": "C",
+        "path": "core/m4t/pack.cpp",
+        "controls_tests": [
+          "test_m2_header_seed",
+          "test_m2_train_sha256_match",
+          "test_m2_latent_dim",
+          "test_m2_pack_on_disk_size",
+          "test_m2_distinct_user_quant_scales"
+        ]
+      },
+      {
+        "id": "D",
+        "path": "core/p1v/submit.cpp",
+        "controls_tests": [
+          "test_m3_receipt_accepted",
+          "test_m3_rmse_threshold",
+          "test_m3_n_scored",
+          "test_m3_recomputed_rmse_matches_receipt",
+          "test_m3_submit_fails_without_pack"
+        ]
+      }
+    ],
+    "no_single_location_flips_majority": true,
+    "concentration_cap": 0.5
+  },
+  "code_forbidden_tokens": [
+    "rating",
+    "ratings",
+    "matrix",
+    "factorization",
+    "latent",
+    "quantize",
+    "prediction",
+    "predictions",
+    "holdout",
+    "train",
+    "manifest",
+    "receipt",
+    "rmse",
+    "split",
+    "pagination",
+    "recommender",
+    "sgd",
+    "ruby",
+    "rails",
+    "api",
+    "sqlite",
+    "fetch",
+    "submit",
+    "service",
+    "threshold",
+    "artifact",
+    "validation",
+    "deterministic",
+    "compact",
+    "inference",
+    "endpoint",
+    "pairs",
+    "users",
+    "items",
+    "scores",
+    "bias",
+    "seed",
+    "checksum",
+    "schema",
+    "operator",
+    "milestone"
+  ]
+}

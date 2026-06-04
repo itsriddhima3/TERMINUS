@@ -1,0 +1,30 @@
+user_visible_outputs = [
+  "/app/output/custody_bundle.json",
+  "/app/bin/route_pack",
+  "/app/platform/run_scenarios.sh",
+  "/app/cases/",
+  "/app/config/channel_ranks.json",
+  "/app/docs/bundle_schema.md",
+  "/app/docs/channel_priority.md",
+  "/app/docs/reconcile_notes.md",
+]
+
+internal_harness_files = [
+  "/app/scripts/build.sh",
+  "/app/scripts/bundle_merge.py",
+  "/app/config/scenarios.json",
+]
+
+[structured_outputs.custody_bundle]
+target = "/app/output/custody_bundle.json"
+format = "json"
+instruction_checks = [
+  "run_id",
+  "packs",
+  "aggregate",
+  "failed_packs",
+  "failed_pack_ids",
+  "contradiction_resolved",
+  "ledger_digest",
+  "custody_bundle.json",
+]

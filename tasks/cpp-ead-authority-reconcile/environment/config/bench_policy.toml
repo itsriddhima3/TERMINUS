@@ -1,0 +1,9 @@
+# Bench accession defaults (see /app/docs/bench_precedence.md)
+
+[accession]
+ms_prefix = "MSS-"
+ua_dot_form = true
+ms_use_dot = true
+
+[report]
+include_unresolved = true

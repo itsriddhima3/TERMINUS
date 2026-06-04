@@ -1,0 +1,7 @@
+boot ok
+connecting...
+api_key=ALPHA-KEY-77f3a2c9
+training step 1
+token: alpha_live_token_9b2c11
+done
+

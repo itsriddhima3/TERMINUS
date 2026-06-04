@@ -1,0 +1,24 @@
+{
+  "challenge_id": "ch_alpha",
+  "source_width": 64,
+  "source_height": 32,
+  "scene_a": "scene_a.png",
+  "scene_b": "scene_b.png",
+  "regions": [
+    {
+      "id": "alpha_region_top",
+      "polygon": [[40, 0], [50, 0], [50, 10], [40, 10]],
+      "label": "upper_mid_block"
+    },
+    {
+      "id": "alpha_region_left",
+      "polygon": [[0, 22], [12, 22], [12, 30], [0, 30]],
+      "label": "lower_left_block"
+    },
+    {
+      "id": "alpha_region_tri",
+      "polygon": [[24, 14], [40, 14], [32, 24]],
+      "label": "center_triangle"
+    }
+  ]
+}

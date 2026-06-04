@@ -1,0 +1,13 @@
+[runtime]
+db_path = "/app/var/game.db"
+seed_root = "/app/data/seeds"
+transcript_root = "/app/data/transcripts"
+binary = "/app/bin/fluxctl"
+
+[logging]
+level = "info"
+format = "text"
+
+[probe]
+enabled = true
+json_status = true

@@ -1,0 +1,25 @@
+# Dimension profile registry — resolve crate_root via catalog part headers (K2/Q3/P2).
+
+[m7]
+crate_root = "k9m"
+dimension = "K2"
+journal_family_required = "wal"
+min_busy_wait_ms = 5000
+synchronous_mode_required = 1
+wal_autocheckpoint_pages = 1000
+forbid_downgrade_pragma_sequence = true
+
+[q3]
+crate_root = "r2n"
+dimension = "Q3"
+pool_max_must_equal_manifest_workers = true
+each_insert_in_explicit_transaction = true
+forbid_process_wide_shared_handle = true
+
+[p2]
+crate_root = "p4v"
+dimension = "P2"
+min_busy_retry_attempts = 8
+initial_backoff_ms = 2
+max_backoff_ms = 128
+record_busy_in_meta_on_final_failure = true

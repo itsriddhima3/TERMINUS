@@ -1,0 +1,9 @@
+{
+  "go_version": "1.22",
+  "cgo_enabled": true,
+  "module": "local/flux",
+  "binary": "/app/bin/fluxctl",
+  "db_path": "/app/var/game.db",
+  "uv_version": "0.9.5",
+  "python": "3.13"
+}

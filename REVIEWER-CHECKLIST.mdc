@@ -1,0 +1,380 @@
+---
+alwaysApply: false
+---
+
+---
+description: Reviewer checklist for validating task quality before submission
+alwaysApply: true
+---
+
+# Review Mode
+
+Act as a task reviewer.
+
+Do NOT assume files are correct.
+
+Systematically inspect the task and verify requirements.
+
+For every failure:
+
+- identify severity
+- explain why it fails
+- suggest correction
+- do not ignore lower severity issues if higher severity failures exist
+
+Severity meanings:
+
+HIGH:
+
+- Any HIGH failure blocks approval
+
+MEDIUM:
+
+- Multiple failures block approval
+- Single failure may be acceptable with notes
+
+LOW:
+
+- Should be fixed when revisions are requested
+- Alone should not block approval
+
+---
+
+# Review Output Format
+
+Use this format:
+
+PASS / FAIL
+
+Severity:
+
+HIGH / MEDIUM / LOW
+
+Issue:
+
+<problem>
+
+Suggested Fix:
+
+<correction>
+
+Summary:
+
+- High failures count
+- Medium failures count
+- Low failures count
+- Final decision
+
+---
+
+# Instruction Review Checklist
+
+Verify:
+
+□ instruction.md is concise
+
+□ instructions are clear and well specified
+
+□ instructions are interesting / useful
+
+□ instructions avoid hints
+
+□ instructions avoid walkthroughs
+
+□ instructions use absolute paths
+
+□ instructions contain no canary strings
+
+□ instructions do not mention task name
+
+□ instructions sound human written
+
+□ environment docs are realistic
+
+□ environment docs do not hide instructions
+
+□ task appears meaningfully unique
+
+High severity failures:
+
+- vague instructions
+- excessive instructions
+- hidden hints
+- walkthroughs
+- relative paths
+- unrealistic prompt style
+
+---
+
+# Environment Review Checklist
+
+Verify:
+
+□ environment/Dockerfile exists
+
+□ dependencies pinned
+
+□ no hidden solutions
+
+□ no dangerous Docker behavior
+
+□ docker compose does not conflict with reserved mounts
+
+□ environment uses only environment/ context
+
+□ digest pinning exists everywhere
+
+□ runtime image sanctioned/exempt
+
+□ build context <100MB
+
+□ individual files <50MB
+
+□ clean apt usage
+
+□ .dockerignore exists when required
+
+□ Dockerfile avoids heredocs when possible
+
+□ no AI scaffold filenames
+
+□ no runtime downloads
+
+Reserved mount violations:
+
+- /logs/artifacts/
+- /logs/verifier/
+- /tests/
+- /solution/
+
+Critical failures:
+
+- privileged containers
+- docker socket mounts
+- hidden solutions
+- internet dependency
+- missing digest pinning
+
+---
+
+# Oracle Review Checklist
+
+Verify:
+
+□ oracle passes consistently
+
+□ oracle works offline
+
+□ oracle matches instructions
+
+□ oracle is actual implementation
+
+□ oracle avoids flaky behavior
+
+Critical failures:
+
+- randomness
+- hidden hardcoding
+- network dependency
+- incomplete implementation
+
+---
+
+# Verifier Review Checklist
+
+Verify:
+
+□ reward.txt always assigned
+
+□ verifier treats oracle and agent equally
+
+□ verifier works offline
+
+□ binary rewards only
+
+□ verifier matches instructions
+
+□ correctness actually tested
+
+Critical failures:
+
+- partial rewards
+
+- instruction mismatch
+
+- missing reward generation
+
+- format-only validation
+
+Do NOT flag:
+
+missing trailing exit after canonical reward block
+
+---
+
+# Rubric Review Checklist
+
+Verify:
+
+□ no testing references
+
+□ no instruction references
+
+□ minimum 3 negative criteria
+
+□ valid score values only
+
+□ formatting correct
+
+□ detailed criteria
+
+□ correct score importance mapping
+
+□ positive phrasing used
+
+□ no oracle references
+
+□ point ranges respected
+
+Reject if:
+
+- uses score 4
+
+- vague criteria
+
+- incorrect formatting
+
+- missing negatives
+
+---
+
+# Task Structure Review Checklist
+
+Non-milestone tasks require:
+
+□ environment/
+
+□ environment/Dockerfile
+
+□ solution/
+
+□ solution/solve.sh
+
+□ tests/
+
+□ tests/test.sh
+
+□ instruction.md
+
+□ task.toml
+
+Milestone tasks require:
+
+□ steps/
+
+□ milestone directories
+
+□ per milestone instruction
+
+□ per milestone tests
+
+□ per milestone solution
+
+□ no root instruction.md
+
+□ no root tests/
+
+□ no root solution/
+
+Reject if layout is incorrect.
+
+---
+
+# Metadata Review Checklist
+
+Verify task.toml:
+
+□ version exists
+
+□ metadata exists
+
+□ environment section exists
+
+□ agent timeout exists
+
+□ verifier timeout exists
+
+□ allow_internet=false
+
+□ resource definitions exist
+
+□ categories match task
+
+□ tags match task
+
+□ languages match task
+
+If docker compose exists verify:
+
+□ custom_docker_compose=true
+
+If multi container:
+
+□ is_multi_container=true
+
+---
+
+# Milestone Task Review Checklist
+
+If milestone task:
+
+Verify:
+
+□ >=2 milestones
+
+□ uses steps layout
+
+□ step count matches metadata
+
+□ solveN.sh exists
+
+□ test_mN.py exists
+
+□ instructions scoped correctly
+
+□ milestone tests scoped correctly
+
+Reject milestone tasks with:
+
+- single milestone
+
+- root-level milestone files
+
+- mismatched step counts
+
+- shared milestone tests
+
+---
+
+# Final Decision Rules
+
+Reject immediately if:
+
+- any HIGH failure exists
+
+Reject if:
+
+- multiple MEDIUM failures exist
+
+Accept with notes if:
+
+- only LOW failures exist
+
+Always produce:
+
+- failure summary
+
+- revision notes
+
+- explicit accept/reject decision
+```

@@ -1,0 +1,19 @@
+# Field bench profile classes — normative bindings for abrupt-stop recovery.
+# Catalog memos in /app/docs/catalog/ define semantics; this table is the
+# numeric/class contract operators reconcile against cycle_diag output.
+
+[k2]
+# Open bundle applied before ingest on field units.
+field_sync_class = 2
+field_aux_barrier = "fullfsync"
+
+[p8]
+# Mid-cycle frame merge during maintenance.
+field_merge_class = "truncate"
+residual_frame_reject = true
+
+[q1]
+# Finalize seal before handle teardown.
+directory_barrier = true
+sync_stamp_name = ".cycle_sync_marker"
+barrier_retries = 3

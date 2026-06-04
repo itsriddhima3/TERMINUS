@@ -1,0 +1,122 @@
+{
+    "results": {
+        "tool": {
+            "name": "pytest",
+            "version": "8.4.1"
+        },
+        "summary": {
+            "tests": 10,
+            "passed": 6,
+            "failed": 4,
+            "skipped": 0,
+            "pending": 0,
+            "other": 0,
+            "start": 1780583422.5132825,
+            "stop": 1780583422.7033126
+        },
+        "tests": [
+            {
+                "name": "test_m2.py::TestMilestone2::test_m2_alpha_reconstruction_success",
+                "status": "passed",
+                "duration": 0.009692220002762042,
+                "start": 1780583422.5587306,
+                "stop": 1780583422.5689383,
+                "retries": 0,
+                "file_path": "test_m2.py"
+            },
+            {
+                "name": "test_m2.py::TestMilestone2::test_m2_beta_insufficient_shares",
+                "status": "passed",
+                "duration": 0.008533300999260973,
+                "start": 1780583422.5694063,
+                "stop": 1780583422.5783021,
+                "retries": 0,
+                "file_path": "test_m2.py"
+            },
+            {
+                "name": "test_m2.py::TestMilestone2::test_m2_gamma_reconstruction_success",
+                "status": "passed",
+                "duration": 0.00984611199965002,
+                "start": 1780583422.5787456,
+                "stop": 1780583422.5888972,
+                "retries": 0,
+                "file_path": "test_m2.py"
+            },
+            {
+                "name": "test_m2.py::TestMilestone2::test_m2_delta_reconstruction_success",
+                "status": "passed",
+                "duration": 0.007748007010377478,
+                "start": 1780583422.5893128,
+                "stop": 1780583422.597406,
+                "retries": 0,
+                "file_path": "test_m2.py"
+            },
+            {
+                "name": "test_m2.py::TestMilestone2::test_m2_threshold_met_flags",
+                "status": "passed",
+                "duration": 0.009111612002016045,
+                "start": 1780583422.5977218,
+                "stop": 1780583422.60716,
+                "retries": 0,
+                "file_path": "test_m2.py"
+            },
+            {
+                "name": "test_m2.py::TestMilestone2::test_m2_beta_fingerprint_null",
+                "status": "passed",
+                "duration": 0.0079783349938225,
+                "start": 1780583422.6074717,
+                "stop": 1780583422.6158094,
+                "retries": 0,
+                "file_path": "test_m2.py"
+            },
+            {
+                "name": "test_m2.py::TestMilestone2::test_m2_alpha_fingerprint_matches_independent_reconstruction",
+                "status": "failed",
+                "raw_status": "call_failed",
+                "duration": 0.01118069898802787,
+                "start": 1780583422.6162674,
+                "stop": 1780583422.6474466,
+                "retries": 0,
+                "file_path": "test_m2.py",
+                "trace": "self = <test_m2.TestMilestone2 object at 0x716e1a83fdf0>\n\n    def test_m2_alpha_fingerprint_matches_independent_reconstruction(self):\n        \"\"\"sess-alpha fingerprint is SHA-1(base64(correct_secret))[:8] after M2 fix.\"\"\"\n        _run_audit()\n        by_sess = _by_session(_load_report())\n    \n        correct_secret = _reconstruct_from_db(\"sess-alpha\")\n        assert correct_secret, \"Python reconstruction returned empty bytes\"\n        assert len(correct_secret) == 8, f\"Expected 8-byte secret, got {len(correct_secret)}\"\n    \n        # The code uses SHA-1(base64(secret))[:8] as fingerprint (M3 fixes this).\n        # This test verifies that the secret is correctly reconstructed at x=0.\n        expected_fp = hashlib.sha1(base64.b64encode(correct_secret)).hexdigest()[:8]  # noqa: S324\n        got_fp = by_sess[\"sess-alpha\"][\"secret_fingerprint\"]\n>       assert got_fp == expected_fp, (\n            f\"Fingerprint {got_fp!r} does not match SHA-1(base64(correct_secret))={expected_fp!r}; \"\n            \"reconstruction may be evaluating at the wrong field coordinate\"\n        )\nE       AssertionError: Fingerprint '094662e3' does not match SHA-1(base64(correct_secret))='afaf122d'; reconstruction may be evaluating at the wrong field coordinate\nE       assert '094662e3' == 'afaf122d'\nE         \nE         - afaf122d\nE         + 094662e3\n\n/tests/test_m2.py:159: AssertionError",
+                "message": "The test failed in the call phase due to an assertion error"
+            },
+            {
+                "name": "test_m2.py::TestMilestone2::test_m2_delta_fingerprint_matches_independent_reconstruction",
+                "status": "failed",
+                "raw_status": "call_failed",
+                "duration": 0.010592302001896314,
+                "start": 1780583422.6477785,
+                "stop": 1780583422.664526,
+                "retries": 0,
+                "file_path": "test_m2.py",
+                "trace": "self = <test_m2.TestMilestone2 object at 0x716e1a6c8e50>\n\n    def test_m2_delta_fingerprint_matches_independent_reconstruction(self):\n        \"\"\"sess-delta fingerprint is SHA-1(base64(correct_secret))[:8] after M2 fix.\"\"\"\n        _run_audit()\n        by_sess = _by_session(_load_report())\n    \n        correct_secret = _reconstruct_from_db(\"sess-delta\")\n        assert correct_secret, \"Python reconstruction returned empty bytes\"\n        assert len(correct_secret) == 8\n    \n        expected_fp = hashlib.sha1(base64.b64encode(correct_secret)).hexdigest()[:8]  # noqa: S324\n        got_fp = by_sess[\"sess-delta\"][\"secret_fingerprint\"]\n>       assert got_fp == expected_fp, (\n            f\"Fingerprint {got_fp!r} does not match SHA-1(base64(correct_secret))={expected_fp!r}; \"\n            \"reconstruction may be evaluating at the wrong field coordinate\"\n        )\nE       AssertionError: Fingerprint 'b22df2c5' does not match SHA-1(base64(correct_secret))='19a96ee3'; reconstruction may be evaluating at the wrong field coordinate\nE       assert 'b22df2c5' == '19a96ee3'\nE         \nE         - 19a96ee3\nE         + b22df2c5\n\n/tests/test_m2.py:175: AssertionError",
+                "message": "The test failed in the call phase due to an assertion error"
+            },
+            {
+                "name": "test_m2.py::TestMilestone2::test_m2_gamma_intermediate_fingerprint_correct",
+                "status": "failed",
+                "raw_status": "call_failed",
+                "duration": 0.01193389699619729,
+                "start": 1780583422.6649785,
+                "stop": 1780583422.6835027,
+                "retries": 0,
+                "file_path": "test_m2.py",
+                "trace": "self = <test_m2.TestMilestone2 object at 0x716e1a6c9050>\n\n    def test_m2_gamma_intermediate_fingerprint_correct(self):\n        \"\"\"sess-gamma fingerprint is SHA-1(base64(correct_secret))[:8] \u2014 reconstruction\n        must succeed even though policy violations exist in sess-gamma.\n    \n        Gamma secret is b'abcdefgh' (0x61-0x68).  Shares are at x=1,2,3 with a\n        degree-2 polynomial over GF(2^8).  Evaluating at x=1 (the M2 bug) returns\n        the share at x=1 (0x6360...), not the constant term.\n        \"\"\"\n        _run_audit()\n        by_sess = _by_session(_load_report())\n    \n        correct_secret = _reconstruct_from_db(\"sess-gamma\")\n        assert correct_secret, \"Python reconstruction returned empty for sess-gamma\"\n        assert len(correct_secret) == 8, f\"Expected 8-byte secret, got {len(correct_secret)}\"\n    \n        expected_fp = hashlib.sha1(base64.b64encode(correct_secret)).hexdigest()[:8]  # noqa: S324\n        got_fp = by_sess[\"sess-gamma\"][\"secret_fingerprint\"]\n>       assert got_fp == expected_fp, (\n            f\"sess-gamma fingerprint {got_fp!r} != SHA-1(base64(correct))={expected_fp!r}; \"\n            \"reconstruction may be evaluated at x=1 instead of x=0 \u2014 \"\n            \"note: a policy violation does NOT suppress reconstruction\"\n        )\nE       AssertionError: sess-gamma fingerprint '20762fa0' != SHA-1(base64(correct))='26d1a509'; reconstruction may be evaluated at x=1 instead of x=0 \u2014 note: a policy violation does NOT suppress reconstruction\nE       assert '20762fa0' == '26d1a509'\nE         \nE         - 26d1a509\nE         + 20762fa0\n\n/tests/test_m2.py:197: AssertionError",
+                "message": "The test failed in the call phase due to an assertion error"
+            },
+            {
+                "name": "test_m2.py::TestMilestone2::test_m2_delta_degree1_closed_form_matches_fingerprint",
+                "status": "failed",
+                "raw_status": "call_failed",
+                "duration": 0.010419722006190568,
+                "start": 1780583422.6839888,
+                "stop": 1780583422.7029352,
+                "retries": 0,
+                "file_path": "test_m2.py",
+                "trace": "self = <test_m2.TestMilestone2 object at 0x716e1a83b020>\n\n    def test_m2_delta_degree1_closed_form_matches_fingerprint(self):\n        \"\"\"sess-delta uses a degree-1 polynomial; verify via the analytic closed form.\n    \n        For f(x) = s XOR gfMul(a, x) with two known points (x1,y1) and (x2,y2):\n            slope a = gfMul(y1 XOR y2, gfInv(x1 XOR x2))\n            secret s = y1 XOR gfMul(a, x1)\n    \n        This computes f(0) without any Lagrange summation loop, exercising a\n        completely independent code path.  If the tool evaluates at x=1 (the M2 bug),\n        the fingerprint will match SHA-1(base64(f(1))) instead of SHA-1(base64(f(0))).\n        \"\"\"\n        _run_audit()\n        by_sess = _by_session(_load_report())\n    \n        conn = sqlite3.connect(DB)\n        rows = conn.execute(\n            \"\"\"\n            SELECT ss.coord_x, ss.coord_y_hex\n            FROM share_submissions ss\n            JOIN slot_registry sr ON sr.slot_id = ss.slot_id\n            WHERE sr.session_id = 'sess-delta'\n            ORDER BY ss.coord_x\n            \"\"\",\n        ).fetchall()\n        conn.close()\n    \n        assert len(rows) == 2, f\"Expected 2 shares for sess-delta, got {len(rows)}\"\n        x1, y1_hex = rows[0]\n        x2, y2_hex = rows[1]\n        y1 = bytes.fromhex(y1_hex)\n        y2 = bytes.fromhex(y2_hex)\n    \n        # Closed-form: slope per byte, then constant term per byte\n        byte_len = len(y1)\n        secret = bytearray(byte_len)\n        inv_x_diff = _gf_inv(x1 ^ x2)\n        for i in range(byte_len):\n            slope = _gf_mul(y1[i] ^ y2[i], inv_x_diff)\n            secret[i] = y1[i] ^ _gf_mul(slope, x1)\n        secret_bytes = bytes(secret)\n    \n        expected_fp = hashlib.sha1(base64.b64encode(secret_bytes)).hexdigest()[:8]  # noqa: S324\n        got_fp = by_sess[\"sess-delta\"][\"secret_fingerprint\"]\n>       assert got_fp == expected_fp, (\n            f\"sess-delta fingerprint {got_fp!r} != closed-form SHA-1(base64(f(0)))={expected_fp!r}; \"\n            f\"closed-form secret={secret_bytes.hex()!r}; \"\n            \"if the tool returns the share value at x=1 instead of the constant term, \"\n            \"the fingerprint will differ\"\n        )\nE       AssertionError: sess-delta fingerprint 'b22df2c5' != closed-form SHA-1(base64(f(0)))='19a96ee3'; closed-form secret='7071727374757677'; if the tool returns the share value at x=1 instead of the constant term, the fingerprint will differ\nE       assert 'b22df2c5' == '19a96ee3'\nE         \nE         - 19a96ee3\nE         + b22df2c5\n\n/tests/test_m2.py:246: AssertionError",
+                "message": "The test failed in the call phase due to an assertion error"
+            }
+        ]
+    }
+}

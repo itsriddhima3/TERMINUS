@@ -1,0 +1,5 @@
+Our Redis 7.2 hold service reserves units for Alpha-Unit, Beta-Crate, and Gamma-Tote. Opening counts for each label are in `/app/data/sku_catalog.json`. Under concurrent load we sometimes allocate more inventory than exists; single-threaded runs usually look correct.
+
+Run `/app/app/stock_audit.sh` to populate `/app/output/stock_audit.json`. The audit replays all twenty scenarios in `/app/data/scenario_matrix.json`. That JSON carries schema_version, catalog_skus, scenarios, oversell_detected, total_granted, final_stock, requests_attempted, stock_compliance, and stress_summary. The stock_compliance block also records worker_slot_is_alias and forward_observation_frame. Field layout, nesting, and grading rules are in `/app/docs/lane_contract/audit_report.md`.
+
+Reconcile the hold pipeline so every matrix row stays within seeded caps and the emitted JSON reflects consistent inventory accounting. A passing audit also requires stock_compliance.canonical_keys_seeded true, stock_compliance.worker_slot_is_alias not true, and stock_compliance.forward_observation_frame not true, with worker slot keys matching the catalog seed keys in live Redis state.

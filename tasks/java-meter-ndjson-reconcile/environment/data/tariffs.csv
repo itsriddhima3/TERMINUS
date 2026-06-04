@@ -1,0 +1,5 @@
+site_id,window_start,window_end,rate_cents
+SITE-NORTH,00:00,06:00,8.5
+SITE-NORTH,06:00,22:00,12.0
+SITE-NORTH,22:00,24:00,8.5
+SITE-SOUTH,00:00,24:00,10.0

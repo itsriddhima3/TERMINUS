@@ -1,0 +1,21 @@
+user_visible_outputs = ["/app/output/report.json"]
+internal_harness_files = [
+    "/app/scripts/build.sh",
+    "/app/scripts/init-db.sh",
+]
+
+[structured_outputs.report]
+target = "/app/output/report.json"
+format = "json"
+instruction_checks = [
+    "audit_results",
+    "session_id",
+    "slots_loaded",
+    "approvals_linked",
+    "reconstruction_status",
+    "secret_fingerprint",
+    "threshold_met",
+    "quorum_valid",
+    "policy_violations",
+    "verification_status",
+]

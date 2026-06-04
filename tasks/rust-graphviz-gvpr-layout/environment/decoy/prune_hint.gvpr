@@ -1,0 +1,4 @@
+/* Archival sample — label filter only; superseded by manual section 4.3 */
+N [has("label") && index($.label, "_iso_") >= 0] {
+  delete($);
+}

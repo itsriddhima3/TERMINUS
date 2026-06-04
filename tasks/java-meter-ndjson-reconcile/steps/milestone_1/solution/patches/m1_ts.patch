@@ -1,0 +1,12 @@
+--- a/cli/src/main/java/meter/ingest/TsNorm.java
++++ b/cli/src/main/java/meter/ingest/TsNorm.java
+@@ -5,9 +5,6 @@
+ 
+   /** Normalize ISO8601 reading timestamps for persistence. */
+   public static String op_norm_b(String a) {
+-    if (a.endsWith("Z")) {
+-      return a.substring(0, a.length() - 1);
+-    }
+     return a;
+   }
+ }

@@ -1,0 +1,14 @@
+session no_reload_echo
+frames 140
+body rook red 0 0 0 0 28 0.500
+body pawn blue 5 0 0 0 28 0.500
+original
+event 60 1 rook push 0.333 0
+event 60 2 pawn push -0.111 0
+event 110 3 rook strike pawn 2
+end
+playback
+event 60 2 pawn push -0.111 0
+event 60 1 rook push 0.333 0
+event 110 3 rook strike pawn 2
+end

@@ -1,0 +1,21 @@
+============================= test session starts ==============================
+platform linux -- Python 3.13.9, pytest-8.4.1, pluggy-1.6.0
+rootdir: /tests
+plugins: json-ctrf-0.3.5
+collected 10 items
+
+../tests/test_m2.py ..........                                           [100%]
+
+==================================== PASSES ====================================
+=========================== short test summary info ============================
+PASSED ../tests/test_m2.py::TestMilestone2::test_m2_alpha_reconstruction_success
+PASSED ../tests/test_m2.py::TestMilestone2::test_m2_beta_insufficient_shares
+PASSED ../tests/test_m2.py::TestMilestone2::test_m2_gamma_reconstruction_success
+PASSED ../tests/test_m2.py::TestMilestone2::test_m2_delta_reconstruction_success
+PASSED ../tests/test_m2.py::TestMilestone2::test_m2_threshold_met_flags
+PASSED ../tests/test_m2.py::TestMilestone2::test_m2_beta_fingerprint_null
+PASSED ../tests/test_m2.py::TestMilestone2::test_m2_alpha_fingerprint_matches_independent_reconstruction
+PASSED ../tests/test_m2.py::TestMilestone2::test_m2_delta_fingerprint_matches_independent_reconstruction
+PASSED ../tests/test_m2.py::TestMilestone2::test_m2_gamma_intermediate_fingerprint_correct
+PASSED ../tests/test_m2.py::TestMilestone2::test_m2_delta_degree1_closed_form_matches_fingerprint
+============================== 10 passed in 0.14s ==============================

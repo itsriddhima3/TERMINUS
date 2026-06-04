@@ -1,0 +1,5 @@
+[
+  {"id":"ap-charlie-1","run_id":"charlie","scope":"publish:model-C","nonce":"NNC-v2:charlie:00000000","proof":"75c28712817f148f79682d6a826dc1d99d0fc4b077ceead2cef78c1eab735ca7"},
+  {"id":"ap-charlie-2","run_id":"charlie","scope":"publish:model-C","nonce":"NNC-v1:charlie:00000000","proof":"deadbeef"}
+]
+

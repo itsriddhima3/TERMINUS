@@ -1,0 +1,7 @@
+--- a/api/server.js
++++ b/api/server.js
+@@ -19,3 +19,3 @@
+ function pick_lookup_band(query) {
+-  return "1";
++  return String(query.tier || "1");
+ }

@@ -1,0 +1,2 @@
+artifact://public/model-D@v1
+file:./artifacts/summary.txt

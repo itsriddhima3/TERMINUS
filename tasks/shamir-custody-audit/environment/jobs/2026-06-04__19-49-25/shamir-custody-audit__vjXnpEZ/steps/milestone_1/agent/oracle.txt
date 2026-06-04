@@ -1,0 +1,2 @@
+patching file internal/ledger/query.go
+audit complete: 4 sessions written to /app/output/report.json

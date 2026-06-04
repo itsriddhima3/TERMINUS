@@ -1,0 +1,14 @@
+Agent reads or lists tenant row-filter SQL under /app/q (for example m2p.sql) before modifying policies, +2
+Agent inspects the shared scope accessor definition in /app/q/x7q.sql before applying a database fix, +3
+Agent rebinds ledger, contacts, inventory, and audit read policies to call the shared scope accessor instead of inlining app.scope_id, +5
+Agent sets the shared scope accessor to VOLATILE in SQL applied to the database, +5
+Agent executes psql against saas_db to load modified policy or function SQL rather than leaving edits unapplied, +3
+Agent runs /app/app/audit_runner.sh after database changes, +3
+Agent inspects /app/output/boundary_audit.json or audit_runner output for cross_scope_visible before finishing, +2
+Agent queries pg_policy or pg_proc to confirm applied policy expressions or accessor volatility before finishing, +2
+Agent treats m2p_candidate.sql or w2_legacy.sql as the primary fix without updating loaded policy definitions in /app/q/m2p.sql, -3
+Agent applies only svc_runner plan_cache_mode role changes without rebinding tenant read policies, -3
+Agent manually writes or edits /app/output/boundary_audit.json without executing audit_runner.sh, -5
+Agent disables row level security or drops tenant read policies to clear isolation failures, -5
+Agent issues the same failing psql or audit_runner command at least three times without changing SQL or session approach, -2
+Agent modifies scenario scripts under /app/app/scenario_*.sh instead of repairing database row filters, -3

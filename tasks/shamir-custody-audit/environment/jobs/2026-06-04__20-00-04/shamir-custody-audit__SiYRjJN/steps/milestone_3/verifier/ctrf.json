@@ -1,0 +1,176 @@
+{
+    "results": {
+        "tool": {
+            "name": "pytest",
+            "version": "8.4.1"
+        },
+        "summary": {
+            "tests": 15,
+            "passed": 8,
+            "failed": 7,
+            "skipped": 0,
+            "pending": 0,
+            "other": 0,
+            "start": 1780583424.6860764,
+            "stop": 1780583424.9249594
+        },
+        "tests": [
+            {
+                "name": "test_m3.py::TestMilestone3::test_m3_alpha_no_violations",
+                "status": "passed",
+                "duration": 0.00952545300242491,
+                "start": 1780583424.730877,
+                "stop": 1780583424.7408495,
+                "retries": 0,
+                "file_path": "test_m3.py"
+            },
+            {
+                "name": "test_m3.py::TestMilestone3::test_m3_alpha_quorum_valid",
+                "status": "passed",
+                "duration": 0.007572779999463819,
+                "start": 1780583424.741194,
+                "stop": 1780583424.7491262,
+                "retries": 0,
+                "file_path": "test_m3.py"
+            },
+            {
+                "name": "test_m3.py::TestMilestone3::test_m3_gamma_has_violation",
+                "status": "passed",
+                "duration": 0.009334155998658389,
+                "start": 1780583424.7496336,
+                "stop": 1780583424.759352,
+                "retries": 0,
+                "file_path": "test_m3.py"
+            },
+            {
+                "name": "test_m3.py::TestMilestone3::test_m3_gamma_quorum_invalid",
+                "status": "passed",
+                "duration": 0.007612013003381435,
+                "start": 1780583424.7597136,
+                "stop": 1780583424.7677321,
+                "retries": 0,
+                "file_path": "test_m3.py"
+            },
+            {
+                "name": "test_m3.py::TestMilestone3::test_m3_delta_no_violations",
+                "status": "failed",
+                "raw_status": "call_failed",
+                "duration": 0.008880841996870004,
+                "start": 1780583424.7681637,
+                "stop": 1780583424.7951229,
+                "retries": 0,
+                "file_path": "test_m3.py",
+                "trace": "self = <test_m3.TestMilestone3 object at 0x7d3a9f0f16d0>\n\n    def test_m3_delta_no_violations(self):\n        \"\"\"sess-delta (executive only, no auditor) must NOT trigger cannot_coexist.\"\"\"\n        _run_audit()\n        by_sess = _by_session(_load_report())\n        violations = by_sess[\"sess-delta\"][\"policy_violations\"]\n>       assert violations == [], (\n            f\"sess-delta has only executive tier, no auditor \u2014 \"\n            f\"cannot_coexist requires BOTH tiers; got violations: {violations}\"\n        )\nE       AssertionError: sess-delta has only executive tier, no auditor \u2014 cannot_coexist requires BOTH tiers; got violations: ['cannot_coexist:executive+auditor']\nE       assert ['cannot_coex...tive+auditor'] == []\nE         \nE         Left contains one more item: 'cannot_coexist:executive+auditor'\nE         Use -v to get more diff\n\n/tests/test_m3.py:136: AssertionError",
+                "message": "The test failed in the call phase due to an assertion error"
+            },
+            {
+                "name": "test_m3.py::TestMilestone3::test_m3_delta_quorum_valid",
+                "status": "failed",
+                "raw_status": "call_failed",
+                "duration": 0.006853109000076074,
+                "start": 1780583424.7954304,
+                "stop": 1780583424.8081133,
+                "retries": 0,
+                "file_path": "test_m3.py",
+                "trace": "self = <test_m3.TestMilestone3 object at 0x7d3a9f36b680>\n\n    def test_m3_delta_quorum_valid(self):\n        \"\"\"sess-delta quorum_valid is true (executive present but auditor absent).\"\"\"\n        _run_audit()\n        by_sess = _by_session(_load_report())\n>       assert by_sess[\"sess-delta\"][\"quorum_valid\"] is True, (\n            \"sess-delta has only one tier of the constrained pair \u2014 must be valid\"\n        )\nE       AssertionError: sess-delta has only one tier of the constrained pair \u2014 must be valid\nE       assert False is True\n\n/tests/test_m3.py:145: AssertionError",
+                "message": "The test failed in the call phase due to an assertion error"
+            },
+            {
+                "name": "test_m3.py::TestMilestone3::test_m3_fingerprint_length_16",
+                "status": "failed",
+                "raw_status": "call_failed",
+                "duration": 0.0075555309958872385,
+                "start": 1780583424.8084333,
+                "stop": 1780583424.8220716,
+                "retries": 0,
+                "file_path": "test_m3.py",
+                "trace": "self = <test_m3.TestMilestone3 object at 0x7d3a9f36bf00>\n\n    def test_m3_fingerprint_length_16(self):\n        \"\"\"All non-null fingerprints are exactly 16 lowercase hex characters.\"\"\"\n        _run_audit()\n        report = _load_report()\n        for entry in report[\"audit_results\"]:\n            fp = entry[\"secret_fingerprint\"]\n            if fp is None:\n                continue\n>           assert len(fp) == 16, (\n                f\"Session {entry['session_id']}: fingerprint length {len(fp)} != 16\"\n            )\nE           AssertionError: Session sess-alpha: fingerprint length 8 != 16\nE           assert 8 == 16\nE            +  where 8 = len('094662e3')\n\n/tests/test_m3.py:157: AssertionError",
+                "message": "The test failed in the call phase due to an assertion error"
+            },
+            {
+                "name": "test_m3.py::TestMilestone3::test_m3_alpha_fingerprint_sha256",
+                "status": "failed",
+                "raw_status": "call_failed",
+                "duration": 0.009425896991160698,
+                "start": 1780583424.8223953,
+                "stop": 1780583424.8382409,
+                "retries": 0,
+                "file_path": "test_m3.py",
+                "trace": "self = <test_m3.TestMilestone3 object at 0x7d3a9f1f0e50>\n\n    def test_m3_alpha_fingerprint_sha256(self):\n        \"\"\"sess-alpha fingerprint matches SHA-256 of correctly reconstructed secret.\"\"\"\n        _run_audit()\n        by_sess = _by_session(_load_report())\n    \n        secret = _reconstruct_from_db(\"sess-alpha\")\n        assert secret, \"Python reconstruction must succeed for sess-alpha\"\n    \n        expected_fp = hashlib.sha256(secret).hexdigest()[:16]\n        got_fp = by_sess[\"sess-alpha\"][\"secret_fingerprint\"]\n>       assert got_fp == expected_fp, (\n            f\"sess-alpha fingerprint {got_fp!r} != expected SHA-256[:16] {expected_fp!r}; \"\n            f\"check that SHA-256 (not SHA-1) is used and that 16 characters are taken\"\n        )\nE       AssertionError: sess-alpha fingerprint '094662e3' != expected SHA-256[:16] '9ac2197d9258257b'; check that SHA-256 (not SHA-1) is used and that 16 characters are taken\nE       assert '094662e3' == '9ac2197d9258257b'\nE         \nE         - 9ac2197d9258257b\nE         + 094662e3\n\n/tests/test_m3.py:175: AssertionError",
+                "message": "The test failed in the call phase due to an assertion error"
+            },
+            {
+                "name": "test_m3.py::TestMilestone3::test_m3_delta_fingerprint_sha256",
+                "status": "failed",
+                "raw_status": "call_failed",
+                "duration": 0.008497131006151903,
+                "start": 1780583424.8386302,
+                "stop": 1780583424.8539922,
+                "retries": 0,
+                "file_path": "test_m3.py",
+                "trace": "self = <test_m3.TestMilestone3 object at 0x7d3a9f1f1050>\n\n    def test_m3_delta_fingerprint_sha256(self):\n        \"\"\"sess-delta fingerprint matches SHA-256 of correctly reconstructed secret.\"\"\"\n        _run_audit()\n        by_sess = _by_session(_load_report())\n    \n        secret = _reconstruct_from_db(\"sess-delta\")\n        assert secret, \"Python reconstruction must succeed for sess-delta\"\n    \n        expected_fp = hashlib.sha256(secret).hexdigest()[:16]\n        got_fp = by_sess[\"sess-delta\"][\"secret_fingerprint\"]\n>       assert got_fp == expected_fp, (\n            f\"sess-delta fingerprint {got_fp!r} != expected SHA-256[:16] {expected_fp!r}\"\n        )\nE       AssertionError: sess-delta fingerprint 'b22df2c5' != expected SHA-256[:16] '2dc770fd44d44afe'\nE       assert 'b22df2c5' == '2dc770fd44d44afe'\nE         \nE         - 2dc770fd44d44afe\nE         + b22df2c5\n\n/tests/test_m3.py:190: AssertionError",
+                "message": "The test failed in the call phase due to an assertion error"
+            },
+            {
+                "name": "test_m3.py::TestMilestone3::test_m3_alpha_verification_verified",
+                "status": "passed",
+                "duration": 0.006813000989495777,
+                "start": 1780583424.8544118,
+                "stop": 1780583424.861557,
+                "retries": 0,
+                "file_path": "test_m3.py"
+            },
+            {
+                "name": "test_m3.py::TestMilestone3::test_m3_gamma_verification_policy_violation",
+                "status": "passed",
+                "duration": 0.008177427989721764,
+                "start": 1780583424.8618681,
+                "stop": 1780583424.8704042,
+                "retries": 0,
+                "file_path": "test_m3.py"
+            },
+            {
+                "name": "test_m3.py::TestMilestone3::test_m3_beta_verification_failed",
+                "status": "passed",
+                "duration": 0.006934162011020817,
+                "start": 1780583424.8707883,
+                "stop": 1780583424.8780417,
+                "retries": 0,
+                "file_path": "test_m3.py"
+            },
+            {
+                "name": "test_m3.py::TestMilestone3::test_m3_delta_verification_verified",
+                "status": "failed",
+                "raw_status": "call_failed",
+                "duration": 0.007894149006460793,
+                "start": 1780583424.8783803,
+                "stop": 1780583424.8939345,
+                "retries": 0,
+                "file_path": "test_m3.py",
+                "trace": "self = <test_m3.TestMilestone3 object at 0x7d3a9f22cbb0>\n\n    def test_m3_delta_verification_verified(self):\n        \"\"\"sess-delta (executive only, valid) verification_status is 'verified'.\"\"\"\n        _run_audit()\n        by_sess = _by_session(_load_report())\n>       assert by_sess[\"sess-delta\"][\"verification_status\"] == \"verified\"\nE       AssertionError: assert 'policy_violation' == 'verified'\nE         \nE         - verified\nE         + policy_violation\n\n/tests/test_m3.py:216: AssertionError",
+                "message": "The test failed in the call phase due to an assertion error"
+            },
+            {
+                "name": "test_m3.py::TestMilestone3::test_m3_fingerprint_does_not_match_any_sha1_variant",
+                "status": "passed",
+                "duration": 0.01219610299449414,
+                "start": 1780583424.8942413,
+                "stop": 1780583424.9067807,
+                "retries": 0,
+                "file_path": "test_m3.py"
+            },
+            {
+                "name": "test_m3.py::TestMilestone3::test_m3_violation_count_matches_active_constraint_pairs",
+                "status": "failed",
+                "raw_status": "call_failed",
+                "duration": 0.0083260310057085,
+                "start": 1780583424.9071462,
+                "stop": 1780583424.9246256,
+                "retries": 0,
+                "file_path": "test_m3.py",
+                "trace": "self = <test_m3.TestMilestone3 object at 0x7d3a9f361910>\n\n    def test_m3_violation_count_matches_active_constraint_pairs(self):\n        \"\"\"policy_violations length equals the number of cannot_coexist pairs where\n        BOTH constrained tiers are simultaneously present in the session's slot_registry.\n    \n        The buggy implementation uses OR (||) instead of AND (&&), so it fires when\n        EITHER tier is present.  For sess-delta (only 'executive', no 'auditor') the bug\n        incorrectly reports 1 violation; the corrected AND logic reports 0.\n        \"\"\"\n        _run_audit()\n        by_sess = _by_session(_load_report())\n    \n        conn = sqlite3.connect(DB)\n        for sid in (\"sess-alpha\", \"sess-gamma\", \"sess-delta\"):\n            # Count constraint pairs where both tier_alpha AND tier_beta are present.\n            active = conn.execute(\n                \"\"\"\n                SELECT COUNT(DISTINCT tc.constraint_id)\n                FROM tier_constraints tc\n                WHERE tc.rule_kind = 'cannot_coexist'\n                  AND EXISTS (\n                      SELECT 1 FROM slot_registry sr\n                      WHERE sr.session_id = ? AND sr.auth_tier = tc.tier_alpha\n                  )\n                  AND EXISTS (\n                      SELECT 1 FROM slot_registry sr\n                      WHERE sr.session_id = ? AND sr.auth_tier = tc.tier_beta\n                  )\n                \"\"\",\n                (sid, sid),\n            ).fetchone()[0]\n    \n            reported = len(by_sess[sid][\"policy_violations\"])\n>           assert reported == active, (\n                f\"{sid}: tool reports {reported} violation(s) but \"\n                f\"{active} constraint pair(s) have both tiers present; \"\n                \"cannot_coexist requires BOTH tiers \u2014 check that && (AND) is used, not || (OR)\"\n            )\nE           AssertionError: sess-delta: tool reports 1 violation(s) but 0 constraint pair(s) have both tiers present; cannot_coexist requires BOTH tiers \u2014 check that && (AND) is used, not || (OR)\nE           assert 1 == 0\n\n/tests/test_m3.py:288: AssertionError",
+                "message": "The test failed in the call phase due to an assertion error"
+            }
+        ]
+    }
+}

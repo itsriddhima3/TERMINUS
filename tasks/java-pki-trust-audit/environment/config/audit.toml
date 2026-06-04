@@ -1,0 +1,6 @@
+[bench]
+matrix = "/app/data/cases/case_matrix.json"
+corpus_out = "/app/output/corpus_index.json"
+audit_out = "/app/output/audit_results.json"
+dot_out = "/app/output/trust.dot"
+svg_out = "/app/output/trust.svg"

@@ -1,0 +1,6 @@
+# Additional PostgreSQL settings for the SaaS workload.
+# plan_cache_mode remains at cluster default unless overridden per role.
+
+max_connections = 100
+shared_buffers = 128MB
+log_statement = 'none'

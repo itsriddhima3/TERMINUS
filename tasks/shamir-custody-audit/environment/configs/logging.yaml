@@ -1,0 +1,9 @@
+logging:
+  level: "info"
+  format: "text"
+  output: "stderr"
+
+audit:
+  abort_on_db_error: true
+  skip_incomplete_sessions: false
+  report_null_fingerprint_on_failure: true

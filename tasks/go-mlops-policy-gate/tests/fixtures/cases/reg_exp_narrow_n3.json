@@ -1,0 +1,12 @@
+{
+  "bench_id": "reg_exp_narrow_n3",
+  "header": {
+    "kind": "regression_report",
+    "tier": "experimental"
+  },
+  "metrics": {
+    "rmse": 11.0,
+    "baseline_rmse": 10.0,
+    "mae_ratio": 1.02
+  }
+}

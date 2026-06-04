@@ -1,0 +1,5 @@
+[
+  {"label": "Alpha-Unit", "key": "sku:alpha-unit", "opening_units": 6},
+  {"label": "Beta-Crate", "key": "sku:beta-crate", "opening_units": 10},
+  {"label": "Gamma-Tote", "key": "sku:gamma-tote", "opening_units": 4}
+]

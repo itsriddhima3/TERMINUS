@@ -1,0 +1,5 @@
+The Rust export service under `/app` stalls on workload `wk-plateau`. `/app/output/layout_report.json` is absent after a batch attempt. `wk-compact` in `/app/data/workload_matrix.json` still produces an entry. Plateau DOT still carries twelve hundred placeholder islands alongside three hundred linked core vertices.
+
+Rebuild and run `/app/bin/g7render lane` using `/app/config/runtime.toml`. The finished `/app/output/layout_report.json` uses `schema_version` 1 and a `runs` array with two entries. Each entry must mirror that workload's `acceptance` block in the matrix file. Plateau artifacts: `/app/output/work/wk-plateau/raw.dot`, `/app/output/work/wk-plateau/pruned.dot`, `/app/output/work/wk-plateau/render.svg`. Compact SVG: `/app/output/work/wk-compact/render.svg`. Plateau SVG must omit `iso_*` ids; compact SVG must include `core_0` through `core_83`.
+
+Normative rules for vertex isolation and profile binding are only in `/app/docs/layout_algorithms_manual.pdf`. Precedence is in `/app/docs/bench_precedence.md`.

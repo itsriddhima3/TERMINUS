@@ -1,0 +1,12 @@
+{
+  "bench_id": "cls_drift_cap_u7",
+  "header": {
+    "kind": "classification_report",
+    "tier": "staging"
+  },
+  "metrics": {
+    "macro_f1": 0.77,
+    "ece": 0.11,
+    "population_shift": 0.04
+  }
+}

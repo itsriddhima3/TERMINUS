@@ -1,0 +1,25 @@
+Agent reads /app/docs/ceremony-policy-v3.md Chapter 13 or /app/docs/db-schema.md before editing approval linkage code, +2
+Agent queries ceremony_approvals or slot_registry in /app/data/ceremonies.db before changing ledger SQL, +2
+Agent inspects /app/output/report.json for zero approvals_linked across sessions before applying an M1 fix, +2
+Agent repairs fetchLinked in /app/internal/ledger/query.go so approvals join on approved_slot = slot_id, +5
+Agent rebuilds /app/bin/audit via go build -o /app/bin/audit /app/cmd/audit from /app, +3
+Agent runs /app/bin/audit with --db /app/data/ceremonies.db --dossier /app/docs/ceremony-policy-v3.md --out /app/output/report.json after M1 edits, +2
+Agent confirms non-zero approvals_linked in /app/output/report.json for sessions with approval rows, +3
+Agent reads /app/docs/ceremony-policy-v3.md Shamir or GF(2^8) reconstruction sections before editing recovery code, +2
+Agent inspects share_submissions coord_x and coord_y_hex rows in ceremonies.db before patching shamir logic, +2
+Agent compares reported secret_fingerprint against an independent reconstruction check before fixing M2, +3
+Agent repairs combinePts or Lagrange evaluation in /app/internal/recovery/shamir.go so the constant term is recovered at x=0, +5
+Agent rebuilds /app/bin/audit and reruns the audit CLI after M2 Go source edits, +3
+Agent verifies reconstruction_status success and non-null secret_fingerprint for threshold-met sessions in report.json, +3
+Agent reads /app/docs/ceremony-policy-v3.md cannot_coexist and cryptographic verification sections before M3 edits, +2
+Agent traces policy_violations in report.json against tier_constraints or slot_registry auth_tier data before patching policy code, +3
+Agent repairs checkPair or Violations in /app/internal/policy/rules.go so cannot_coexist fires only when both tiers are present, +5
+Agent repairs deriveStamp or Fingerprint in /app/internal/report/format.go to use SHA-256 on raw secret bytes with 16 lowercase hex, +5
+Agent reruns /app/bin/audit after M3 fixes and inspects quorum_valid policy_violations and verification_status fields, +3
+Agent links approvals by matching approved_by to custodian_id without joining approved_slot to slot_id, -5
+Agent evaluates the Shamir interpolating polynomial at x=1 as the final M2 fix without aligning to dossier constant-term recovery, -5
+Agent uses logical OR for cannot_coexist tier presence instead of requiring both tiers simultaneously, -5
+Agent keeps SHA-1 or base64-wrapped hashing for secret_fingerprint instead of SHA-256 on raw secret bytes, -3
+Agent hardcodes or hand-edits /app/output/report.json without running /app/bin/audit, -5
+Agent edits pytest files under steps/ instead of fixing Go sources under /app/internal/, -3
+Agent repeats the same failing audit or pytest command at least three times without changing ledger recovery or policy code, -2

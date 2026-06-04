@@ -1,0 +1,11 @@
+--- a/cli/src/main/java/meter/ingest/CsvLookup.java
++++ b/cli/src/main/java/meter/ingest/CsvLookup.java
+@@ -28,7 +28,7 @@
+               parts[0].trim(),
+               parts[1].trim(),
+               Double.parseDouble(parts[2].trim()));
+-      index.put(row.siteId(), row);
++      index.put(row.deviceId(), row);
+     }
+     return index;
+   }

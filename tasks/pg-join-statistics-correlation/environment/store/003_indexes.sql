@@ -1,0 +1,15 @@
+CREATE INDEX idx_facility_region ON dim_facility(region_id);
+CREATE INDEX idx_zone_region ON dim_zone(region_id);
+CREATE INDEX idx_zone_code ON dim_zone(zone_code);
+CREATE INDEX idx_bridge_region ON bridge_facility_zone(region_id);
+CREATE INDEX idx_bridge_zone ON bridge_facility_zone(zone_code);
+CREATE INDEX idx_shipment_facility ON fact_shipment(facility_id);
+CREATE INDEX idx_shipment_region_zone ON fact_shipment(region_id, zone_code);
+CREATE INDEX idx_shipment_line_shipment ON fact_shipment_line(shipment_id);
+CREATE INDEX idx_route_shipment ON fact_route_leg(shipment_id);
+CREATE INDEX idx_inventory_facility ON fact_inventory_snapshot(facility_id);
+CREATE INDEX idx_inventory_region_zone ON fact_inventory_snapshot(region_id, zone_code);
+CREATE INDEX idx_handling_shipment ON fact_handling_event(shipment_id);
+CREATE INDEX idx_charge_shipment ON fact_charge(shipment_id);
+CREATE INDEX idx_lane_region ON dim_lane(region_id);
+CREATE INDEX idx_supplier_region ON dim_supplier(region_id);

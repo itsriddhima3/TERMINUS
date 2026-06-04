@@ -1,0 +1,7 @@
+digraph beta_pack {
+  anchor [role=anchor, cert="certs/root.pem"];
+  beta_leaf [row=true, cert="certs/leaf.pem"];
+
+  beta_leaf -> anchor [label="trusts"];
+  beta_leaf -> anchor [label="issued_by"];
+}

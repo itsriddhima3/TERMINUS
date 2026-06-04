@@ -1,0 +1,4 @@
+device_id,site_id,max_delta_kwh_per_interval
+DEV-A01,SITE-NORTH,0.5
+DEV-A02,SITE-NORTH,0.5
+DEV-B01,SITE-SOUTH,1.0

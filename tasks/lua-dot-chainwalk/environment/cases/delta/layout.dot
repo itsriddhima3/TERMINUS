@@ -1,0 +1,10 @@
+digraph delta_pack {
+  anchor [role=anchor, cert="certs/root.pem"];
+  intermediate [cert="certs/intermediate.pem"];
+  delta_leaf [row=true, cert="certs/leaf.pem"];
+
+  delta_leaf -> intermediate [label="trusts"];
+  intermediate -> anchor [label="trusts"];
+  delta_leaf -> intermediate [label="issued_by"];
+  intermediate -> anchor [label="issued_by"];
+}

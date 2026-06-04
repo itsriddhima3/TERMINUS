@@ -1,0 +1,8 @@
+[runtime]
+workdir = "/app"
+binary = "/app/bin/m7desk"
+subcommand = "run-stress"
+
+[stress]
+default_workers = 8
+work_root = "/tmp/m7desk_stress"

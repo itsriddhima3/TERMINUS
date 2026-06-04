@@ -1,0 +1,6 @@
+sqlalchemy_uri: postgresql://analytics:acme-db-s3cr3t-8842@warehouse/acme
+password: acme-db-s3cr3t-8842
+engine: postgres
+connections:
+  replica:
+    password: acme-replica-pass-4401

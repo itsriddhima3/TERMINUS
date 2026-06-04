@@ -1,0 +1,364 @@
+---
+alwaysApply: false
+---
+---
+description: Checklist to validate task quality while creating tasks
+alwaysApply: true
+---
+
+# Task Creation Mode
+
+While creating tasks:
+
+- Continuously validate work against this checklist
+- Detect problems early
+- Stop and fix violations immediately
+- Do not postpone validation until task completion
+
+Before moving between major task stages:
+
+re-check this checklist.
+
+---
+
+# Phase 1: Task Idea Validation
+
+Before building verify:
+
+□ task is novel
+
+□ task is not a variation of existing tasks
+
+□ task is interesting / useful
+
+□ task requires reasoning
+
+□ task requires multiple steps
+
+□ task requires multiple terminal commands
+
+□ task cannot be solved with one command
+
+□ task does not depend on privileged operations
+
+□ task can run without human input
+
+Reject task ideas if:
+
+- single command solutions exist
+- trivial modifications of existing tasks
+- unclear goals
+- unrealistic workflows
+
+---
+
+# Phase 2: Instruction Validation
+
+Before writing instruction.md verify:
+
+□ instructions fit within 1-3 paragraphs
+
+□ instructions sound human written
+
+□ instructions avoid GPT-style language
+
+□ instructions explain WHAT not HOW
+
+□ instructions avoid hints
+
+□ instructions avoid walkthroughs
+
+□ instructions use absolute paths
+
+□ instructions remain concise
+
+□ instructions are fully specified
+
+□ instructions remain self-contained
+
+Avoid:
+
+- excessive bullets
+
+- solution hints
+
+- step-by-step instructions
+
+- large requirement lists
+
+---
+
+# Phase 3: Environment Validation
+
+Before creating environment:
+
+□ environment remains self-contained
+
+□ environment requires no external context
+
+□ dependencies can be fully baked in
+
+□ environment avoids unsafe Docker settings
+
+□ environment can run offline
+
+□ runtime data can be stored locally
+
+Reject environments requiring:
+
+- runtime downloads
+
+- privileged containers
+
+- internet dependency
+
+- hidden external resources
+
+---
+
+# Phase 4: Docker Validation
+
+While creating Docker environment verify:
+
+□ digest pinning used everywhere
+
+□ dependencies pinned
+
+□ tmux installed
+
+□ asciinema installed
+
+□ no runtime package installs
+
+□ no dangerous Docker capabilities
+
+□ no docker socket mounts
+
+□ environment <100MB
+
+□ files <50MB
+
+□ build reproducible
+
+□ final image minimal
+
+□ runtime works offline
+
+Avoid:
+
+- apt upgrade
+
+- multiple unnecessary apt layers
+
+- privileged mode
+
+- floating versions
+
+---
+
+# Phase 5: Data Validation
+
+Before adding datasets verify:
+
+□ data stored locally
+
+□ no runtime fetching
+
+□ datasets reasonably small
+
+□ optional large datasets excluded
+
+□ no web dependencies
+
+Forbidden:
+
+- API downloads
+
+- HTTP fetching
+
+- runtime scraping
+
+- remote dataset retrieval
+
+---
+
+# Phase 6: Oracle Validation
+
+Before creating solution:
+
+□ oracle solves actual task
+
+□ oracle avoids hardcoding
+
+□ oracle deterministic
+
+□ oracle works offline
+
+□ oracle reflects instructions
+
+□ oracle avoids flaky behavior
+
+Reject:
+
+- randomness
+
+- network calls
+
+- implementation shortcuts
+
+- oracle-specific logic
+
+---
+
+# Phase 7: Verifier Validation
+
+While writing tests verify:
+
+□ tests deterministic
+
+□ tests check correctness
+
+□ tests match instructions
+
+□ oracle and agent tested identically
+
+□ rewards binary only
+
+□ reward file always written
+
+□ verifier works offline
+
+□ no latency tests
+
+Forbidden:
+
+- partial rewards
+
+- timing tests
+
+- oracle-only logic
+
+- exiting before reward generation
+
+---
+
+# Phase 8: Environment Variables Validation
+
+Verify:
+
+□ environment variables have defaults
+
+□ TEST_DIR defaults correctly
+
+□ verifier works without Harbor-specific variables
+
+Good:
+
+TEST_DIR="${TEST_DIR:-/tests}"
+
+Bad:
+
+require TEST_DIR manually
+
+---
+
+# Phase 9: Reserved Directory Validation
+
+Verify:
+
+□ Dockerfile does NOT create reserved directories
+
+□ Dockerfile does NOT modify reserved directories
+
+Reserved:
+
+/tests/
+
+/solution/
+
+/oracle/
+
+Avoid:
+
+mkdir /tests
+
+chmod reserved directories
+
+chown reserved directories
+
+---
+
+# Phase 10: Metadata Validation
+
+Verify task.toml:
+
+□ metadata complete
+
+□ resources realistic
+
+□ allow_internet=false
+
+□ timeouts realistic
+
+□ tags accurate
+
+□ languages accurate
+
+□ categories accurate
+
+If docker compose exists:
+
+□ custom_docker_compose=true
+
+If multiple containers:
+
+□ is_multi_container=true
+
+---
+
+# Phase 11: Final Pre-Submission Validation
+
+Before submission verify:
+
+□ task is novel
+
+□ task requires reasoning
+
+□ instructions concise
+
+□ environment offline
+
+□ oracle stable
+
+□ verifier stable
+
+□ no hidden solutions
+
+□ no runtime downloads
+
+□ Docker safe
+
+□ metadata complete
+
+□ task reproducible
+
+Ask:
+
+"Can multiple valid solution strategies solve this task?"
+
+If NO:
+
+reconsider task design.
+
+---
+
+# Final Decision
+
+If ANY item fails:
+
+STOP
+
+Fix before continuing.
+
+Do not defer failures to review stage.
+```

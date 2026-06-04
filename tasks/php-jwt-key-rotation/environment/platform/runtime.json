@@ -1,0 +1,16 @@
+{
+  "api_base": "http://127.0.0.1:8080",
+  "issuer": "vault-edge",
+  "login_user": "operator",
+  "login_password": "vault-pass-7",
+  "fixture_cases": [
+    "valid_session",
+    "expired_token",
+    "tampered_sig",
+    "unknown_kid",
+    "alg_header_mismatch",
+    "future_nbf",
+    "issuer_drift",
+    "stripped_signature"
+  ]
+}

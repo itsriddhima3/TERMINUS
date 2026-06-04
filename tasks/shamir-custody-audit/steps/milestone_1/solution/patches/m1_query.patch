@@ -1,0 +1,70 @@
+--- a/internal/ledger/query.go
++++ b/internal/ledger/query.go
+@@ -78,52 +78,28 @@
+ // fetchLinked returns the distinct slots in a session that have at least one
+ // associated record in the ceremony_approvals table.
+ func fetchLinked(db *sql.DB, sessionID string) ([]types.SlotRecord, error) {
+-	// Resolve custodians to approval records by matching approver identities.
+-	custRows, err := db.Query(
+-		`SELECT custodian_id FROM slot_registry
+-		 WHERE session_id = ? ORDER BY slot_index`, sessionID)
++	const q = `
++		SELECT DISTINCT sr.slot_id, sr.session_id, sr.slot_index,
++		                sr.custodian_id, sr.auth_tier
++		FROM slot_registry sr
++		JOIN ceremony_approvals ap ON ap.approved_slot = sr.slot_id
++		WHERE sr.session_id = ?
++		ORDER BY sr.slot_index`
++	rows, err := db.Query(q, sessionID)
+ 	if err != nil {
+ 		return nil, fmt.Errorf("linked approval query: %w", err)
+ 	}
+-	defer custRows.Close()
+-	var custodians []string
+-	for custRows.Next() {
+-		var cid string
+-		if err := custRows.Scan(&cid); err != nil {
+-			return nil, err
+-		}
+-		custodians = append(custodians, cid)
+-	}
+-	if err := custRows.Err(); err != nil {
+-		return nil, err
+-	}
+-	linked := make(map[string]bool)
+-	for _, cid := range custodians {
+-		var n int
+-		_ = db.QueryRow(
+-			`SELECT COUNT(*) FROM ceremony_approvals
+-			 WHERE approved_by = ? AND session_id = ?`, cid, sessionID).Scan(&n)
+-		if n > 0 {
+-			linked[cid] = true
+-		}
+-	}
+-	if len(linked) == 0 {
+-		return nil, nil
+-	}
+-	const q = `SELECT slot_id, session_id, slot_index, custodian_id, auth_tier
+-	           FROM slot_registry
+-	           WHERE session_id = ? AND custodian_id = ?
+-	           ORDER BY slot_index`
++	defer rows.Close()
++
+ 	var out []types.SlotRecord
+-	for cid := range linked {
++	for rows.Next() {
+ 		var s types.SlotRecord
+-		if err := db.QueryRow(q, sessionID, cid).Scan(
+-			&s.SlotID, &s.SessionID, &s.SlotIndex, &s.CustodianID, &s.AuthTier,
+-		); err == nil {
+-			out = append(out, s)
++		if err := rows.Scan(&s.SlotID, &s.SessionID, &s.SlotIndex, &s.CustodianID, &s.AuthTier); err != nil {
++			return nil, err
+ 		}
++		out = append(out, s)
+ 	}
+-	return out, nil
++	return out, rows.Err()
+ }
+ 
+ // CountLinkedApprovals returns the number of slots in the session that

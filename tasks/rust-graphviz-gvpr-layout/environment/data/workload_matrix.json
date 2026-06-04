@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "workloads": [
+    {
+      "workload_id": "wk-compact",
+      "main_nodes": 84,
+      "isolated_nodes": 0,
+      "layout_engine": "sparse_scale",
+      "acceptance": {
+        "input_nodes": 84,
+        "output_nodes": 84,
+        "isolated_removed": 0,
+        "layout_engine": "sparse_scale",
+        "prune_pass_applied": true,
+        "artifact_svg": "/app/output/work/wk-compact/render.svg"
+      }
+    },
+    {
+      "workload_id": "wk-plateau",
+      "main_nodes": 320,
+      "isolated_nodes": 1200,
+      "layout_engine": "sparse_scale",
+      "acceptance": {
+        "input_nodes": 1520,
+        "output_nodes": 320,
+        "isolated_removed": 1200,
+        "layout_engine": "sparse_scale",
+        "prune_pass_applied": true,
+        "artifact_svg": "/app/output/work/wk-plateau/render.svg"
+      }
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+[[scenario]]
+id = "alpha"
+kit = "KIT-A"
+seed = "/app/data/seeds/KIT-A.csv"
+expect_rows = 48
+
+[[scenario]]
+id = "bravo"
+kit = "KIT-B"
+seed = "/app/data/seeds/KIT-B.csv"
+expect_rows = 36
+
+[[scenario]]
+id = "charlie"
+kit = "KIT-C"
+seed = "/app/data/seeds/KIT-C.csv"
+expect_rows = 52
+
+[[scenario]]
+id = "delta"
+kit = "KIT-D"
+seed = "/app/data/seeds/KIT-D.csv"
+expect_rows = 40

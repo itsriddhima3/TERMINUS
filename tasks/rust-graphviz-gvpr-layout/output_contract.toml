@@ -1,0 +1,22 @@
+user_visible_outputs = [
+  "/app/output/layout_report.json",
+  "/app/output/work/wk-compact/render.svg",
+  "/app/output/work/wk-plateau/render.svg",
+  "/app/output/work/wk-plateau/pruned.dot",
+  "/app/output/work/wk-plateau/raw.dot",
+]
+
+internal_harness_files = [
+  "/app/scripts/build.sh",
+]
+
+[structured_outputs.layout_report]
+target = "/app/output/layout_report.json"
+format = "json"
+instruction_checks = [
+  "schema_version",
+  "runs",
+  "acceptance",
+  "wk-compact",
+  "wk-plateau",
+]

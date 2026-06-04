@@ -1,0 +1,128 @@
+{
+  "symbol_table": [
+    {
+      "path": "gate/op_k2.c",
+      "symbol": "op_k2",
+      "kind": "function",
+      "signature": "int op_k2(sqlite3 *db, int profile)",
+      "purpose": "Applies open-time pragma bundle for catalog handle before ingest."
+    },
+    {
+      "path": "src/maint/phase_p8.c",
+      "symbol": "phase_p8",
+      "kind": "function",
+      "signature": "int phase_p8(sqlite3 *db, int mode_hint, int crash_sim)",
+      "purpose": "Consolidates write-ahead frames into main file during maintenance cycle."
+    },
+    {
+      "path": "journal/step_q1.c",
+      "symbol": "step_q1",
+      "kind": "function",
+      "signature": "int step_q1(sqlite3 *db, const char *dir_path, int crash_sim)",
+      "purpose": "Completes cycle teardown including directory durability before close."
+    },
+    {
+      "path": "src/util/profile_lane.c",
+      "symbol": "lane_open_sync",
+      "kind": "function",
+      "signature": "int lane_open_sync(int profile)",
+      "purpose": "Maps bench open sync class into pragma level for gate bundle."
+    },
+    {
+      "path": "src/util/fs_sync.c",
+      "symbol": "fs_barrier_both",
+      "kind": "function",
+      "signature": "int fs_barrier_both(sqlite3 *db, const char *dir_path)",
+      "purpose": "Runs wal checkpoint and filesystem barriers before cycle stamp."
+    }
+  ],
+  "flipping_point_contract": {
+    "locations": [
+      {
+        "id": "A",
+        "path": "gate/op_k2.c",
+        "controls_tests": [
+          "test_alpha_catalog_rows",
+          "test_bravo_catalog_rows",
+          "test_alpha_catalog_integrity",
+          "test_bravo_catalog_row_total",
+          "test_alpha_sync_full_on_reopen",
+          "test_all_catalogs_journal_mode_wal"
+        ]
+      },
+      {
+        "id": "B",
+        "path": "src/maint/phase_p8.c",
+        "controls_tests": [
+          "test_charlie_catalog_rows",
+          "test_delta_catalog_rows",
+          "test_charlie_catalog_integrity",
+          "test_delta_catalog_integrity",
+          "test_bravo_seq_integrity_chain",
+          "test_charlie_wal_sidecar_absent",
+          "test_delta_probe_sidecar_absent",
+          "test_charlie_readings_val_aggregate",
+          "test_charlie_shm_sidecar_absent"
+        ]
+      },
+      {
+        "id": "C",
+        "path": "journal/step_q1.c",
+        "controls_tests": [
+          "test_delta_kit_label",
+          "test_schema_marker_from_catalog",
+          "test_meta_schema_marker_exclusive",
+          "test_delta_max_seq_matches_matrix"
+        ]
+      },
+      {
+        "id": "D",
+        "path": "src/util/fs_sync.c",
+        "controls_tests": [
+          "test_audit_exit_success",
+          "test_cycle_sync_marker_present",
+          "test_cycle_sync_marker_nonempty"
+        ]
+      }
+    ],
+    "no_single_location_flips_majority": true,
+    "concentration_cap": 0.5
+  },
+  "decoy_manifest": [
+    {
+      "path": "decoy/sync_stub.c",
+      "kind": "module",
+      "rhymes_with": "op_k2",
+      "non_fix_purpose": "Display-only pragma preview for probe script."
+    },
+    {
+      "path": "decoy/checkpoint_ui.c",
+      "kind": "helper",
+      "rhymes_with": "phase_p8",
+      "non_fix_purpose": "Parses manifest for UI totals without invoking consolidation API."
+    },
+    {
+      "path": "decoy/profile_lane_ref.c",
+      "kind": "module",
+      "rhymes_with": "profile_lane",
+      "non_fix_purpose": "Shows a correct bench_profiles reader that is not linked into the binary."
+    },
+    {
+      "path": "docs/ops/field_bulletin_07.md",
+      "kind": "doc",
+      "rhymes_with": "bench_precedence",
+      "non_fix_purpose": "Misdirects operators toward vacuum instead of cycle driver fixes."
+    }
+  ],
+  "code_forbidden_tokens": [
+    "field", "devices", "datalog", "flash", "catalogs", "operators", "rebuild",
+    "audit", "output", "recovery", "report", "scenarios", "recovered", "integrity",
+    "row", "counts", "kits", "matrix", "summary", "compaction", "schema", "marker",
+    "downstream", "device", "power", "loss", "abrupt", "stop", "mid-cycle",
+    "nightly", "malformed", "reader", "queries", "telemetry", "recorder", "durability",
+    "semantics", "bench", "precedence", "archive", "notes", "crash", "suite",
+    "manifest", "seeds", "bravo", "charlie", "delta", "alpha", "maintenance",
+    "consolidate", "frames", "pragma", "profile", "ingest", "teardown",
+    "handle", "close", "directory", "storage", "contract", "embedded", "sqlite", "wal"
+  ]
+}

@@ -1,0 +1,4 @@
+# Baked at image build; runtime verifier uses UV_OFFLINE=1 with uvx.
+pytest==8.4.1
+pytest-json-ctrf==0.3.5
+pytest-randomly==3.16.0

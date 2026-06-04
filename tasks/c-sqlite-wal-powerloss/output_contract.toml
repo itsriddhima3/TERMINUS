@@ -1,0 +1,23 @@
+user_visible_outputs = [
+  "/app/output/recovery_report.json",
+  "/tmp/datalog_audit",
+  "/app/scripts/build.sh",
+]
+
+internal_harness_files = [
+  "/app/data/crash_manifest.toml",
+]
+
+[structured_outputs.recovery_report]
+target = "/app/output/recovery_report.json"
+format = "json"
+instruction_checks = [
+  "scenarios",
+  "recovered",
+  "integrity_ok",
+  "row_count",
+  "schema_marker",
+  "all_recovered",
+  "audit_digest",
+  "recovery_report.json",
+]

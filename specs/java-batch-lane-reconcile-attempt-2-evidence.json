@@ -1,0 +1,383 @@
+{
+  "hardness_axes": [
+    {
+      "id": "discover",
+      "name": "Discover",
+      "verdict": "PASS",
+      "reasoning": "Solver must find YAML vs Hikari session downgrade, header-before-line flush vs child-first trigger locks, stamp on wrong entity, and listener re-entry \u2014 none stated in instruction.md."
+    },
+    {
+      "id": "synthesize",
+      "name": "Synthesize",
+      "verdict": "PASS",
+      "reasoning": "Correct fix coordinates pool session semantics, ingest flush order, PL/pgSQL rollup locks, and post-success coordinator phase across four module roots."
+    },
+    {
+      "id": "diagnose",
+      "name": "Diagnose",
+      "verdict": "PASS",
+      "reasoning": "Instruction reports dropped records and business-key collisions under parallel stress \u2014 not isolation enums, @Version, or @TransactionalEventListener."
+    },
+    {
+      "id": "navigate_coupling",
+      "name": "Navigate coupling",
+      "verdict": "PASS",
+      "reasoning": "Database-tuning-only or pessimistic-lock-only patches pass single-threaded replays but fail pair/quad/mix/global scenarios until all loci align."
+    },
+    {
+      "id": "reason_beyond_training",
+      "name": "Reason beyond training",
+      "verdict": "PASS",
+      "reasoning": "Requires tracing Spring @Transactional boundaries against PostgreSQL lock acquisition order and JDBC connectionInitSql \u2014 not a one-annotation batch-insert FAQ."
+    }
+  ],
+  "anti_trivialization_checks": [
+    {
+      "id": "disclosure_collapse",
+      "name": "Disclosure-collapse",
+      "verdict": "PASS",
+      "reasoning": "Author pitch disclosed REPEATABLE_READ/@Version/retry recipe; spec uses symptoms-only lane audit without that vocabulary."
+    },
+    {
+      "id": "hidden_instance",
+      "name": "Hidden-instance",
+      "verdict": "PASS",
+      "reasoning": "Defect spans pool config, ingest service, listener, and PL/pgSQL trigger."
+    },
+    {
+      "id": "single_artifact_repair",
+      "name": "Single-artifact repair",
+      "verdict": "PASS",
+      "reasoning": "Four flipping locations; max test ratio 5/13."
+    },
+    {
+      "id": "generalization",
+      "name": "Generalization",
+      "verdict": "PASS",
+      "reasoning": "Twelve scenario rows plus global stress block cover single/pair/quad/mix/backlog/rerun/over-cap paths."
+    },
+    {
+      "id": "prompt_honesty",
+      "name": "Prompt-honesty",
+      "verdict": "PASS",
+      "reasoning": "Honest symptom description still requires runtime tracing and code reading."
+    },
+    {
+      "id": "cheating_vs_difficulty",
+      "name": "Cheating-vs-difficulty",
+      "verdict": "PASS",
+      "reasoning": "Audit JSON forgery penalized; difficulty is boundary and lock-order reasoning."
+    },
+    {
+      "id": "mechanical_fix_filter",
+      "name": "Mechanical-fix filter",
+      "verdict": "PASS",
+      "reasoning": "Not a timeout or dependency-pin task."
+    },
+    {
+      "id": "localized_fix",
+      "name": "Localized-fix",
+      "verdict": "PASS",
+      "reasoning": "Four distributed loci required."
+    },
+    {
+      "id": "oracle_locality",
+      "name": "Oracle-locality",
+      "verdict": "PASS",
+      "reasoning": "Oracle edits Java and SQL across four paths with coordinated semantics."
+    },
+    {
+      "id": "small_declarative_cluster",
+      "name": "Small declarative-cluster",
+      "verdict": "PASS",
+      "reasoning": "Not a one-knob YAML-only repair."
+    },
+    {
+      "id": "grep_collapse",
+      "name": "Grep-collapse",
+      "verdict": "PASS",
+      "reasoning": "Instruction nouns banned from fix-path code symbols."
+    },
+    {
+      "id": "pre_factored_helper",
+      "name": "Pre-factored-helper",
+      "verdict": "PASS",
+      "reasoning": "Opaque op_n2, phase_r8, step_w1, cfg_p9 naming."
+    },
+    {
+      "id": "recipe_discount",
+      "name": "Recipe-discount",
+      "verdict": "PASS",
+      "reasoning": "Redesigned away from disclosed optimistic-lock + event-retry transcription."
+    },
+    {
+      "id": "security_aura_discount",
+      "name": "Security-aura discount",
+      "verdict": "PASS",
+      "reasoning": "Ingest integrity domain, not security theater."
+    },
+    {
+      "id": "orthogonal_checklist",
+      "name": "Orthogonal-checklist",
+      "verdict": "PASS",
+      "reasoning": "Scenarios share coupled session/flush/trigger/listener failure."
+    },
+    {
+      "id": "harness_discount",
+      "name": "Harness-discount",
+      "verdict": "PASS",
+      "reasoning": "Docker/bash is transport only."
+    },
+    {
+      "id": "one_pass_solvability",
+      "name": "One-pass solvability",
+      "verdict": "PASS",
+      "reasoning": "Requires lane_audit reproduction and multi-file tracing under load."
+    },
+    {
+      "id": "hard_only_gate",
+      "name": "Hard-only gate",
+      "verdict": "PASS",
+      "reasoning": "Hard at symptoms-only level after redesign."
+    },
+    {
+      "id": "discovery_budget_test",
+      "name": "Discovery budget test",
+      "verdict": "PASS",
+      "reasoning": "Five discoveries documented in discovery_budget."
+    },
+    {
+      "id": "instruction_specificity_test",
+      "name": "Instruction specificity test",
+      "verdict": "PASS",
+      "reasoning": "Symptoms-only instruction level."
+    },
+    {
+      "id": "topology_distribution_test",
+      "name": "Topology distribution test",
+      "verdict": "PASS",
+      "reasoning": "Three topologies each require three or more coordinated locations."
+    }
+  ],
+  "rubric_axes": [
+    {
+      "id": "verifiable",
+      "name": "Verifiable",
+      "verdict": "PASS",
+      "reasoning": "JSON audit fields and deterministic scenario runners."
+    },
+    {
+      "id": "well_specified",
+      "name": "Well-specified",
+      "verdict": "PASS",
+      "reasoning": "Twelve scenario rows with typed compliance fields and grounded family caps."
+    },
+    {
+      "id": "solvable",
+      "name": "Solvable",
+      "verdict": "PASS",
+      "reasoning": "Expert Java/Postgres engineer can complete in hours."
+    },
+    {
+      "id": "difficult",
+      "name": "Difficult",
+      "verdict": "PASS",
+      "reasoning": "Coupled JPA session, flush order, trigger locks, and event phase \u2014 not disclosed-recipe CRUD."
+    },
+    {
+      "id": "interesting",
+      "name": "Interesting",
+      "verdict": "PASS",
+      "reasoning": "Real parallel batch-ingest integrity incidents."
+    },
+    {
+      "id": "outcome_verified",
+      "name": "Outcome-verified",
+      "verdict": "PASS",
+      "reasoning": "Grades lane_audit.json, not process notes."
+    }
+  ],
+  "instruction_completeness_test": {
+    "verdict": "PASS",
+    "reasoning": "Instruction alone cannot identify JDBC downgrade, flush/trigger inversion, stamp placement, or listener phase; agent must run lane_audit and read Spring/SQL sources."
+  },
+  "discovery_budget": [
+    {
+      "discovery": "application.yml advertises strict read semantics while cfg_p9 Hikari connectionInitSql downgrades JDBC session to READ COMMITTED.",
+      "planned_location": "environment/api/src/main/java/k7m/cfg_p9.java + environment/api/src/main/resources/application-prod.yml",
+      "why_instruction_must_not_reveal": "Naming the split collapses to Spring\u2013Postgres isolation FAQ."
+    },
+    {
+      "discovery": "op_n2 flushes header rows before line slices while step_w1 trigger locks child rows first \u2014 lock-order inversion under quad burst.",
+      "planned_location": "environment/api/src/main/java/r8p/op_n2.java + environment/db/functions/step_w1.sql",
+      "why_instruction_must_not_reveal": "Instruction only reports dropped records under parallel stress."
+    },
+    {
+      "discovery": "Numeric stamp column on HeaderSlice but lane writer mutates LineSlice without bumping stamp \u2014 optimistic checks never fire.",
+      "planned_location": "environment/api/src/main/java/r8p/entity/HeaderSlice.java + LineSlice.java + op_n2.java",
+      "why_instruction_must_not_reveal": "Revealing @Version move is the author's disclosed recipe."
+    },
+    {
+      "discovery": "phase_r8 coordinator retries inside ingest transaction envelope instead of after-commit new transaction.",
+      "planned_location": "environment/api/src/main/java/r8p/phase_r8.java",
+      "why_instruction_must_not_reveal": "Naming AFTER_COMMIT + REQUIRES_NEW collapses to Spring docs copy-paste."
+    },
+    {
+      "discovery": "operations_notes.md recommends isolation bumps and PessimisticAdvice \u2014 wrong root cause passing single-threaded replays only.",
+      "planned_location": "environment/docs/operations_notes.md + environment/api/src/main/java/decoy/PessimisticAdvice.java",
+      "why_instruction_must_not_reveal": "Cause-revealing ops guidance collapses search space."
+    }
+  ],
+  "instruction_specificity": {
+    "level": "symptoms-only",
+    "reasoning": "Instruction describes dropped records, business-key collisions, unstable rollup totals, and lane_audit JSON contract without naming isolation enums, @Version, @TransactionalEventListener, or flush/trigger order."
+  },
+  "attack_path": {
+    "summary": "Agent applies database tuning knobs or pessimistic locks per operations playbooks without aligning flush order, JDBC session, stamp entity, and listener phase.",
+    "reasoning": "Passes test_w1_single intermittently but fails test_w2_pair, test_w4_quad, test_rerun_ok, and test_global_ok when lock-order and retry re-entry remain."
+  },
+  "smallest_plausible_patch": {
+    "summary": "Align Hikari session with JPA profile; flush lines before headers; parent-first trigger locks; stamp on LineSlice; AFTER_COMMIT + REQUIRES_NEW for phase_r8.",
+    "reasoning": "Minimal coordinated patch but requires discovering all four loci from lane_audit failures and rejecting ops red herrings."
+  },
+  "collapse_audit": {
+    "verdict": "PASS",
+    "reasoning": "Distributed fix surface, operations_notes red herring, twelve-scenario matrix, and four flipping loci block tuning-knob and pessimistic-only shortcuts.",
+    "residual_hardness": "Agent must run parallel lane_audit, reject decoy advice, trace JDBC init vs JPA properties, correlate dropped records to flush/trigger order, and fix coordinator phase without instruction naming annotations.",
+    "red_flags": [
+      "Raw author pitch is in-distribution Spring JPA recipe \u2014 mitigated by symptoms-only contract and four-locus coupling.",
+      "Spring Boot batch ingest resembles course-project surface \u2014 mitigated by existing broken codebase and audit harness rather than build-from-scratch."
+    ]
+  },
+  "naming_pass": {
+    "instruction_nouns_extracted": [
+      "spring",
+      "boot",
+      "facility",
+      "app",
+      "ingests",
+      "chunked",
+      "uploads",
+      "shelf",
+      "families",
+      "north-shelf",
+      "east-crate",
+      "west-bin",
+      "lane_audit",
+      "parallel",
+      "stress",
+      "lanes",
+      "drop",
+      "accepted",
+      "records",
+      "collide",
+      "business",
+      "keys",
+      "single-threaded",
+      "replays",
+      "clean",
+      "operations",
+      "playbooks",
+      "bundled",
+      "database",
+      "tuning",
+      "knobs",
+      "shipped",
+      "violates",
+      "invariants",
+      "scenario",
+      "drops",
+      "collisions",
+      "stable",
+      "rollup",
+      "totals",
+      "ingest_compliance",
+      "inspect",
+      "output",
+      "fix",
+      "shows",
+      "zero",
+      "key",
+      "qa",
+      "docs"
+    ],
+    "renames_during_drafting": [
+      {
+        "original": "test_report_schema_version",
+        "renamed_to": "test_v1_field",
+        "reason": "avoid schema/version/report instruction noun substrings in test names"
+      },
+      {
+        "original": "test_dual_lane_clean",
+        "renamed_to": "test_w2_pair",
+        "reason": "avoid lane/dual/clean instruction noun substrings in test names"
+      }
+    ],
+    "test_names_audited": [
+      "test_v1_field",
+      "test_label_order",
+      "test_slots_complete",
+      "test_w1_single",
+      "test_w2_pair",
+      "test_w4_quad",
+      "test_mix_ok",
+      "test_deplete_ok",
+      "test_backlog_ok",
+      "test_rerun_ok",
+      "test_cap_reject",
+      "test_no_loss",
+      "test_global_ok"
+    ],
+    "concentration_math": {
+      "total_tests": 13,
+      "per_location": [
+        {
+          "location_id": "A",
+          "test_count": 5,
+          "ratio": 0.38461538461538464
+        },
+        {
+          "location_id": "B",
+          "test_count": 4,
+          "ratio": 0.3076923076923077
+        },
+        {
+          "location_id": "C",
+          "test_count": 3,
+          "ratio": 0.23076923076923078
+        },
+        {
+          "location_id": "D",
+          "test_count": 2,
+          "ratio": 0.15384615384615385
+        }
+      ]
+    },
+    "recomputed_concentration": {
+      "total_tests": 13,
+      "concentration_cap": 0.5,
+      "per_location": [
+        {
+          "location_id": "A",
+          "test_count": 5,
+          "ratio": 0.38461538461538464
+        },
+        {
+          "location_id": "B",
+          "test_count": 4,
+          "ratio": 0.3076923076923077
+        },
+        {
+          "location_id": "C",
+          "test_count": 3,
+          "ratio": 0.23076923076923078
+        },
+        {
+          "location_id": "D",
+          "test_count": 2,
+          "ratio": 0.15384615384615385
+        }
+      ]
+    }
+  }
+}

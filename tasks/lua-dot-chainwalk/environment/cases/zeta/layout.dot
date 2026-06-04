@@ -1,0 +1,7 @@
+digraph zeta_pack {
+  anchor [role=anchor, cert="certs/root.pem"];
+  zeta_leaf [row=true, cert="certs/leaf.pem"];
+
+  zeta_leaf -> anchor [label="trusts"];
+  zeta_leaf -> anchor [label="issued_by"];
+}

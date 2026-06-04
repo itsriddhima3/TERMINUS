@@ -1,0 +1,30 @@
+{
+    "id": "faa71bfc-a923-4a79-8c8f-08f02e74ac31",
+    "started_at": "2026-06-04T20:00:04.998181",
+    "finished_at": "2026-06-04T20:00:27.899904",
+    "n_total_trials": 1,
+    "stats": {
+        "n_trials": 1,
+        "n_errors": 0,
+        "evals": {
+            "nop__adhoc": {
+                "n_trials": 1,
+                "n_errors": 0,
+                "metrics": [
+                    {
+                        "mean": 0.0
+                    }
+                ],
+                "pass_at_k": {},
+                "reward_stats": {
+                    "reward": {
+                        "0.0": [
+                            "shamir-custody-audit__SiYRjJN"
+                        ]
+                    }
+                },
+                "exception_stats": {}
+            }
+        }
+    }
+}

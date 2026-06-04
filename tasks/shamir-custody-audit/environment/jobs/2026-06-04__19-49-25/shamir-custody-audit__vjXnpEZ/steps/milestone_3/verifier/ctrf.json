@@ -1,0 +1,155 @@
+{
+    "results": {
+        "tool": {
+            "name": "pytest",
+            "version": "8.4.1"
+        },
+        "summary": {
+            "tests": 15,
+            "passed": 15,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "other": 0,
+            "start": 1780583390.4850264,
+            "stop": 1780583390.6686676
+        },
+        "tests": [
+            {
+                "name": "test_m3.py::TestMilestone3::test_m3_alpha_no_violations",
+                "status": "passed",
+                "duration": 0.007683099996938836,
+                "start": 1780583390.5303702,
+                "stop": 1780583390.5386531,
+                "retries": 0,
+                "file_path": "test_m3.py"
+            },
+            {
+                "name": "test_m3.py::TestMilestone3::test_m3_alpha_quorum_valid",
+                "status": "passed",
+                "duration": 0.007075996996718459,
+                "start": 1780583390.5390322,
+                "stop": 1780583390.5464678,
+                "retries": 0,
+                "file_path": "test_m3.py"
+            },
+            {
+                "name": "test_m3.py::TestMilestone3::test_m3_gamma_has_violation",
+                "status": "passed",
+                "duration": 0.009318641998106614,
+                "start": 1780583390.546835,
+                "stop": 1780583390.5565047,
+                "retries": 0,
+                "file_path": "test_m3.py"
+            },
+            {
+                "name": "test_m3.py::TestMilestone3::test_m3_gamma_quorum_invalid",
+                "status": "passed",
+                "duration": 0.007210340998426545,
+                "start": 1780583390.5568354,
+                "stop": 1780583390.5643947,
+                "retries": 0,
+                "file_path": "test_m3.py"
+            },
+            {
+                "name": "test_m3.py::TestMilestone3::test_m3_delta_no_violations",
+                "status": "passed",
+                "duration": 0.0090319580049254,
+                "start": 1780583390.5648277,
+                "stop": 1780583390.5742922,
+                "retries": 0,
+                "file_path": "test_m3.py"
+            },
+            {
+                "name": "test_m3.py::TestMilestone3::test_m3_delta_quorum_valid",
+                "status": "passed",
+                "duration": 0.00800138599879574,
+                "start": 1780583390.5746107,
+                "stop": 1780583390.5830457,
+                "retries": 0,
+                "file_path": "test_m3.py"
+            },
+            {
+                "name": "test_m3.py::TestMilestone3::test_m3_fingerprint_length_16",
+                "status": "passed",
+                "duration": 0.007965929005877115,
+                "start": 1780583390.5835712,
+                "stop": 1780583390.5918741,
+                "retries": 0,
+                "file_path": "test_m3.py"
+            },
+            {
+                "name": "test_m3.py::TestMilestone3::test_m3_alpha_fingerprint_sha256",
+                "status": "passed",
+                "duration": 0.009238267004548106,
+                "start": 1780583390.5921926,
+                "stop": 1780583390.6017845,
+                "retries": 0,
+                "file_path": "test_m3.py"
+            },
+            {
+                "name": "test_m3.py::TestMilestone3::test_m3_delta_fingerprint_sha256",
+                "status": "passed",
+                "duration": 0.008204683996154927,
+                "start": 1780583390.6021378,
+                "stop": 1780583390.6106849,
+                "retries": 0,
+                "file_path": "test_m3.py"
+            },
+            {
+                "name": "test_m3.py::TestMilestone3::test_m3_alpha_verification_verified",
+                "status": "passed",
+                "duration": 0.008117346988001373,
+                "start": 1780583390.6110141,
+                "stop": 1780583390.6194744,
+                "retries": 0,
+                "file_path": "test_m3.py"
+            },
+            {
+                "name": "test_m3.py::TestMilestone3::test_m3_gamma_verification_policy_violation",
+                "status": "passed",
+                "duration": 0.0070261319997371174,
+                "start": 1780583390.619842,
+                "stop": 1780583390.6272068,
+                "retries": 0,
+                "file_path": "test_m3.py"
+            },
+            {
+                "name": "test_m3.py::TestMilestone3::test_m3_beta_verification_failed",
+                "status": "passed",
+                "duration": 0.008999729994684458,
+                "start": 1780583390.6275165,
+                "stop": 1780583390.6368542,
+                "retries": 0,
+                "file_path": "test_m3.py"
+            },
+            {
+                "name": "test_m3.py::TestMilestone3::test_m3_delta_verification_verified",
+                "status": "passed",
+                "duration": 0.006587885007320438,
+                "start": 1780583390.63721,
+                "stop": 1780583390.6441188,
+                "retries": 0,
+                "file_path": "test_m3.py"
+            },
+            {
+                "name": "test_m3.py::TestMilestone3::test_m3_fingerprint_does_not_match_any_sha1_variant",
+                "status": "passed",
+                "duration": 0.011766500007070135,
+                "start": 1780583390.644427,
+                "stop": 1780583390.6565254,
+                "retries": 0,
+                "file_path": "test_m3.py"
+            },
+            {
+                "name": "test_m3.py::TestMilestone3::test_m3_violation_count_matches_active_constraint_pairs",
+                "status": "passed",
+                "duration": 0.010854180000023916,
+                "start": 1780583390.6568394,
+                "stop": 1780583390.6681795,
+                "retries": 0,
+                "file_path": "test_m3.py"
+            }
+        ]
+    }
+}

@@ -1,0 +1,8 @@
+{
+  "ranks": {
+    "north": 3,
+    "gate": 2,
+    "yard": 1,
+    "quay": 1
+  }
+}

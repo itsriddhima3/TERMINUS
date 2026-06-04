@@ -1,0 +1,135 @@
+{
+  "hardness_axes": [
+    {"name": "Discover", "verdict": "pass", "reasoning": "Normative thresholds live only in 50k+ token runbook annexes and precedence memo, not in instruction.md."},
+    {"name": "Synthesize", "verdict": "pass", "reasoning": "Correct verdicts require binding headers, resolving cross-annex bands with tier multipliers, and emitting cites plus risk scores."},
+    {"name": "Diagnose", "verdict": "pass", "reasoning": "Instruction describes symptom clusters (mis-graded cls rows, wrong annex for vector lane, missing cross-cites) without naming fix sites."},
+    {"name": "Navigate coupling", "verdict": "pass", "reasoning": "Fixes in bindlane, threshlane, and emitlane must align or hidden and visible bench rows disagree."},
+    {"name": "Reason beyond training", "verdict": "pass", "reasoning": "Requires reading scattered annex tables, drift exception, experimental multiplier, and production vector-lane tier rule together."}
+  ],
+  "anti_trivialization_checks": [
+    {"id": 1, "verdict": "pass", "reasoning": "Instruction does not disclose numeric bands."},
+    {"id": 2, "verdict": "pass", "reasoning": "Hidden reports are grading fixtures, not the broken artifact."},
+    {"id": 3, "verdict": "pass", "reasoning": "Oracle patches three modules, not one knob."},
+    {"id": 4, "verdict": "pass", "reasoning": "Policy generalizes across cls/reg/emb families."},
+    {"id": 5, "verdict": "pass", "reasoning": "Symptoms do not name broken files."},
+    {"id": 6, "verdict": "pass", "reasoning": "Difficulty is cross-annex reasoning, not anti-cheat."},
+    {"id": 7, "verdict": "pass", "reasoning": "Not mechanical-only fixes."},
+    {"id": 8, "verdict": "pass", "reasoning": "No single-function grep target."},
+    {"id": 9, "verdict": "pass", "reasoning": "Oracle replaces logic across three packages."},
+    {"id": 10, "verdict": "pass", "reasoning": "Not a single config table."},
+    {"id": 11, "verdict": "pass", "reasoning": "No prompt noun path telegraph."},
+    {"id": 12, "verdict": "pass", "reasoning": "Opaque symbols op_bind, phase_t2, step_k7."},
+    {"id": 13, "verdict": "pass", "reasoning": "Not a textbook recipe."},
+    {"id": 14, "verdict": "pass", "reasoning": "MLOps surface without security-aura only."},
+    {"id": 15, "verdict": "pass", "reasoning": "Coupled annex + tier + emit cites."},
+    {"id": 16, "verdict": "pass", "reasoning": "Long runbook is content, not harness padding alone."},
+    {"id": 17, "verdict": "pass", "reasoning": "Multi-file discovery required."},
+    {"id": 18, "verdict": "pass", "reasoning": "Hard-only profile."},
+    {"id": 19, "verdict": "pass", "reasoning": "Discovery budget has 3+ items from annex precedence, drift cap, experimental multiplier."},
+    {"id": 20, "verdict": "pass", "reasoning": "Symptoms-only instruction."},
+    {"id": 21, "verdict": "pass", "reasoning": "Three fix topologies across bindlane/threshlane/emitlane."}
+  ],
+  "rubric_axes": [
+    {"name": "Verifiable", "verdict": "pass", "reasoning": "12 pytest cases on deterministic JSON verdicts."},
+    {"name": "Well-specified", "verdict": "pass", "reasoning": "Output schema and entrypoints documented."},
+    {"name": "Solvable", "verdict": "pass", "reasoning": "Expert can implement in hours with annex reading."},
+    {"name": "Difficult", "verdict": "pass", "reasoning": "Long-context cross-reference reasoning."},
+    {"name": "Interesting", "verdict": "pass", "reasoning": "Realistic ML deployment gate workflow."},
+    {"name": "Outcome-verified", "verdict": "pass", "reasoning": "Grades bench_verdicts.json only."}
+  ],
+  "instruction_completeness_test": {
+    "verdict": "pass",
+    "reasoning": "Cannot solve from instruction alone; must read runbook annexes and Go evaluator."
+  },
+  "discovery_budget": [
+    {
+      "discovery": "Archive annex must not override primary A1-A3 bands when legacy file exists on disk.",
+      "planned_location": "environment/threshlane/resolve.go phase_t2",
+      "why_hidden": "Naming archive path in instruction would collapse to delete stat check."
+    },
+    {
+      "discovery": "Population-shift drift caps calibration severity at warn between 0.10 and 0.12.",
+      "planned_location": "environment/threshlane/resolve.go Rank_u9",
+      "why_hidden": "Numeric drift band belongs in annex_a1_cls.md only."
+    },
+    {
+      "discovery": "Warn rows with regression sidecar RMSE ratio must cite A3-REG-07.",
+      "planned_location": "environment/emitlane/emit.go step_k7",
+      "why_hidden": "Cite id is defined only in annex_a3_emb.md cross_lane row."
+    }
+  ],
+  "instruction_specificity": {
+    "level": "symptoms-only",
+    "reasoning": "Describes mis-grading symptoms without thresholds or fix paths."
+  },
+  "attack_path": {
+    "summary": "Hardcode per-case verdict map from visible bench keys.",
+    "verdict": "fail_for_attacker",
+    "reasoning": "Hidden h1-h3 cases and matrix completeness test block lookup tables."
+  },
+  "smallest_plausible_patch": {
+    "summary": "Single-line archive short-circuit removal is insufficient; ingest binding and emit cites also required.",
+    "verdict": "pass"
+  },
+  "collapse_audit": {
+    "verdict": "pass",
+    "residual_hardness": "Reading 50k+ token compendium to extract interacting annex rules remains the core work."
+  },
+  "topology_enumeration": [
+    {
+      "topology": "Ingest binding only",
+      "locations": ["bindlane/ingest.go", "cmd/gatectl/main.go", "emitlane/emit.go"],
+      "insufficient_because": "Threshlane bands still wrong for drift and experimental tier."
+    },
+    {
+      "topology": "Threshold resolve only",
+      "locations": ["threshlane/resolve.go", "threshlane/resolveapi.go", "emitlane/emit.go"],
+      "insufficient_because": "Vector-lane headers still map to regression family without bindlane fix."
+    },
+    {
+      "topology": "Emit cites only",
+      "locations": ["emitlane/emit.go", "emitlane/emitapi.go", "threshlane/resolve.go"],
+      "insufficient_because": "Wrong severity inputs from archive and binding remain."
+    }
+  ],
+  "construction_manifest": {
+    "symbol_table": [
+      {"path": "bindlane/ingest.go", "symbol": "op_bind", "kind": "function"},
+      {"path": "threshlane/resolve.go", "symbol": "phase_t2", "kind": "function"},
+      {"path": "emitlane/emit.go", "symbol": "step_k7", "kind": "function"}
+    ],
+    "flipping_point_contract": {
+      "locations": [
+        {"id": "A", "path": "bindlane/ingest.go", "controls_tests": ["test_cls_clean_a1_pass", "test_emb_lane_e3_pass", "test_hidden_h3_pass", "test_all_matrix_keys_present"]},
+        {"id": "B", "path": "threshlane/resolve.go", "controls_tests": ["test_cls_drift_b4_warn", "test_reg_exp_c2_warn", "test_reg_core_d1_pass", "test_hidden_h1_fail"]},
+        {"id": "C", "path": "emitlane/emit.go", "controls_tests": ["test_emb_prod_f5_fail", "test_mix_g7_cited_rules", "test_hidden_h2_risk_cap", "test_schema_version"]}
+      ],
+      "concentration_cap": 0.5
+    },
+    "code_forbidden_tokens": ["deployment", "gate", "runner", "verdict", "pass", "warn", "fail", "risk", "score", "cited", "rules", "bench", "audit", "runbook", "classification", "regression", "embedding"]
+  },
+  "naming_pass": {
+    "instruction_nouns_extracted": ["nightlies", "deployment", "gate", "runner", "training", "submission", "bundles", "compendium", "reviewers", "classification", "headline", "accuracy", "experimental", "tier", "regression", "vector", "lane", "json", "annex", "pointers", "bench", "matrix", "metric", "slots", "precedence", "volumes", "verdict", "risk", "cited", "rules", "reasons", "schema", "cases"],
+    "renames_during_drafting": [
+      {"from": "reg_baseline_d1", "to": "reg_core_d1", "reason": "Avoid baseline token in bench id matching RC5 pattern."},
+      {"from": "rmseRatio", "to": "rr_u7", "reason": "Avoid ratio noun collision with instruction."},
+      {"from": "SlotSeverity", "to": "Rank_u9", "reason": "Avoid severity/slot instruction noun collision."}
+    ],
+    "test_names_audited": [
+      "test_schema_version", "test_cls_clean_a1_pass", "test_cls_drift_b4_warn", "test_reg_exp_c2_warn",
+      "test_reg_core_d1_pass", "test_emb_lane_e3_pass", "test_emb_prod_f5_fail", "test_mix_g7_cited_rules",
+      "test_hidden_h1_fail", "test_hidden_h2_risk_cap", "test_hidden_h3_pass", "test_all_matrix_keys_present"
+    ],
+    "concentration_math": {
+      "total_tests": 12,
+      "per_location": [
+        {"id": "A", "path": "bindlane/ingest.go", "count": 4, "ratio": 0.333},
+        {"id": "B", "path": "threshlane/resolve.go", "count": 4, "ratio": 0.333},
+        {"id": "C", "path": "emitlane/emit.go", "count": 4, "ratio": 0.333}
+      ],
+      "cap": 0.5,
+      "max_ratio": 0.333,
+      "status": "PASS"
+    }
+  }
+}

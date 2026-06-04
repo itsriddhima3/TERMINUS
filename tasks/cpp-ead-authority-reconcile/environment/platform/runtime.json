@@ -1,0 +1,7 @@
+{
+  "api_port": 3000,
+  "ead_root": "/app/data/ead",
+  "var_dir": "/app/var",
+  "output_dir": "/app/output",
+  "cli_bin": "/app/bin/arcctl"
+}

@@ -1,0 +1,12 @@
+{
+  "bench_id": "cls_clean_a1",
+  "header": {
+    "kind": "classification_report",
+    "tier": "production"
+  },
+  "metrics": {
+    "macro_f1": 0.84,
+    "ece": 0.04,
+    "population_shift": 0.11
+  }
+}

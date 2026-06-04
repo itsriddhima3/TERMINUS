@@ -1,0 +1,12 @@
+{
+  "bench_id": "emb_ndcg_only_p4",
+  "header": {
+    "kind": "embedding_report",
+    "tier": "production"
+  },
+  "metrics": {
+    "recall_at_10": 0.74,
+    "ndcg_at_10": 0.64,
+    "drift_score": 0.01
+  }
+}

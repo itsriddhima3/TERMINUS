@@ -1,0 +1,16 @@
+session late_reload
+frames 200
+reload 120 mod_c
+body kite red 0 0 0 0 35 0.550
+body moss blue 8 0 0 0 35 0.550
+body reed blue 2 6 0 0 20 0.450
+original
+event 100 1 kite push 0.300 0
+event 125 2 moss push -0.275 0
+event 150 3 reed push 0.180 0.120
+end
+playback
+event 100 1 kite push 0.300 0
+event 125 2 moss push -0.275 0
+event 150 3 reed push 0.180 0.120
+end

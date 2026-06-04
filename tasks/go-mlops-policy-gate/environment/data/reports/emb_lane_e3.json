@@ -1,0 +1,12 @@
+{
+  "bench_id": "emb_lane_e3",
+  "header": {
+    "kind": "embedding_report",
+    "tier": "staging"
+  },
+  "metrics": {
+    "recall_at_10": 0.72,
+    "ndcg_at_10": 0.69,
+    "drift_score": 0.01
+  }
+}

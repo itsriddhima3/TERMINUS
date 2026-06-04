@@ -1,0 +1,4 @@
+artifact://public/model-A@v1
+file:./artifacts/model.bin
+file:../../etc/passwd
+

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ead xmlns="urn:isbn:1-931666-22-9">
+  <archdesc level="collection">
+    <did>
+      <unitid>MS-0456</unitid>
+      <unittitle>Edith Wilson Papers</unittitle>
+      <unitdate normal="1880/1895">1880-1895</unitdate>
+    </did>
+    <controlaccess>
+      <persname>Wilson, Edith</persname>
+      <subject>Women authors--19th century</subject>
+    </controlaccess>
+  </archdesc>
+</ead>

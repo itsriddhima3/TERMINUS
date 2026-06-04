@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "partitions": [
+    {
+      "label": "North-Shelf",
+      "cap_slots": 6
+    },
+    {
+      "label": "East-Crate",
+      "cap_slots": 10
+    },
+    {
+      "label": "West-Bin",
+      "cap_slots": 4
+    }
+  ]
+}

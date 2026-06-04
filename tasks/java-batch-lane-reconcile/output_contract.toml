@@ -1,0 +1,23 @@
+user_visible_outputs = ["/app/output/lane_audit.json", "/app/app/lane_audit.sh"]
+
+internal_harness_files = [
+  "/app/app/lane_audit.sh",
+  "/app/data/scenario_matrix.json",
+  "/app/data/partition_catalog.json",
+  "/app/init/start_api.sh",
+]
+
+[structured_outputs.lane_audit]
+target = "/app/output/lane_audit.json"
+format = "json"
+instruction_checks = [
+  "schema_version",
+  "catalog_partitions",
+  "scenarios",
+  "ingest_compliance",
+  "lost_rows",
+  "duplicate_external_keys",
+  "unstable_totals",
+  "stress_summary",
+  "lane_audit.json",
+]

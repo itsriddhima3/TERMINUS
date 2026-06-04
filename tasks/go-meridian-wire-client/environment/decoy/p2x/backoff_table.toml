@@ -1,0 +1,8 @@
+# Deprecated annex intervals — not referenced by hot-path retry logic.
+[[step]]
+code = 429
+seconds = 5
+
+[[step]]
+code = 503
+seconds = 30

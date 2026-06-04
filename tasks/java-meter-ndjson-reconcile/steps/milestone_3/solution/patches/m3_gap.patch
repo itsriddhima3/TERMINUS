@@ -1,0 +1,30 @@
+--- a/cli/src/main/java/meter/recon/GapDetect.java
++++ b/cli/src/main/java/meter/recon/GapDetect.java
+@@ -24,10 +24,11 @@
+         int prevMin = intervalMin(rows.get(i - 1));
+         int gapMin = minutesBetween((String) rows.get(i - 1).get("reading_at"),
+             (String) rows.get(i).get("reading_at"));
+-        if (gapMin > b * 2) {
++        if (gapMin > prevMin) {
+           Map<String, Object> ev = new LinkedHashMap<>();
+           ev.put("device_id", entry.getKey());
+-          ev.put("expected_at", rows.get(i).get("reading_at"));
++          ev.put("expected_at", missingSlot((String) rows.get(i - 1).get("reading_at"), prevMin));
++          ev.put("reading_at", rows.get(i).get("reading_at"));
+           ev.put("gap_minutes", gapMin - prevMin);
+           events.add(ev);
+         }
+@@ -55,4 +56,13 @@
+     int m = parts.length > 1 ? Integer.parseInt(parts[1]) : 0;
+     return h * 60 + m;
+   }
++
++  private static String missingSlot(String ts, int intervalMin) {
++    int t = ts.indexOf('T');
++    String date = t >= 0 ? ts.substring(0, t) : ts;
++    int total = clockMinutes(ts) + intervalMin;
++    int h = total / 60;
++    int m = total % 60;
++    return String.format("%sT%02d:%02d:00Z", date, h, m);
++  }
+ }

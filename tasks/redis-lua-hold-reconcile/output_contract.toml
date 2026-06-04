@@ -1,0 +1,44 @@
+user_visible_outputs = ["/app/output/stock_audit.json"]
+
+internal_harness_files = [
+  "/app/app/scenario_a.sh",
+  "/app/app/scenario_b.sh",
+  "/app/app/scenario_c.sh",
+  "/app/app/scenario_d.sh",
+  "/app/app/scenario_e.sh",
+  "/app/app/scenario_f.sh",
+  "/app/app/scenario_g.sh",
+  "/app/app/scenario_h.sh",
+  "/app/app/scenario_i.sh",
+  "/app/app/scenario_j.sh",
+  "/app/app/scenario_k.sh",
+  "/app/app/scenario_l.sh",
+  "/app/app/scenario_m.sh",
+  "/app/app/scenario_n.sh",
+  "/app/app/scenario_o.sh",
+  "/app/app/scenario_p.sh",
+  "/app/app/scenario_q.sh",
+  "/app/app/scenario_r.sh",
+  "/app/app/scenario_s.sh",
+  "/app/app/scenario_t.sh",
+  "/app/init/ensure_redis.sh",
+  "/app/lib/lane_runner.sh",
+  "/app/lib/seed_helpers.sh",
+]
+
+[structured_outputs.stock_audit]
+target = "/app/output/stock_audit.json"
+format = "json"
+instruction_checks = [
+  "schema_version",
+  "catalog_skus",
+  "scenarios",
+  "oversell_detected",
+  "total_granted",
+  "final_stock",
+  "requests_attempted",
+  "stock_compliance",
+  "forward_observation_frame",
+  "worker_slot_is_alias",
+  "stress_summary",
+]

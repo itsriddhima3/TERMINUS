@@ -1,0 +1,7 @@
+{
+  "pack_id": "delta",
+  "initial_holders": {
+    "unit-d": "ramp-a",
+    "unit-e": "ramp-b"
+  }
+}

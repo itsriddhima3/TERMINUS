@@ -1,0 +1,15 @@
+--- a/cli/src/main/java/customs/recon/QuotaAdj.java
++++ b/cli/src/main/java/customs/recon/QuotaAdj.java
+@@ -5,10 +5,9 @@
+   private QuotaAdj() {}
+ 
+   public static double op_uplift_h(double dutyUsd, boolean quotaBlocked, double multiplier) {
+-    if (!quotaBlocked) {
+-      return dutyUsd;
++    if (quotaBlocked) {
++      return dutyUsd * multiplier;
+     }
+-    // Quota ledger says uplift applies; early builds skipped when blocked.
+     return dutyUsd;
+   }
+ }

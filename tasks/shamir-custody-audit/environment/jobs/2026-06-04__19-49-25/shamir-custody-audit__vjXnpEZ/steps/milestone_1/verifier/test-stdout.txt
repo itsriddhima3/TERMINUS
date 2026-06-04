@@ -1,0 +1,21 @@
+============================= test session starts ==============================
+platform linux -- Python 3.13.9, pytest-8.4.1, pluggy-1.6.0
+rootdir: /tests
+plugins: json-ctrf-0.3.5
+collected 10 items
+
+../tests/test_m1.py ..........                                           [100%]
+
+==================================== PASSES ====================================
+=========================== short test summary info ============================
+PASSED ../tests/test_m1.py::TestMilestone1::test_m1_audit_exits_zero
+PASSED ../tests/test_m1.py::TestMilestone1::test_m1_report_exists
+PASSED ../tests/test_m1.py::TestMilestone1::test_m1_report_schema
+PASSED ../tests/test_m1.py::TestMilestone1::test_m1_all_sessions_present
+PASSED ../tests/test_m1.py::TestMilestone1::test_m1_slots_loaded_correct
+PASSED ../tests/test_m1.py::TestMilestone1::test_m1_approvals_linked_nonzero
+PASSED ../tests/test_m1.py::TestMilestone1::test_m1_approvals_linked_exact
+PASSED ../tests/test_m1.py::TestMilestone1::test_m1_required_fields_present
+PASSED ../tests/test_m1.py::TestMilestone1::test_m1_policy_violations_is_list
+PASSED ../tests/test_m1.py::TestMilestone1::test_m1_approvals_linked_matches_direct_db_query
+============================== 10 passed in 0.22s ==============================

@@ -1,0 +1,41 @@
+--- a/cli/src/main/java/customs/app/ReconcileCmd.java
++++ b/cli/src/main/java/customs/app/ReconcileCmd.java
+@@ -19,9 +19,12 @@
+   public static void run(String batchId) throws Exception {
+     Map<String, Object> doc = JsonKit.readObject(Paths.ENRICHED_JSON);
+     double tolerance = 0.01;
++    double missingBench = PolicyLoad.missingExposureUsd();
+     List<String> underpaid = new ArrayList<>();
+     List<String> missing = new ArrayList<>();
+     Map<String, Double> exposure = new TreeMap<>();
++    Map<String, String> importerForLine = new LinkedHashMap<>();
++    Map<String, Double> lineExposure = new LinkedHashMap<>();
+ 
+     List<Map<String, Object>> rows = (List<Map<String, Object>>) doc.get("lines");
+     for (Map<String, Object> row : rows) {
+@@ -38,18 +41,23 @@
+               row.get("quota_blocked") == null ? null : (Boolean) row.get("quota_blocked"),
+               Boolean.TRUE.equals(row.get("classification_missing")));
+ 
++      importerForLine.put(line.lineId(), line.importerId());
+       if (line.classificationMissing()) {
+         missing.add(line.lineId());
++        exposure.merge(line.importerId(), missingBench, Double::sum);
+         continue;
+       }
+       if (DutyCalc.isUnderpaid(line, tolerance)) {
+         underpaid.add(line.lineId());
++        double gap = DutyCalc.exposureGap(line);
++        lineExposure.put(line.lineId(), gap);
++        exposure.merge(line.importerId(), gap, Double::sum);
+       }
+-      exposure.merge(line.importerId(), line.declaredDuty(), Double::sum);
+     }
+ 
+     ReportEmit.ReconBody body =
+-        new ReportEmit.ReconBody(batchId, underpaid, missing, exposure);
++        new ReportEmit.ReconBody(
++            batchId, underpaid, missing, exposure, importerForLine, lineExposure);
+     ReportEmit.op_emit_f(Paths.RECON_JSON, Paths.RECON_CSV, body);
+   }
+ }

@@ -1,0 +1,3 @@
+Parallel workers at `/app` ingest clip metadata into sqlite-backed catalogs, but stress runs keep failing: stderr reports `database is locked`, `/app/output/stress_ledger.json` shows scenario row counts below `/app/docs/lane_matrix.md`, and `busy_events` stay high.
+
+Rebuild the desk binary, run stress with `/app/data/stress_manifest.toml`, and write `/app/output/stress_ledger.json` so each `lanes` entry and the summary match `/app/docs/ingest_contract.md` (including per-lane `busy_events` of 0, `summary.all_complete` true, and the cross-scenario invariants there). Runtime wiring for the binary and subcommand lives in `/app/config/runtime.toml`.

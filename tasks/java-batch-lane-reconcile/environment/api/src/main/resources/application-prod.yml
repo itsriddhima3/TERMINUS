@@ -1,0 +1,20 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://127.0.0.1:5432/lane_db
+    username: postgres
+    password: postgres
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        connection:
+          isolation: 4
+  flyway:
+    enabled: true
+    locations: filesystem:/app/db/migration
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health

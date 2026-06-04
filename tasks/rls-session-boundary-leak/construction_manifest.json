@@ -1,0 +1,76 @@
+{
+  "symbol_table": [
+    {
+      "path": "q/x7q.sql",
+      "symbol": "fn_k7",
+      "kind": "function",
+      "signature": "fn_k7() RETURNS integer LANGUAGE sql",
+      "purpose": "returns session scope integer from app.scope_id GUC"
+    },
+    {
+      "path": "q/m2p.sql",
+      "symbol": "pol_ledger_read",
+      "kind": "function",
+      "signature": "POLICY pol_ledger_read ON ledger FOR SELECT USING (org_ref = fn_k7())",
+      "purpose": "row filter on ledger reads"
+    },
+    {
+      "path": "q/m2p.sql",
+      "symbol": "pol_contacts_read",
+      "kind": "function",
+      "signature": "POLICY pol_contacts_read ON contacts FOR SELECT USING (org_ref = fn_k7())",
+      "purpose": "row filter on contacts reads"
+    },
+    {
+      "path": "v/h3v.sql",
+      "symbol": "svc_runner",
+      "kind": "constant",
+      "signature": "ALTER ROLE svc_runner SET plan_cache_mode = force_custom_plan",
+      "purpose": "per-role prepared-statement planning mode"
+    }
+  ],
+  "flipping_point_contract": {
+    "locations": [
+      {
+        "id": "A",
+        "path": "q/x7q.sql",
+        "controls_tests": ["test_reuse_stmt_row_count", "test_batch_fetch_row_count"]
+      },
+      {
+        "id": "B",
+        "path": "q/m2p.sql",
+        "controls_tests": ["test_join_path_row_count", "test_view_path_row_count"]
+      },
+      {
+        "id": "C",
+        "path": "v/h3v.sql",
+        "controls_tests": ["test_pool_rotate_row_count", "test_adhoc_single_row_count"]
+      }
+    ],
+    "no_single_location_flips_majority": true,
+    "concentration_cap": 0.5
+  },
+  "decoy_manifest": [
+    {
+      "path": "q/m3_helpers.sql",
+      "kind": "helper",
+      "rhymes_with": "fn_k7",
+      "non_fix_purpose": "op_m3_for_session reads scope for audit existence checks only"
+    },
+    {
+      "path": "store/audit_scalar.sql",
+      "kind": "helper",
+      "rhymes_with": "fn_k7",
+      "non_fix_purpose": "cfg_p9 and audit_scalar_total support reporting aggregates"
+    }
+  ],
+  "code_forbidden_tokens": [
+    "saas", "backend", "postgresql", "customer", "organization", "records", "catalog",
+    "acme-crate", "beta-tote", "delta-bin", "audit", "runner", "boundary", "json",
+    "schema", "version", "labels", "scenarios", "cross_scope_visible",
+    "foreign_labels_seen", "owned_row_count", "patterns", "connection", "session",
+    "context", "prepared", "query", "pooled", "rows", "database", "matrix",
+    "grading", "isolation", "ledger", "entries", "switch", "access", "repair",
+    "layer", "active", "foreign", "empty", "scope", "filtering", "organizations"
+  ]
+}

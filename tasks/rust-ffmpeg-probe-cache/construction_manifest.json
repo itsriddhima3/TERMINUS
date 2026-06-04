@@ -1,0 +1,126 @@
+{
+  "symbol_table": [
+    {
+      "path": "k9m/op_m7.rs",
+      "symbol": "apply_open_bundle",
+      "kind": "function",
+      "signature": "pub fn apply_open_bundle(conn: &rusqlite::Connection) -> rusqlite::Result<()>",
+      "purpose": "Applies catalog open-time pragma bundle before lane ingest."
+    },
+    {
+      "path": "r2n/q3_wire.rs",
+      "symbol": "Q3Handle",
+      "kind": "struct",
+      "signature": "pub struct Q3Handle",
+      "purpose": "Pooled sqlite lane handle used by the write scope."
+    },
+    {
+      "path": "r2n/q3_wire.rs",
+      "symbol": "write_facts",
+      "kind": "function",
+      "signature": "pub fn write_facts(&self, clip_key: &str, dur_ms: i64, stream_hash: &str) -> rusqlite::Result<()>",
+      "purpose": "Transactional insert of one probe row through the pool."
+    },
+    {
+      "path": "r2n/q3_wire.rs",
+      "symbol": "run_q3_scope",
+      "kind": "function",
+      "signature": "pub fn run_q3_scope<F, T>(db_path: &std::path::Path, workers: usize, f: F) -> rusqlite::Result<T> where F: FnOnce(&Q3Handle) -> rusqlite::Result<T>",
+      "purpose": "Acquires pooled catalog handle and runs caller body inside a write transaction."
+    },
+    {
+      "path": "p4v/op_p2.rs",
+      "symbol": "persist_row",
+      "kind": "function",
+      "signature": "pub fn persist_row(conn: &rusqlite::Connection, clip_key: &str, dur_ms: i64, stream_hash: &str) -> rusqlite::Result<()>",
+      "purpose": "Inserts one probe row into lane catalog with contention handling."
+    }
+  ],
+  "flipping_point_contract": {
+    "locations": [
+      {
+        "id": "A",
+        "path": "k9m/op_m7.rs",
+        "controls_tests": [
+          "test_scn_a_row_total",
+          "test_scn_b_row_total",
+          "test_scn_a_db_ok",
+          "test_scn_b_mode_flag",
+          "test_scn_a_mode_flag",
+          "test_scn_b_dual_reader_counts",
+          "test_scn_c_wal_frame_tally",
+          "test_scn_a_sync_mode_normal",
+          "test_scn_b_journal_family_active"
+        ]
+      },
+      {
+        "id": "B",
+        "path": "r2n/q3_wire.rs",
+        "controls_tests": [
+          "test_scn_c_row_total",
+          "test_scn_d_row_total",
+          "test_scn_c_db_ok",
+          "test_scn_d_mode_flag",
+          "test_grand_total_facts",
+          "test_scn_d_expected_parity",
+          "test_scn_a_stored_keys_complete",
+          "test_repeat_harness_scn_b_rows",
+          "test_scn_c_distinct_hashes",
+          "test_scn_a_duration_anchor"
+        ]
+      },
+      {
+        "id": "C",
+        "path": "p4v/op_p2.rs",
+        "controls_tests": [
+          "test_run_exit_zero",
+          "test_bundle_all_ok",
+          "test_scn_a_contention_counter",
+          "test_scn_b_contention_counter",
+          "test_scn_c_contention_counter",
+          "test_scn_d_contention_counter",
+          "test_digest_recompute_match",
+          "test_scn_a_counter_db_parity",
+          "test_harness_stderr_clean"
+        ]
+      }
+    ],
+    "no_single_location_flips_majority": true,
+    "concentration_cap": 0.5
+  },
+  "decoy_manifest": [
+    {
+      "path": "decoy/read_lane.rs",
+      "kind": "module",
+      "rhymes_with": "apply_open_bundle",
+      "non_fix_purpose": "Read-only pragma preview for diagnostics script without mutating catalogs."
+    },
+    {
+      "path": "decoy/sync_hint.rs",
+      "kind": "helper",
+      "rhymes_with": "run_q3_scope",
+      "non_fix_purpose": "Parses manifest totals for CI banner without opening write pool."
+    },
+    {
+      "path": "decoy/r2n_pool_template.rs",
+      "kind": "module",
+      "rhymes_with": "run_q3_scope",
+      "non_fix_purpose": "Documents pool sizing policy without participating in the desk link."
+    },
+    {
+      "path": "docs/ops/bulletin_09.md",
+      "kind": "doc",
+      "rhymes_with": "bench_precedence",
+      "non_fix_purpose": "Misdirects operators toward vacuum instead of lane write coupling fixes."
+    }
+  ],
+  "code_forbidden_tokens": [
+    "media", "desk", "workers", "streams", "rebuild", "release", "binary", "runtime",
+    "run-stress", "manifest", "output", "ledger", "stderr", "database", "locked",
+    "incomplete", "scenarios", "matrix", "contract", "observed", "contention",
+    "counters", "elevated", "summary", "complete", "packaged", "catalogs",
+    "errors", "gaps", "writers", "vacuum", "bootstrap", "pragmas", "persistence",
+    "retry", "archive", "bulletins", "lane", "alpha", "bravo", "charlie", "delta",
+    "busy", "journal", "integrity", "lanes", "m7desk", "k9m", "r2n", "p4v"
+  ]
+}

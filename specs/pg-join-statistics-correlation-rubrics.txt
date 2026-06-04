@@ -1,0 +1,17 @@
+Agent reads or lists spine predicate groups in /app/docs/correlation_registry.md before modifying catalog statistics SQL, +2
+Agent inspects /app/docs/planner_internals/chapter_13_maintenance.md section 13.11 or searches the planner corpus for spine predicate cluster catalog refresh before applying a fix, +3
+Agent inspects correlated-predicate symptoms in /app/docs/planner_internals/chapter_07_statistics.md section 7.3 before changing statistics objects, +2
+Agent creates dependency-class extended statistics on region_id and zone_code for every spine_predicate registry table, +5
+Agent raises STATISTICS targets above the shipped ops default on registry region_id and zone_code columns in /app/store/a7k.sql or equivalent ALTER TABLE statements, +3
+Agent runs an ANALYZE refresh across all spine registry tables after creating extended statistics objects, +3
+Agent executes psql against logistics_db to load modified SQL under /app/store, /app/migrations, or /app/lib rather than leaving edits unapplied, +3
+Agent runs /app/app/plan_audit.sh after catalog statistics changes, +3
+Agent inspects /app/output/plan_audit.json for bridge_estimate_ratio, inventory_estimate_ratio, or join_methods before finishing, +2
+Agent queries pg_statistic_ext or pg_class to confirm dependency statistics exist on spine registry tables before finishing, +2
+Agent treats /app/migrations/w9_decoy.sql lane/carrier statistics as sufficient without cataloguing all spine registry clusters, -3
+Agent creates extended statistics on bridge_facility_zone only while omitting other spine_predicate registry tables, -3
+Agent changes work_mem, random_page_cost, or seq_page_cost as the primary fix without dependency statistics on spine registry tables, -3
+Agent runs ANALYZE on bridge_facility_zone only after adding spine extended statistics objects, -3
+Agent sets enable_nestloop off or uses join hints as the primary fix without repairing catalog statistics, -5
+Agent manually writes or edits /app/output/plan_audit.json without executing plan_audit.sh, -5
+Agent issues the same failing psql or plan_audit.sh command at least three times without changing SQL or catalog approach, -2

@@ -1,0 +1,13 @@
+# Default runtime configuration for the ceremony audit tool.
+# These values are overridden by parameters extracted from the policy dossier
+# at startup; they serve as safe fallbacks only.
+
+db_path: /app/data/ceremonies.db
+dossier_path: /app/docs/ceremony-policy-v3.md
+output_path: /app/output/report.json
+
+# Logging verbosity: debug | info | warn | error
+log_level: info
+
+# Maximum sessions to process in a single run (0 = unlimited)
+max_sessions: 0

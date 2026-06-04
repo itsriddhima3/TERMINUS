@@ -1,0 +1,210 @@
+Security review transcript — working session 09
+Facilitator notes: this appendix is historical color only; enforcement follows the ACTIVE block elsewhere in the corpus.
+
+Agenda highlights:
+- Review offline export 09 anomalies
+- Compare redaction operator strings against the lexicon index
+- Capture open risks for deterministic reporting
+
+Discussion record:
+§001 — Avery on relative file reference audits (batch 80, ref 2658a3b0d65b): security champions warned against bracket-style redaction placeholders. Outcome noted: no change to active tag during this session.
+§002 — Drew on cross-team runner variance (batch 93, ref 1c735b601159): team rejected widening private artifact prefixes in active policy. Outcome noted: archive rejected private prefix proposal.
+§003 — Morgan on bench exposure roll-up semantics (batch 09, ref 8b0b66648e2e): reminder: draft blocks remain readable but must not change enforcement. Outcome noted: align tests with recomputed digests only.
+§004 — Priya on post-incident sanitized output checks (batch 22, ref 878f414d79be): operators requested clearer invalid-nonce reasons in approvals array. Outcome noted: publish internal FAQ for auditors.
+§005 — Alex on HMAC field ordering debates (batch 35, ref cb8f07ea8050): consensus required per-line alerts instead of whole-file summaries. Outcome noted: track false negative samples in spreadsheet.
+§006 — Jordan on deterministic JSON key ordering (batch 48, ref b80651c4b18f): example cited api_key= style markers versus token: colon patterns. Outcome noted: pair with legal on retention windows.
+§007 — Sam on relative file reference audits (batch 61, ref d91499dd4b4e): SRE liaison confirmed offline mode forbids mutating input run trees. Outcome noted: defer UI for this CLI.
+§008 — Riley on cross-team runner variance (batch 74, ref 78e0edcb1e55): reviewers stressed ascending sort for run identifiers from meta.json. Outcome noted: keep lexicon as non-authoritative index.
+§009 — Casey on bench exposure roll-up semantics (batch 87, ref e85333dbb778): highlighted need for stable totals fields in the aggregate object. Outcome noted: document SNIPPET_MARK separately from transcript.
+§010 — Quinn on post-incident sanitized output checks (batch 03, ref 1c99513bdfde): data science lead asked for artifact byte counts beside digests. Outcome noted: schedule follow-up on approval key rotation.
+§011 — Avery on HMAC field ordering debates (batch 16, ref ee407633c871): action item: verify proofs bind scope before run id before nonce. Outcome noted: no change to active tag during this session.
+§012 — Drew on deterministic JSON key ordering (batch 29, ref 53258897993a): review board examined four sample exports with mixed approval validity. Outcome noted: archive rejected private prefix proposal.
+§013 — Morgan on relative file reference audits (batch 42, ref 0e0a401e9317): captured notes mention intermittent false positives on short tokens. Outcome noted: align tests with recomputed digests only.
+§014 — Priya on cross-team runner variance (batch 55, ref 669cc30775bf): open question on legacy nonce rejection messaging for operators. Outcome noted: publish internal FAQ for auditors.
+§015 — Alex on bench exposure roll-up semantics (batch 68, ref dff7a95e0c09): participants compared laptop export timestamps across regions. Outcome noted: track false negative samples in spreadsheet.
+§016 — Jordan on post-incident sanitized output checks (batch 81, ref 6d995fdf91e0): participants agreed to keep surrounding log context in snippets. Outcome noted: pair with legal on retention windows.
+§017 — Sam on HMAC field ordering debates (batch 94, ref 1eba6b1a2577): noted symlink targets must stay inside the run directory root. Outcome noted: defer UI for this CLI.
+§018 — Riley on deterministic JSON key ordering (batch 10, ref fbc105554590): review board asked for explicit EXPOSED code on exposure rows. Outcome noted: keep lexicon as non-authoritative index.
+§019 — Casey on relative file reference audits (batch 23, ref dcf771f93cc4): discussion referenced prior SR tags only for historical comparison. Outcome noted: document SNIPPET_MARK separately from transcript.
+§020 — Quinn on cross-team runner variance (batch 36, ref d28b94781db0): emphasized SHA-256 over sorted transcript bodies with newline glue. Outcome noted: schedule follow-up on approval key rotation.
+§021 — Avery on bench exposure roll-up semantics (batch 49, ref a02e81ecf96a): security champions warned against bracket-style redaction placeholders. Outcome noted: no change to active tag during this session.
+§022 — Drew on post-incident sanitized output checks (batch 62, ref 224a9ca4e3a6): team rejected widening private artifact prefixes in active policy. Outcome noted: archive rejected private prefix proposal.
+§023 — Morgan on HMAC field ordering debates (batch 75, ref bb84885abb61): reminder: draft blocks remain readable but must not change enforcement. Outcome noted: align tests with recomputed digests only.
+§024 — Priya on deterministic JSON key ordering (batch 88, ref b7ecd7caeb57): operators requested clearer invalid-nonce reasons in approvals array. Outcome noted: publish internal FAQ for auditors.
+§025 — Alex on relative file reference audits (batch 04, ref 4f1cd63c6681): consensus required per-line alerts instead of whole-file summaries. Outcome noted: track false negative samples in spreadsheet.
+§026 — Jordan on cross-team runner variance (batch 17, ref 9240140bb13b): example cited api_key= style markers versus token: colon patterns. Outcome noted: pair with legal on retention windows.
+§027 — Sam on bench exposure roll-up semantics (batch 30, ref f527b3434ec6): SRE liaison confirmed offline mode forbids mutating input run trees. Outcome noted: defer UI for this CLI.
+§028 — Riley on post-incident sanitized output checks (batch 43, ref 53d4bd107092): reviewers stressed ascending sort for run identifiers from meta.json. Outcome noted: keep lexicon as non-authoritative index.
+§029 — Casey on HMAC field ordering debates (batch 56, ref 78c590c858c6): highlighted need for stable totals fields in the aggregate object. Outcome noted: document SNIPPET_MARK separately from transcript.
+§030 — Quinn on deterministic JSON key ordering (batch 69, ref cf663ffaa338): data science lead asked for artifact byte counts beside digests. Outcome noted: schedule follow-up on approval key rotation.
+§031 — Avery on relative file reference audits (batch 82, ref e2ecf46d5a31): action item: verify proofs bind scope before run id before nonce. Outcome noted: no change to active tag during this session.
+§032 — Drew on cross-team runner variance (batch 95, ref 6044d16cbf71): review board examined four sample exports with mixed approval validity. Outcome noted: archive rejected private prefix proposal.
+§033 — Morgan on bench exposure roll-up semantics (batch 11, ref ee251dfc8da7): captured notes mention intermittent false positives on short tokens. Outcome noted: align tests with recomputed digests only.
+§034 — Priya on post-incident sanitized output checks (batch 24, ref e33cd7fb50a4): open question on legacy nonce rejection messaging for operators. Outcome noted: publish internal FAQ for auditors.
+§035 — Alex on HMAC field ordering debates (batch 37, ref 3752c58614c8): participants compared laptop export timestamps across regions. Outcome noted: track false negative samples in spreadsheet.
+§036 — Jordan on deterministic JSON key ordering (batch 50, ref 7875a8190eae): participants agreed to keep surrounding log context in snippets. Outcome noted: pair with legal on retention windows.
+§037 — Sam on relative file reference audits (batch 63, ref 99723105a4fc): noted symlink targets must stay inside the run directory root. Outcome noted: defer UI for this CLI.
+§038 — Riley on cross-team runner variance (batch 76, ref 925bb8a63eea): review board asked for explicit EXPOSED code on exposure rows. Outcome noted: keep lexicon as non-authoritative index.
+§039 — Casey on bench exposure roll-up semantics (batch 89, ref c6833c7b2e81): discussion referenced prior SR tags only for historical comparison. Outcome noted: document SNIPPET_MARK separately from transcript.
+§040 — Quinn on post-incident sanitized output checks (batch 05, ref 5e2ad5021321): emphasized SHA-256 over sorted transcript bodies with newline glue. Outcome noted: schedule follow-up on approval key rotation.
+§041 — Avery on HMAC field ordering debates (batch 18, ref 1fbcecfc4306): security champions warned against bracket-style redaction placeholders. Outcome noted: no change to active tag during this session.
+§042 — Drew on deterministic JSON key ordering (batch 31, ref cd0cc3eccb31): team rejected widening private artifact prefixes in active policy. Outcome noted: archive rejected private prefix proposal.
+§043 — Morgan on relative file reference audits (batch 44, ref 612399e7e297): reminder: draft blocks remain readable but must not change enforcement. Outcome noted: align tests with recomputed digests only.
+§044 — Priya on cross-team runner variance (batch 57, ref 0f1b48c7a1a8): operators requested clearer invalid-nonce reasons in approvals array. Outcome noted: publish internal FAQ for auditors.
+§045 — Alex on bench exposure roll-up semantics (batch 70, ref 0367751ece71): consensus required per-line alerts instead of whole-file summaries. Outcome noted: track false negative samples in spreadsheet.
+§046 — Jordan on post-incident sanitized output checks (batch 83, ref b9ef8c6622cd): example cited api_key= style markers versus token: colon patterns. Outcome noted: pair with legal on retention windows.
+§047 — Sam on HMAC field ordering debates (batch 96, ref 8f99bf66b12e): SRE liaison confirmed offline mode forbids mutating input run trees. Outcome noted: defer UI for this CLI.
+§048 — Riley on deterministic JSON key ordering (batch 12, ref c81cb87d7509): reviewers stressed ascending sort for run identifiers from meta.json. Outcome noted: keep lexicon as non-authoritative index.
+§049 — Casey on relative file reference audits (batch 25, ref 677b5dd293fb): highlighted need for stable totals fields in the aggregate object. Outcome noted: document SNIPPET_MARK separately from transcript.
+§050 — Quinn on cross-team runner variance (batch 38, ref 9654727b9ac8): data science lead asked for artifact byte counts beside digests. Outcome noted: schedule follow-up on approval key rotation.
+§051 — Avery on bench exposure roll-up semantics (batch 51, ref bb66d87c80ce): action item: verify proofs bind scope before run id before nonce. Outcome noted: no change to active tag during this session.
+§052 — Drew on post-incident sanitized output checks (batch 64, ref 4aacd45516fd): review board examined four sample exports with mixed approval validity. Outcome noted: archive rejected private prefix proposal.
+§053 — Morgan on HMAC field ordering debates (batch 77, ref fa403c34a754): captured notes mention intermittent false positives on short tokens. Outcome noted: align tests with recomputed digests only.
+§054 — Priya on deterministic JSON key ordering (batch 90, ref 74c26fb5fc29): open question on legacy nonce rejection messaging for operators. Outcome noted: publish internal FAQ for auditors.
+§055 — Alex on relative file reference audits (batch 06, ref df545e6e1e97): participants compared laptop export timestamps across regions. Outcome noted: track false negative samples in spreadsheet.
+§056 — Jordan on cross-team runner variance (batch 19, ref 050f7e82bf33): participants agreed to keep surrounding log context in snippets. Outcome noted: pair with legal on retention windows.
+§057 — Sam on bench exposure roll-up semantics (batch 32, ref 5be273970bc9): noted symlink targets must stay inside the run directory root. Outcome noted: defer UI for this CLI.
+§058 — Riley on post-incident sanitized output checks (batch 45, ref d1b9aef49bf6): review board asked for explicit EXPOSED code on exposure rows. Outcome noted: keep lexicon as non-authoritative index.
+§059 — Casey on HMAC field ordering debates (batch 58, ref a656083db156): discussion referenced prior SR tags only for historical comparison. Outcome noted: document SNIPPET_MARK separately from transcript.
+§060 — Quinn on deterministic JSON key ordering (batch 71, ref d1fee0e09713): emphasized SHA-256 over sorted transcript bodies with newline glue. Outcome noted: schedule follow-up on approval key rotation.
+§061 — Avery on relative file reference audits (batch 84, ref 7fd8767d8d50): security champions warned against bracket-style redaction placeholders. Outcome noted: no change to active tag during this session.
+§062 — Drew on cross-team runner variance (batch 00, ref c9f288db9296): team rejected widening private artifact prefixes in active policy. Outcome noted: archive rejected private prefix proposal.
+§063 — Morgan on bench exposure roll-up semantics (batch 13, ref 6b9a4121ec48): reminder: draft blocks remain readable but must not change enforcement. Outcome noted: align tests with recomputed digests only.
+§064 — Priya on post-incident sanitized output checks (batch 26, ref c671d9abe46a): operators requested clearer invalid-nonce reasons in approvals array. Outcome noted: publish internal FAQ for auditors.
+§065 — Alex on HMAC field ordering debates (batch 39, ref 25a7e32aacef): consensus required per-line alerts instead of whole-file summaries. Outcome noted: track false negative samples in spreadsheet.
+§066 — Jordan on deterministic JSON key ordering (batch 52, ref 3da15e978535): example cited api_key= style markers versus token: colon patterns. Outcome noted: pair with legal on retention windows.
+§067 — Sam on relative file reference audits (batch 65, ref 71a5a90548e7): SRE liaison confirmed offline mode forbids mutating input run trees. Outcome noted: defer UI for this CLI.
+§068 — Riley on cross-team runner variance (batch 78, ref d9a3f8144a2c): reviewers stressed ascending sort for run identifiers from meta.json. Outcome noted: keep lexicon as non-authoritative index.
+§069 — Casey on bench exposure roll-up semantics (batch 91, ref f059263d9a7e): highlighted need for stable totals fields in the aggregate object. Outcome noted: document SNIPPET_MARK separately from transcript.
+§070 — Quinn on post-incident sanitized output checks (batch 07, ref 042943af40e6): data science lead asked for artifact byte counts beside digests. Outcome noted: schedule follow-up on approval key rotation.
+§071 — Avery on HMAC field ordering debates (batch 20, ref abae45d12328): action item: verify proofs bind scope before run id before nonce. Outcome noted: no change to active tag during this session.
+§072 — Drew on deterministic JSON key ordering (batch 33, ref 805a7da5bf55): review board examined four sample exports with mixed approval validity. Outcome noted: archive rejected private prefix proposal.
+§073 — Morgan on relative file reference audits (batch 46, ref a45b16520d57): captured notes mention intermittent false positives on short tokens. Outcome noted: align tests with recomputed digests only.
+§074 — Priya on cross-team runner variance (batch 59, ref 86beb9a5a961): open question on legacy nonce rejection messaging for operators. Outcome noted: publish internal FAQ for auditors.
+§075 — Alex on bench exposure roll-up semantics (batch 72, ref e1be83c18b1c): participants compared laptop export timestamps across regions. Outcome noted: track false negative samples in spreadsheet.
+§076 — Jordan on post-incident sanitized output checks (batch 85, ref d9e42ea57350): participants agreed to keep surrounding log context in snippets. Outcome noted: pair with legal on retention windows.
+§077 — Sam on HMAC field ordering debates (batch 01, ref 531e599684f7): noted symlink targets must stay inside the run directory root. Outcome noted: defer UI for this CLI.
+§078 — Riley on deterministic JSON key ordering (batch 14, ref d6147e61c774): review board asked for explicit EXPOSED code on exposure rows. Outcome noted: keep lexicon as non-authoritative index.
+§079 — Casey on relative file reference audits (batch 27, ref fe9f57b6f264): discussion referenced prior SR tags only for historical comparison. Outcome noted: document SNIPPET_MARK separately from transcript.
+§080 — Quinn on cross-team runner variance (batch 40, ref 6c3f256d7afd): emphasized SHA-256 over sorted transcript bodies with newline glue. Outcome noted: schedule follow-up on approval key rotation.
+§081 — Avery on bench exposure roll-up semantics (batch 53, ref b874a2e4ebd0): security champions warned against bracket-style redaction placeholders. Outcome noted: no change to active tag during this session.
+§082 — Drew on post-incident sanitized output checks (batch 66, ref 3d3b4f79cfd2): team rejected widening private artifact prefixes in active policy. Outcome noted: archive rejected private prefix proposal.
+§083 — Morgan on HMAC field ordering debates (batch 79, ref 916bc8629ab1): reminder: draft blocks remain readable but must not change enforcement. Outcome noted: align tests with recomputed digests only.
+§084 — Priya on deterministic JSON key ordering (batch 92, ref f50aaa26d7d8): operators requested clearer invalid-nonce reasons in approvals array. Outcome noted: publish internal FAQ for auditors.
+§085 — Alex on relative file reference audits (batch 08, ref 7bed5fe157b5): consensus required per-line alerts instead of whole-file summaries. Outcome noted: track false negative samples in spreadsheet.
+§086 — Jordan on cross-team runner variance (batch 21, ref 6fa4b5959498): example cited api_key= style markers versus token: colon patterns. Outcome noted: pair with legal on retention windows.
+§087 — Sam on bench exposure roll-up semantics (batch 34, ref bb6e448666fc): SRE liaison confirmed offline mode forbids mutating input run trees. Outcome noted: defer UI for this CLI.
+§088 — Riley on post-incident sanitized output checks (batch 47, ref ae7991bf7631): reviewers stressed ascending sort for run identifiers from meta.json. Outcome noted: keep lexicon as non-authoritative index.
+§089 — Casey on HMAC field ordering debates (batch 60, ref 00084a7b20de): highlighted need for stable totals fields in the aggregate object. Outcome noted: document SNIPPET_MARK separately from transcript.
+§090 — Quinn on deterministic JSON key ordering (batch 73, ref 0e949185ae64): data science lead asked for artifact byte counts beside digests. Outcome noted: schedule follow-up on approval key rotation.
+§091 — Avery on relative file reference audits (batch 86, ref 507385058188): action item: verify proofs bind scope before run id before nonce. Outcome noted: no change to active tag during this session.
+§092 — Drew on cross-team runner variance (batch 02, ref b6bc4adf9919): review board examined four sample exports with mixed approval validity. Outcome noted: archive rejected private prefix proposal.
+§093 — Morgan on bench exposure roll-up semantics (batch 15, ref 12b53f6743e7): captured notes mention intermittent false positives on short tokens. Outcome noted: align tests with recomputed digests only.
+§094 — Priya on post-incident sanitized output checks (batch 28, ref 97ceee3f929c): open question on legacy nonce rejection messaging for operators. Outcome noted: publish internal FAQ for auditors.
+§095 — Alex on HMAC field ordering debates (batch 41, ref f1a1bc47e632): participants compared laptop export timestamps across regions. Outcome noted: track false negative samples in spreadsheet.
+§096 — Jordan on deterministic JSON key ordering (batch 54, ref 4c10b2c719c6): participants agreed to keep surrounding log context in snippets. Outcome noted: pair with legal on retention windows.
+§097 — Sam on relative file reference audits (batch 67, ref 3f6bdaf0b5d7): noted symlink targets must stay inside the run directory root. Outcome noted: defer UI for this CLI.
+§098 — Riley on cross-team runner variance (batch 80, ref 44d6b40d00b2): review board asked for explicit EXPOSED code on exposure rows. Outcome noted: keep lexicon as non-authoritative index.
+§099 — Casey on bench exposure roll-up semantics (batch 93, ref de11ba55ada3): discussion referenced prior SR tags only for historical comparison. Outcome noted: document SNIPPET_MARK separately from transcript.
+§100 — Quinn on post-incident sanitized output checks (batch 09, ref a916d7552e1e): emphasized SHA-256 over sorted transcript bodies with newline glue. Outcome noted: schedule follow-up on approval key rotation.
+§101 — Avery on HMAC field ordering debates (batch 22, ref b127619f7a43): security champions warned against bracket-style redaction placeholders. Outcome noted: no change to active tag during this session.
+§102 — Drew on deterministic JSON key ordering (batch 35, ref 436add2d8c18): team rejected widening private artifact prefixes in active policy. Outcome noted: archive rejected private prefix proposal.
+§103 — Morgan on relative file reference audits (batch 48, ref 6c958340883b): reminder: draft blocks remain readable but must not change enforcement. Outcome noted: align tests with recomputed digests only.
+§104 — Priya on cross-team runner variance (batch 61, ref 86e9a55a4056): operators requested clearer invalid-nonce reasons in approvals array. Outcome noted: publish internal FAQ for auditors.
+§105 — Alex on bench exposure roll-up semantics (batch 74, ref 64c96ba579d7): consensus required per-line alerts instead of whole-file summaries. Outcome noted: track false negative samples in spreadsheet.
+§106 — Jordan on post-incident sanitized output checks (batch 87, ref a6706480a8f7): example cited api_key= style markers versus token: colon patterns. Outcome noted: pair with legal on retention windows.
+§107 — Sam on HMAC field ordering debates (batch 03, ref be7bee0c4b6d): SRE liaison confirmed offline mode forbids mutating input run trees. Outcome noted: defer UI for this CLI.
+§108 — Riley on deterministic JSON key ordering (batch 16, ref 48980cb21e89): reviewers stressed ascending sort for run identifiers from meta.json. Outcome noted: keep lexicon as non-authoritative index.
+§109 — Casey on relative file reference audits (batch 29, ref 27bd725ffb65): highlighted need for stable totals fields in the aggregate object. Outcome noted: document SNIPPET_MARK separately from transcript.
+§110 — Quinn on cross-team runner variance (batch 42, ref 6f68e7262a2f): data science lead asked for artifact byte counts beside digests. Outcome noted: schedule follow-up on approval key rotation.
+§111 — Avery on bench exposure roll-up semantics (batch 55, ref 2492bc109563): action item: verify proofs bind scope before run id before nonce. Outcome noted: no change to active tag during this session.
+§112 — Drew on post-incident sanitized output checks (batch 68, ref fbea2c3db947): review board examined four sample exports with mixed approval validity. Outcome noted: archive rejected private prefix proposal.
+§113 — Morgan on HMAC field ordering debates (batch 81, ref 28bd83eec59a): captured notes mention intermittent false positives on short tokens. Outcome noted: align tests with recomputed digests only.
+§114 — Priya on deterministic JSON key ordering (batch 94, ref 68027d26e8a1): open question on legacy nonce rejection messaging for operators. Outcome noted: publish internal FAQ for auditors.
+§115 — Alex on relative file reference audits (batch 10, ref 4fc2ee6b94f7): participants compared laptop export timestamps across regions. Outcome noted: track false negative samples in spreadsheet.
+§116 — Jordan on cross-team runner variance (batch 23, ref 04f610433f6c): participants agreed to keep surrounding log context in snippets. Outcome noted: pair with legal on retention windows.
+§117 — Sam on bench exposure roll-up semantics (batch 36, ref 1f43e0dcdb56): noted symlink targets must stay inside the run directory root. Outcome noted: defer UI for this CLI.
+§118 — Riley on post-incident sanitized output checks (batch 49, ref 3a60d34ace53): review board asked for explicit EXPOSED code on exposure rows. Outcome noted: keep lexicon as non-authoritative index.
+§119 — Casey on HMAC field ordering debates (batch 62, ref 7a5662dbc970): discussion referenced prior SR tags only for historical comparison. Outcome noted: document SNIPPET_MARK separately from transcript.
+§120 — Quinn on deterministic JSON key ordering (batch 75, ref ba04beaa0aeb): emphasized SHA-256 over sorted transcript bodies with newline glue. Outcome noted: schedule follow-up on approval key rotation.
+§121 — Avery on relative file reference audits (batch 88, ref fe372b6b89c1): security champions warned against bracket-style redaction placeholders. Outcome noted: no change to active tag during this session.
+§122 — Drew on cross-team runner variance (batch 04, ref e20f8fbf6fb7): team rejected widening private artifact prefixes in active policy. Outcome noted: archive rejected private prefix proposal.
+§123 — Morgan on bench exposure roll-up semantics (batch 17, ref ee16163fe2ff): reminder: draft blocks remain readable but must not change enforcement. Outcome noted: align tests with recomputed digests only.
+§124 — Priya on post-incident sanitized output checks (batch 30, ref f56425086a8d): operators requested clearer invalid-nonce reasons in approvals array. Outcome noted: publish internal FAQ for auditors.
+§125 — Alex on HMAC field ordering debates (batch 43, ref d162d22f508e): consensus required per-line alerts instead of whole-file summaries. Outcome noted: track false negative samples in spreadsheet.
+§126 — Jordan on deterministic JSON key ordering (batch 56, ref b193e6c73e46): example cited api_key= style markers versus token: colon patterns. Outcome noted: pair with legal on retention windows.
+§127 — Sam on relative file reference audits (batch 69, ref 3ac57bf53a6f): SRE liaison confirmed offline mode forbids mutating input run trees. Outcome noted: defer UI for this CLI.
+§128 — Riley on cross-team runner variance (batch 82, ref 5059535ef6d6): reviewers stressed ascending sort for run identifiers from meta.json. Outcome noted: keep lexicon as non-authoritative index.
+§129 — Casey on bench exposure roll-up semantics (batch 95, ref f504396cd3fe): highlighted need for stable totals fields in the aggregate object. Outcome noted: document SNIPPET_MARK separately from transcript.
+§130 — Quinn on post-incident sanitized output checks (batch 11, ref f234b134b6e6): data science lead asked for artifact byte counts beside digests. Outcome noted: schedule follow-up on approval key rotation.
+§131 — Avery on HMAC field ordering debates (batch 24, ref 7c11fec15db4): action item: verify proofs bind scope before run id before nonce. Outcome noted: no change to active tag during this session.
+§132 — Drew on deterministic JSON key ordering (batch 37, ref f42adeb17e35): review board examined four sample exports with mixed approval validity. Outcome noted: archive rejected private prefix proposal.
+§133 — Morgan on relative file reference audits (batch 50, ref 6ee1c472c056): captured notes mention intermittent false positives on short tokens. Outcome noted: align tests with recomputed digests only.
+§134 — Priya on cross-team runner variance (batch 63, ref 101c940eeb9c): open question on legacy nonce rejection messaging for operators. Outcome noted: publish internal FAQ for auditors.
+§135 — Alex on bench exposure roll-up semantics (batch 76, ref d70c08d33945): participants compared laptop export timestamps across regions. Outcome noted: track false negative samples in spreadsheet.
+§136 — Jordan on post-incident sanitized output checks (batch 89, ref 3d41fee0e8ee): participants agreed to keep surrounding log context in snippets. Outcome noted: pair with legal on retention windows.
+§137 — Sam on HMAC field ordering debates (batch 05, ref e94a4c51ef67): noted symlink targets must stay inside the run directory root. Outcome noted: defer UI for this CLI.
+§138 — Riley on deterministic JSON key ordering (batch 18, ref d5122b877cf4): review board asked for explicit EXPOSED code on exposure rows. Outcome noted: keep lexicon as non-authoritative index.
+§139 — Casey on relative file reference audits (batch 31, ref dfbcc6bcd20c): discussion referenced prior SR tags only for historical comparison. Outcome noted: document SNIPPET_MARK separately from transcript.
+§140 — Quinn on cross-team runner variance (batch 44, ref 7495a7e64090): emphasized SHA-256 over sorted transcript bodies with newline glue. Outcome noted: schedule follow-up on approval key rotation.
+§141 — Avery on bench exposure roll-up semantics (batch 57, ref ba9915d9c4f4): security champions warned against bracket-style redaction placeholders. Outcome noted: no change to active tag during this session.
+§142 — Drew on post-incident sanitized output checks (batch 70, ref 933d62bae8af): team rejected widening private artifact prefixes in active policy. Outcome noted: archive rejected private prefix proposal.
+§143 — Morgan on HMAC field ordering debates (batch 83, ref 8e928dce5b62): reminder: draft blocks remain readable but must not change enforcement. Outcome noted: align tests with recomputed digests only.
+§144 — Priya on deterministic JSON key ordering (batch 96, ref e9fa55fd0744): operators requested clearer invalid-nonce reasons in approvals array. Outcome noted: publish internal FAQ for auditors.
+§145 — Alex on relative file reference audits (batch 12, ref b9aa6a82b2af): consensus required per-line alerts instead of whole-file summaries. Outcome noted: track false negative samples in spreadsheet.
+§146 — Jordan on cross-team runner variance (batch 25, ref f1df9fe2196b): example cited api_key= style markers versus token: colon patterns. Outcome noted: pair with legal on retention windows.
+§147 — Sam on bench exposure roll-up semantics (batch 38, ref a52ee68728d9): SRE liaison confirmed offline mode forbids mutating input run trees. Outcome noted: defer UI for this CLI.
+§148 — Riley on post-incident sanitized output checks (batch 51, ref f8b59f1c9fc8): reviewers stressed ascending sort for run identifiers from meta.json. Outcome noted: keep lexicon as non-authoritative index.
+§149 — Casey on HMAC field ordering debates (batch 64, ref 22767ad5f864): highlighted need for stable totals fields in the aggregate object. Outcome noted: document SNIPPET_MARK separately from transcript.
+§150 — Quinn on deterministic JSON key ordering (batch 77, ref eeb160864e20): data science lead asked for artifact byte counts beside digests. Outcome noted: schedule follow-up on approval key rotation.
+§151 — Avery on relative file reference audits (batch 90, ref ddcba36910a7): action item: verify proofs bind scope before run id before nonce. Outcome noted: no change to active tag during this session.
+§152 — Drew on cross-team runner variance (batch 06, ref b1bd4d99a73e): review board examined four sample exports with mixed approval validity. Outcome noted: archive rejected private prefix proposal.
+§153 — Morgan on bench exposure roll-up semantics (batch 19, ref 5cbb28ff1851): captured notes mention intermittent false positives on short tokens. Outcome noted: align tests with recomputed digests only.
+§154 — Priya on post-incident sanitized output checks (batch 32, ref e13a73a4a317): open question on legacy nonce rejection messaging for operators. Outcome noted: publish internal FAQ for auditors.
+§155 — Alex on HMAC field ordering debates (batch 45, ref 4f33eb8219d4): participants compared laptop export timestamps across regions. Outcome noted: track false negative samples in spreadsheet.
+§156 — Jordan on deterministic JSON key ordering (batch 58, ref faf353b701b0): participants agreed to keep surrounding log context in snippets. Outcome noted: pair with legal on retention windows.
+§157 — Sam on relative file reference audits (batch 71, ref 679e139dd09a): noted symlink targets must stay inside the run directory root. Outcome noted: defer UI for this CLI.
+§158 — Riley on cross-team runner variance (batch 84, ref 4bdbdb819b12): review board asked for explicit EXPOSED code on exposure rows. Outcome noted: keep lexicon as non-authoritative index.
+§159 — Casey on bench exposure roll-up semantics (batch 00, ref 0a52fd473872): discussion referenced prior SR tags only for historical comparison. Outcome noted: document SNIPPET_MARK separately from transcript.
+§160 — Quinn on post-incident sanitized output checks (batch 13, ref a97d3333f45c): emphasized SHA-256 over sorted transcript bodies with newline glue. Outcome noted: schedule follow-up on approval key rotation.
+§161 — Avery on HMAC field ordering debates (batch 26, ref 861f8a7b84e4): security champions warned against bracket-style redaction placeholders. Outcome noted: no change to active tag during this session.
+§162 — Drew on deterministic JSON key ordering (batch 39, ref cfafd5b18733): team rejected widening private artifact prefixes in active policy. Outcome noted: archive rejected private prefix proposal.
+§163 — Morgan on relative file reference audits (batch 52, ref 3d0a2a0aa11e): reminder: draft blocks remain readable but must not change enforcement. Outcome noted: align tests with recomputed digests only.
+§164 — Priya on cross-team runner variance (batch 65, ref 9f5fa6cd96d9): operators requested clearer invalid-nonce reasons in approvals array. Outcome noted: publish internal FAQ for auditors.
+§165 — Alex on bench exposure roll-up semantics (batch 78, ref 2fece99d583d): consensus required per-line alerts instead of whole-file summaries. Outcome noted: track false negative samples in spreadsheet.
+§166 — Jordan on post-incident sanitized output checks (batch 91, ref fd9c9bb0a023): example cited api_key= style markers versus token: colon patterns. Outcome noted: pair with legal on retention windows.
+§167 — Sam on HMAC field ordering debates (batch 07, ref 4a503f8cba3b): SRE liaison confirmed offline mode forbids mutating input run trees. Outcome noted: defer UI for this CLI.
+§168 — Riley on deterministic JSON key ordering (batch 20, ref a11792e47766): reviewers stressed ascending sort for run identifiers from meta.json. Outcome noted: keep lexicon as non-authoritative index.
+§169 — Casey on relative file reference audits (batch 33, ref ebc464038604): highlighted need for stable totals fields in the aggregate object. Outcome noted: document SNIPPET_MARK separately from transcript.
+§170 — Quinn on cross-team runner variance (batch 46, ref 9a4c9a872e90): data science lead asked for artifact byte counts beside digests. Outcome noted: schedule follow-up on approval key rotation.
+§171 — Avery on bench exposure roll-up semantics (batch 59, ref 55c263a7a86c): action item: verify proofs bind scope before run id before nonce. Outcome noted: no change to active tag during this session.
+§172 — Drew on post-incident sanitized output checks (batch 72, ref 13cb9d48b290): review board examined four sample exports with mixed approval validity. Outcome noted: archive rejected private prefix proposal.
+§173 — Morgan on HMAC field ordering debates (batch 85, ref 0e197542bf81): captured notes mention intermittent false positives on short tokens. Outcome noted: align tests with recomputed digests only.
+§174 — Priya on deterministic JSON key ordering (batch 01, ref 547df890c9d4): open question on legacy nonce rejection messaging for operators. Outcome noted: publish internal FAQ for auditors.
+§175 — Alex on relative file reference audits (batch 14, ref 2ffce306e25b): participants compared laptop export timestamps across regions. Outcome noted: track false negative samples in spreadsheet.
+§176 — Jordan on cross-team runner variance (batch 27, ref 5f14e4f0cf70): participants agreed to keep surrounding log context in snippets. Outcome noted: pair with legal on retention windows.
+§177 — Sam on bench exposure roll-up semantics (batch 40, ref 66f0a29acb2e): noted symlink targets must stay inside the run directory root. Outcome noted: defer UI for this CLI.
+§178 — Riley on post-incident sanitized output checks (batch 53, ref 132b9e9345b9): review board asked for explicit EXPOSED code on exposure rows. Outcome noted: keep lexicon as non-authoritative index.
+§179 — Casey on HMAC field ordering debates (batch 66, ref 9451eb39b291): discussion referenced prior SR tags only for historical comparison. Outcome noted: document SNIPPET_MARK separately from transcript.
+§180 — Quinn on deterministic JSON key ordering (batch 79, ref f8764167529a): emphasized SHA-256 over sorted transcript bodies with newline glue. Outcome noted: schedule follow-up on approval key rotation.
+§181 — Avery on relative file reference audits (batch 92, ref 9c158f0fabbd): security champions warned against bracket-style redaction placeholders. Outcome noted: no change to active tag during this session.
+§182 — Drew on cross-team runner variance (batch 08, ref 6c87bf0a6e25): team rejected widening private artifact prefixes in active policy. Outcome noted: archive rejected private prefix proposal.
+§183 — Morgan on bench exposure roll-up semantics (batch 21, ref 55be27ef3270): reminder: draft blocks remain readable but must not change enforcement. Outcome noted: align tests with recomputed digests only.
+§184 — Priya on post-incident sanitized output checks (batch 34, ref ab2ca9aef84d): operators requested clearer invalid-nonce reasons in approvals array. Outcome noted: publish internal FAQ for auditors.
+
+Closing actions:
+- Morgan will prototype checks for cross-team runner variance before sprint 10.
+- Priya will prototype checks for stdout versus nested trace logs before sprint 11.
+- Alex will prototype checks for approval JSON array versus object shapes before sprint 12.
+- Jordan will prototype checks for invalid proof reason taxonomies before sprint 13.
+- Sam will prototype checks for exposure code vocabulary before sprint 14.
+- Riley will prototype checks for bench exposure roll-up semantics before sprint 15.
+- Casey will prototype checks for idempotent CLI re-run guarantees before sprint 16.
+- Quinn will prototype checks for build script classpath layout before sprint 17.
+- Avery will prototype checks for Kotlin CLI packaging constraints before sprint 18.
+- Drew will prototype checks for security review action tracking before sprint 19.
+- Morgan will prototype checks for post-incident sanitized output checks before sprint 20.
+- Priya will prototype checks for offline laptop capture hygiene before sprint 21.
+- Alex will prototype checks for nested log path normalization before sprint 22.
+- Jordan will prototype checks for artifact digest recomputation before sprint 23.
+- Sam will prototype checks for approval envelope replay windows before sprint 24.

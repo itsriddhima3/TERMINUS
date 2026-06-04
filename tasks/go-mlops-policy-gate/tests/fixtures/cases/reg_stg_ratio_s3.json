@@ -1,0 +1,12 @@
+{
+  "bench_id": "reg_stg_ratio_s3",
+  "header": {
+    "kind": "regression_report",
+    "tier": "staging"
+  },
+  "metrics": {
+    "rmse": 11.08,
+    "baseline_rmse": 10.0,
+    "mae_ratio": 1.02
+  }
+}

@@ -1,0 +1,13 @@
+--- a/cli/src/ingest/op_emit_z.cpp
++++ b/cli/src/ingest/op_emit_z.cpp
+@@ -20,8 +20,8 @@
+ 
+ std::string emit_csv_row(const nlohmann::json& row) {
+   std::ostringstream o;
+-  o << esc(row.value("title", "")) << ','
+-    << esc(row.value("collection_id", "")) << ','
++  o << esc(row.value("collection_id", "")) << ','
++    << esc(row.value("title", "")) << ','
+     << esc(row.value("date_span", "")) << ','
+     << esc(row.value("creator_primary", "")) << ','
+     << esc(row.value("subject_headings", "")) << ','

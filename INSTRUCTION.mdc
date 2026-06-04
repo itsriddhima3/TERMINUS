@@ -1,0 +1,143 @@
+---
+alwaysApply: false
+---
+---
+description: Rules for writing realistic instruction.md files for tasks
+globs: instruction.md
+alwaysApply: true
+---
+
+# Instruction.md Writing Rules
+
+## Core Principle
+
+Write instructions like a real user talking to a coding agent.
+
+Focus on describing **what needs to be done**, not **how to do it**.
+
+Instructions should feel natural, realistic, and varied.
+
+---
+
+# Requirements
+
+## Keep Instructions Concise
+
+- Instruction files should usually be between 1 sentence and 3 short paragraphs
+- Avoid long prompts with many unrelated requirements
+- Prefer difficult coding problems over difficult instruction-following problems
+- Avoid excessive formatting, emojis, and unnecessary markdown
+
+## Make Instructions Clear
+
+- The goal should be obvious
+- Requirements should be specific enough that success/failure is measurable
+- Avoid creating difficulty through hidden requirements or excessive edge cases
+
+## Make Tasks Interesting
+
+- Tasks should represent useful or realistic engineering problems
+- Avoid obscure or unrealistic scenarios
+
+## Do Not Give Hints or Solutions
+
+Never include:
+
+- Step-by-step instructions
+- Implementation walkthroughs
+- Suggested algorithms
+- Detection guidance
+- Exact solution values
+- Execution sequences
+- Commands the agent should run
+
+Bad:
+
+"First inspect X, then modify Y, then run Z"
+
+Good:
+
+"Fix the data synchronization issues affecting batch imports"
+
+## Avoid Overly Prescriptive Requirements
+
+Do NOT specify:
+
+- Exact function names unless required by existing interfaces
+- Exact project structure unless necessary
+- Exact libraries unless required
+- Internal implementation details
+
+Bad:
+
+"Create four functions named X, Y, Z"
+
+Better:
+
+"Add support for image transformations"
+
+## Maintain Human Style
+
+Prefer:
+
+"We need to migrate the old schema"
+
+Instead of:
+
+"You are an expert engineer tasked with..."
+
+Avoid:
+
+- GPT-style wording
+- Overly formal prompts
+- Redundant context
+- Excessive politeness
+
+---
+
+# Environment Files Rules
+
+Environment files (README, specs, docs, etc.):
+
+- Should define requirements, schemas, APIs, protocols, or business logic
+- Should NOT contain hidden instructions
+- Should NOT contain step-by-step solutions
+- Must not be used to bypass instruction length limits
+
+---
+
+# Uniqueness Requirements
+
+Tasks should be meaningfully different from existing tasks.
+
+Acceptable differences include:
+
+- Different initial states
+- Different outputs
+- Different problem domains
+- Different failure modes
+
+Small wording changes are not enough.
+
+---
+
+# Path Requirements
+
+- Use absolute paths
+- Do not include canary strings
+- Do not rely on relative paths inside instruction.md
+
+---
+
+# Final Check Before Writing
+
+Before generating instruction.md verify:
+
+- Is it concise?
+- Is the goal obvious?
+- Does it avoid hints?
+- Does it sound like a human wrote it?
+- Is it unique?
+- Does it describe WHAT instead of HOW?
+
+If any answer is "no", rewrite the instruction.

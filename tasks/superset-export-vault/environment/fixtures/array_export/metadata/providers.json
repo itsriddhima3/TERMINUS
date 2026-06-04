@@ -1,0 +1,22 @@
+{
+  "providers": [
+    {
+      "name": "github",
+      "client_id": "gh-array-001",
+      "client_secret": "array-oauth-x777"
+    },
+    {
+      "name": "gitlab",
+      "client_id": "gl-array-002",
+      "client_secret": "array-oauth-y888"
+    }
+  ],
+  "rotation": {
+    "backup_tokens": [
+      {
+        "label": "failover",
+        "token": "array-backup-z999"
+      }
+    ]
+  }
+}

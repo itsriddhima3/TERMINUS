@@ -1,0 +1,21 @@
+Agent reads /app/docs/bench_precedence.md or handbook sections indexed there before changing parse, link, or report behavior, +2
+Agent reads /app/docs/csv_layout.md before editing CSV export column order in the parse stage, +2
+Agent reads /app/docs/api_contract.md or probes the port 3000 authority service before changing link or place resolution logic, +2
+Agent runs /app/bin/arcctl parse ARC-2024-Q2 and inspects /app/var/records.jsonl and /app/var/records.csv before repairing ingest code, +3
+Agent repairs scan_controlaccess in /app/cli/src/ingest/op_scan_x.cpp so nested personal names in controlaccess are retained in parsed output, +5
+Agent repairs format_unitdate in /app/cli/src/ingest/op_date_y.cpp so unitdate spans preserve century digits per active handbook date wire rules, +5
+Agent repairs emit_csv_row in /app/cli/src/ingest/op_emit_z.cpp so records.csv column order matches /app/docs/csv_layout.md, +5
+Agent starts /app/scripts/start-api.sh and runs /app/bin/arcctl link ARC-2024-Q2 before diagnosing authority matching defects, +3
+Agent repairs pick_creator_auth in /app/cli/src/link/op_pick_c.cpp so corporate bodies precede resolvable personal names in dual-creator controlaccess blocks, +5
+Agent repairs strip_subject_head in /app/cli/src/link/op_strip_b.cpp so LCSH lookup uses the stem before the first double hyphen, +5
+Agent repairs pick_lookup_band in /app/api/server.js when direct tier-two place probes succeed but linked output still misses approximate geogname headings, +5
+Agent repairs format_accession_candidate and apply_accession_precedence in /app/cli/src/policy/op_acc_d.cpp and /app/cli/src/policy/op_prec_e.cpp so MS collections keep MS- hyphen accession form over bench_policy.toml overrides, +5
+Agent repairs filter_report_queue in /app/cli/src/report/op_queue_f.cpp so /app/output/compliance.json retains every linked collection and optional geographic or subject headings do not false-flag fully linked rows, +5
+Agent rebuilds /app/bin/arcctl via /app/scripts/build-cli.sh after C++ or API source edits, +3
+Agent re-runs parse, link, and report for ARC-2024-Q2 and inspects /app/output/compliance.json summary and /app/output/unresolved.jsonl before finishing, +3
+Agent treats /app/cli/app/decoy/DateFold.cpp or withdrawn handbook date folding as the primary century fix instead of format_unitdate, -3
+Agent treats /app/cli/app/decoy/SubjectStub.cpp or /app/cli/app/decoy/LinkStub.cpp as the authoritative LCSH stem or creator precedence repair, -3
+Agent patches only C++ place query tier parameters while leaving pick_lookup_band hardcoded in /app/api/server.js, -3
+Agent edits /app/config/bench_policy.toml as the sole accession repair without changing op_acc_d or op_prec_e policy code, -3
+Agent manually writes or edits /app/output/linked.json or /app/output/compliance.json without executing arcctl link and report, -5
+Agent repeats the same failing arcctl link or report outcome at least three times without changing ingest, link, policy, or report source, -2

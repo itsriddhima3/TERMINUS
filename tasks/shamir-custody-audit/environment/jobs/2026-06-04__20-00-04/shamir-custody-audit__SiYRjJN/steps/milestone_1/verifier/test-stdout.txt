@@ -1,0 +1,92 @@
+============================= test session starts ==============================
+platform linux -- Python 3.13.9, pytest-8.4.1, pluggy-1.6.0
+rootdir: /tests
+plugins: json-ctrf-0.3.5
+collected 10 items
+
+../tests/test_m1.py .....FF..F                                           [100%]
+
+=================================== FAILURES ===================================
+_______________ TestMilestone1.test_m1_approvals_linked_nonzero ________________
+
+self = <test_m1.TestMilestone1 object at 0x7bc50ce24380>
+
+    def test_m1_approvals_linked_nonzero(self):
+        """Sessions with approvals in the database report approvals_linked > 0."""
+        _run_audit()
+        by_sess = _by_session(_load_report())
+        for sid in ("sess-alpha", "sess-beta", "sess-gamma", "sess-delta"):
+            linked = by_sess[sid]["approvals_linked"]
+>           assert linked > 0, (
+                f"{sid}: approvals_linked={linked}, expected > 0 — "
+                "check that approval records are joined on approved_slot=slot_id"
+            )
+E           AssertionError: sess-alpha: approvals_linked=0, expected > 0 — check that approval records are joined on approved_slot=slot_id
+E           assert 0 > 0
+
+/tests/test_m1.py:87: AssertionError
+________________ TestMilestone1.test_m1_approvals_linked_exact _________________
+
+self = <test_m1.TestMilestone1 object at 0x7bc50ce24c00>
+
+    def test_m1_approvals_linked_exact(self):
+        """approvals_linked counts match the actual approval records per session."""
+        _run_audit()
+        by_sess = _by_session(_load_report())
+        for sid, expected in EXPECTED_APPROVALS.items():
+            got = by_sess[sid]["approvals_linked"]
+>           assert got == expected, f"{sid}: approvals_linked={got}, want {expected}"
+E           AssertionError: sess-alpha: approvals_linked=0, want 3
+E           assert 0 == 3
+
+/tests/test_m1.py:98: AssertionError
+_______ TestMilestone1.test_m1_approvals_linked_matches_direct_db_query ________
+
+self = <test_m1.TestMilestone1 object at 0x7bc50cf7b2f0>
+
+    def test_m1_approvals_linked_matches_direct_db_query(self):
+        """approvals_linked matches a direct SQL query joining approved_slot to slot_id.
+    
+        The buggy implementation links approvals via approved_by = custodian_id (wrong column),
+        which yields 0 per session.  The correct join is approved_slot = slot_id.
+        This test bypasses the tool entirely and verifies counts against the database.
+        """
+        _run_audit()
+        by_sess = _by_session(_load_report())
+    
+        conn = sqlite3.connect(DB)
+        for sid in EXPECTED_SESSIONS:
+            # Ground truth: count distinct slots that have at least one approval
+            # referencing them through the correct FK column (approved_slot = slot_id).
+            expected = conn.execute(
+                """
+                SELECT COUNT(DISTINCT sr.slot_id)
+                FROM slot_registry sr
+                JOIN ceremony_approvals ap ON ap.approved_slot = sr.slot_id
+                WHERE sr.session_id = ?
+                """,
+                (sid,),
+            ).fetchone()[0]
+            reported = by_sess[sid]["approvals_linked"]
+>           assert reported == expected, (
+                f"{sid}: approvals_linked={reported} but correct SQL join gives {expected}; "
+                "check that approvals are linked via ap.approved_slot = sr.slot_id, "
+                "not via ap.approved_by = sr.custodian_id"
+            )
+E           AssertionError: sess-delta: approvals_linked=0 but correct SQL join gives 2; check that approvals are linked via ap.approved_slot = sr.slot_id, not via ap.approved_by = sr.custodian_id
+E           assert 0 == 2
+
+/tests/test_m1.py:152: AssertionError
+==================================== PASSES ====================================
+=========================== short test summary info ============================
+PASSED ../tests/test_m1.py::TestMilestone1::test_m1_audit_exits_zero
+PASSED ../tests/test_m1.py::TestMilestone1::test_m1_report_exists
+PASSED ../tests/test_m1.py::TestMilestone1::test_m1_report_schema
+PASSED ../tests/test_m1.py::TestMilestone1::test_m1_all_sessions_present
+PASSED ../tests/test_m1.py::TestMilestone1::test_m1_slots_loaded_correct
+PASSED ../tests/test_m1.py::TestMilestone1::test_m1_required_fields_present
+PASSED ../tests/test_m1.py::TestMilestone1::test_m1_policy_violations_is_list
+FAILED ../tests/test_m1.py::TestMilestone1::test_m1_approvals_linked_nonzero
+FAILED ../tests/test_m1.py::TestMilestone1::test_m1_approvals_linked_exact - ...
+FAILED ../tests/test_m1.py::TestMilestone1::test_m1_approvals_linked_matches_direct_db_query
+========================= 3 failed, 7 passed in 0.40s ==========================

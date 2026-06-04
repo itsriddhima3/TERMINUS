@@ -1,0 +1,20 @@
+{
+    "name": "internal/overlay-inspect",
+    "type": "project",
+    "description": "Internal CLI for overlay inspection workflows.",
+    "license": "proprietary",
+    "require": {
+        "php": ">=8.2",
+        "ext-pdo_sqlite": "*",
+        "ext-json": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "OverlayInspect\\": "loop/",
+            "OverlayInspect\\Imaging\\": "imaging/",
+            "OverlayInspect\\Game\\": "game/",
+            "OverlayInspect\\Persistence\\": "persistence/"
+        },
+        "classmap": ["lifecycle/"]
+    }
+}

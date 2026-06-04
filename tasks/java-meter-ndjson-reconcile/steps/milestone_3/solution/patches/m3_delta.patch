@@ -1,0 +1,17 @@
+--- a/cli/src/main/java/meter/recon/DeltaCheck.java
++++ b/cli/src/main/java/meter/recon/DeltaCheck.java
+@@ -20,11 +20,11 @@
+       List<Map<String, Object>> rows = entry.getValue();
+       rows.sort(Comparator.comparing(r -> (String) r.get("reading_at")));
+       for (int i = 1; i < rows.size(); i++) {
+-        double prev = ((Number) rows.get(i - 1).get("register_kwh")).doubleValue();
+-        double cur = ((Number) rows.get(i).get("register_kwh")).doubleValue();
++        double prev = ((Number) rows.get(i - 1).get("corrected_register_kwh")).doubleValue();
++        double cur = ((Number) rows.get(i).get("corrected_register_kwh")).doubleValue();
+         double delta = cur - prev;
+         double limit = ((Number) rows.get(i).get("max_delta_kwh_per_interval")).doubleValue();
+-        if (limit > 0 && delta > limit + 10.0) {
++        if (limit > 0 && delta > limit + 0.001) {
+           Map<String, Object> ev = new LinkedHashMap<>();
+           ev.put("device_id", entry.getKey());
+           ev.put("reading_at", rows.get(i).get("reading_at"));

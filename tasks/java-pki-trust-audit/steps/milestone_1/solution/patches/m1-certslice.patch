@@ -1,0 +1,37 @@
+--- a/cli/src/main/java/trust/parse/CertSlice.java
++++ b/cli/src/main/java/trust/parse/CertSlice.java
+@@ -79,6 +79,34 @@
+     return sb.toString();
+   }
+ 
++  public String keyIdHex(String oid) {
++    byte[] ext = cert.getExtensionValue(oid);
++    if (ext == null) {
++      return null;
++    }
++    byte[] inner = unwrapOctet(ext);
++    if (inner == null) {
++      return null;
++    }
++    for (int i = 0; i + 22 <= inner.length; i++) {
++      if (inner[i] == 0x04 && inner[i + 1] == 0x14) {
++        return hex20(inner, i + 2);
++      }
++    }
++    if (inner.length >= 20) {
++      return hex20(inner, inner.length - 20);
++    }
++    return null;
++  }
++
++  private static String hex20(byte[] buf, int off) {
++    StringBuilder sb = new StringBuilder(40);
++    for (int i = off; i < off + 20; i++) {
++      sb.append(String.format("%02x", buf[i]));
++    }
++    return sb.toString();
++  }
++
+   private static byte[] unwrapOctet(byte[] ext) {
+     if (ext.length < 2 || ext[0] != 0x04) {
+       return ext;

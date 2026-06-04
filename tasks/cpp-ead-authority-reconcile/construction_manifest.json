@@ -1,0 +1,202 @@
+{
+  "symbol_table": [
+    {
+      "path": "cli/src/ingest/op_scan_x.cpp",
+      "symbol": "scan_controlaccess",
+      "kind": "function",
+      "signature": "void scan_controlaccess(xmlNodePtr root, EadFields& out)",
+      "purpose": "Walk controlaccess names and subjects from EAD root."
+    },
+    {
+      "path": "cli/src/ingest/op_date_y.cpp",
+      "symbol": "format_unitdate",
+      "kind": "function",
+      "signature": "std::string format_unitdate(const std::string& raw)",
+      "purpose": "Normalize unitdate slash range to hyphen span."
+    },
+    {
+      "path": "cli/src/ingest/op_emit_z.cpp",
+      "symbol": "emit_csv_row",
+      "kind": "function",
+      "signature": "std::string emit_csv_row(const nlohmann::json& row)",
+      "purpose": "Serialize one CSV data row for parse output."
+    },
+    {
+      "path": "api/server.js",
+      "symbol": "pick_lookup_band",
+      "kind": "function",
+      "signature": "function pick_lookup_band(query)",
+      "purpose": "Select authority lookup band for geographic resolve requests."
+    },
+    {
+      "path": "cli/src/link/op_strip_b.cpp",
+      "symbol": "strip_subject_head",
+      "kind": "function",
+      "signature": "std::string strip_subject_head(const std::string& raw)",
+      "purpose": "Reduce LCSH string to lookup stem."
+    },
+    {
+      "path": "cli/src/link/op_pick_c.cpp",
+      "symbol": "pick_creator_auth",
+      "kind": "function",
+      "signature": "std::string pick_creator_auth(const std::vector<std::pair<std::string, std::string>>& names)",
+      "purpose": "Choose one creator authority from controlaccess names."
+    },
+    {
+      "path": "cli/src/policy/op_acc_d.cpp",
+      "symbol": "format_accession_candidate",
+      "kind": "function",
+      "signature": "std::string format_accession_candidate(const std::string& collection_id)",
+      "purpose": "Derive accession candidate string for validation."
+    },
+    {
+      "path": "cli/src/policy/op_prec_e.cpp",
+      "symbol": "apply_accession_precedence",
+      "kind": "function",
+      "signature": "std::string apply_accession_precedence(const std::string& collection_id)",
+      "purpose": "Merge handbook and bench accession precedence."
+    },
+    {
+      "path": "cli/src/report/op_queue_f.cpp",
+      "symbol": "filter_report_queue",
+      "kind": "function",
+      "signature": "nlohmann::json filter_report_queue(const nlohmann::json& rows)",
+      "purpose": "Select rows included in compliance bundle."
+    }
+  ],
+  "flipping_point_contract": {
+    "locations": [
+      {
+        "id": "A",
+        "path": "cli/src/ingest/op_scan_x.cpp",
+        "controls_tests": [
+          "test_m1_ua_nested_persname_present",
+          "test_m1_jsonl_exists_three_records",
+          "test_m1_csv_first_column_collection_id",
+          "test_m1_ua_jsonl_dual_creators_corp_before_pers"
+        ]
+      },
+      {
+        "id": "B",
+        "path": "cli/src/ingest/op_date_y.cpp",
+        "controls_tests": [
+          "test_m1_ua_date_span_century",
+          "test_m1_ms_date_span",
+          "test_m1_ph_date_span"
+        ]
+      },
+      {
+        "id": "C",
+        "path": "cli/src/link/op_pick_c.cpp",
+        "controls_tests": [
+          "test_m2_ua_corporate_creator_wins",
+          "test_m2_ms_creator",
+          "test_m2_ph_creator",
+          "test_m2_ua_corporate_precedence_over_resolvable_personal"
+        ]
+      },
+      {
+        "id": "D",
+        "path": "api/server.js",
+        "controls_tests": [
+          "test_m2_ua_approx_place_tier2",
+          "test_m2_ph_place_ann_arbor",
+          "test_m2_place_api_honors_tier_two_query"
+        ]
+      },
+      {
+        "id": "E",
+        "path": "cli/src/report/op_queue_f.cpp",
+        "controls_tests": [
+          "test_m3_compliance_records_count",
+          "test_m3_summary_fully_linked_three",
+          "test_m3_unresolved_jsonl_empty",
+          "test_m3_compliance_records_mirror_linked_auth_ids",
+          "test_m3_ms_optional_geographic_still_fully_linked"
+        ]
+      },
+      {
+        "id": "F",
+        "path": "cli/src/ingest/op_emit_z.cpp",
+        "controls_tests": [
+          "test_m1_ua_csv_title_second_column",
+          "test_m1_csv_header_layout"
+        ]
+      },
+      {
+        "id": "G",
+        "path": "cli/src/link/op_strip_b.cpp",
+        "controls_tests": [
+          "test_m2_ua_subject_stem",
+          "test_m2_ms_subject_stem",
+          "test_m2_batch_accession_and_subjects_reconcile"
+        ]
+      },
+      {
+        "id": "H",
+        "path": "cli/src/policy/op_acc_d.cpp",
+        "controls_tests": [
+          "test_m2_ms_accession_ms_prefix",
+          "test_m2_batch_accession_and_subjects_reconcile",
+          "test_m3_ms_accession_in_compliance"
+        ]
+      },
+      {
+        "id": "I",
+        "path": "cli/src/policy/op_prec_e.cpp",
+        "controls_tests": [
+          "test_m2_batch_accession_and_subjects_reconcile",
+          "test_m3_ms_accession_in_compliance"
+        ]
+      }
+    ],
+    "no_single_location_flips_majority": true,
+    "concentration_cap": 0.5
+  },
+  "decoy_manifest": [
+    {
+      "path": "decoy/XmlStub.cpp",
+      "kind": "helper",
+      "rhymes_with": "scan_controlaccess",
+      "non_fix_purpose": "Validates EAD element shape for logging only."
+    },
+    {
+      "path": "decoy/PolicyStub.cpp",
+      "kind": "helper",
+      "rhymes_with": "filter_report_queue",
+      "non_fix_purpose": "Counts policy rows for audit summaries without queue filtering."
+    },
+    {
+      "path": "decoy/DateFold.cpp",
+      "kind": "helper",
+      "rhymes_with": "format_unitdate",
+      "non_fix_purpose": "Implements withdrawn two-digit century fold from handbook 11.9."
+    },
+    {
+      "path": "decoy/SubjectStub.cpp",
+      "kind": "helper",
+      "rhymes_with": "strip_subject_head",
+      "non_fix_purpose": "Strips LCSH at comma instead of double hyphen."
+    },
+    {
+      "path": "decoy/TierStub.cpp",
+      "kind": "helper",
+      "rhymes_with": "pick_lookup_band",
+      "non_fix_purpose": "Always selects tier one regardless of approx flag."
+    },
+    {
+      "path": "decoy/LinkStub.cpp",
+      "kind": "helper",
+      "rhymes_with": "pick_creator_auth",
+      "non_fix_purpose": "Personal-first creator pick mirroring pre-2019 worksheets."
+    }
+  ],
+  "code_forbidden_tokens": [
+    "bench", "arcctl", "cli", "ead", "finding", "parse", "records", "jsonl", "csv",
+    "batch", "collections", "link", "linked", "report", "compliance", "unresolved",
+    "nested", "personal", "names", "controlaccess", "century", "unitdate", "columns",
+    "layout", "handbook", "precedence", "authority", "corporate", "subject", "headings",
+    "approximate", "place", "fuzzy", "tier", "manuscript", "accession", "university",
+    "archive", "express", "xml", "creator", "collection", "fully", "linked"
+  ]
+}

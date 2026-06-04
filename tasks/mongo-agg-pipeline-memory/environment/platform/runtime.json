@@ -1,0 +1,5 @@
+{
+  "platform": "terminal-bench-3",
+  "edition": 2,
+  "db_engine": "mongodb-7.0"
+}

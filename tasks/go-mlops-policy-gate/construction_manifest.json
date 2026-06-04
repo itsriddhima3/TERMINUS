@@ -1,0 +1,102 @@
+{
+  "symbol_table": [
+    {
+      "path": "bindlane/ingest.go",
+      "symbol": "op_bind",
+      "kind": "function",
+      "signature": "func op_bind(hdr map[string]string) (fam int, err error)",
+      "purpose": "Maps report header kind strings to internal family enum for downstream annex selection."
+    },
+    {
+      "path": "threshlane/resolve.go",
+      "symbol": "phase_t2",
+      "kind": "function",
+      "signature": "func phase_t2(fam int, tier string, m map[string]float64, annex string) (bands BandSet, err error)",
+      "purpose": "Loads threshold bands from annex tables with precedence and tier multipliers."
+    },
+    {
+      "path": "emitlane/emit.go",
+      "symbol": "step_k7",
+      "kind": "function",
+      "signature": "func step_k7(b BandSet, m map[string]float64, meta map[string]string) (VerdictRow, error)",
+      "purpose": "Computes verdict label, risk_score, cited_rules, and reasons from resolved bands."
+    }
+  ],
+  "flipping_point_contract": {
+    "locations": [
+      {
+        "id": "A",
+        "path": "bindlane/ingest.go",
+        "controls_tests": [
+          "test_cls_clean_a1_pass",
+          "test_emb_lane_e3_pass",
+          "test_hidden_h3_pass",
+          "test_cls_f1_band_t5",
+          "test_all_matrix_keys_present"
+        ]
+      },
+      {
+        "id": "B",
+        "path": "threshlane/resolve.go",
+        "controls_tests": [
+          "test_cls_drift_b4_warn",
+          "test_reg_exp_c2_warn",
+          "test_reg_core_d1_pass",
+          "test_hidden_h1_fail",
+          "test_reg_mae_warn_j6",
+          "test_reg_stg_ratio_s3",
+          "test_cls_drift_cap_u7",
+          "test_reg_exp_narrow_n3"
+        ]
+      },
+      {
+        "id": "C",
+        "path": "emitlane/emit.go",
+        "controls_tests": [
+          "test_emb_prod_f5_fail",
+          "test_mix_g7_cited_rules",
+          "test_hidden_h2_risk_cap",
+          "test_reg_dual_slot_m8",
+          "test_emb_ndcg_only_p4",
+          "test_emb_stg_warn_q1",
+          "test_schema_version"
+        ]
+      }
+    ],
+    "no_single_location_flips_majority": true,
+    "concentration_cap": 0.5
+  },
+  "decoy_manifest": [
+    {
+      "path": "decoy/q2n/reader.go",
+      "kind": "module",
+      "rhymes_with": "phase_t2",
+      "non_fix_purpose": "Reads archived markdown for display-only quota hints; never invoked on eval path."
+    },
+    {
+      "path": "decoy/n7f/mdscan.go",
+      "kind": "helper",
+      "rhymes_with": "op_bind",
+      "non_fix_purpose": "Tokenizes runbook headings for probe script without binding families."
+    },
+    {
+      "path": "hub/r4v/lookup.go",
+      "kind": "module",
+      "rhymes_with": "phase_t2",
+      "non_fix_purpose": "Wrong-priority annex lookup used only by deprecated CLI flag."
+    }
+  ],
+  "code_forbidden_tokens": [
+    "deployment", "gate", "runner", "scoring", "training", "submission", "bundles",
+    "operations", "compendium", "nightlies", "platform", "reviewers", "classification",
+    "accuracy", "failures", "experimental", "tier", "regression", "submissions",
+    "embedding", "lane", "reports", "ceilings", "summary", "annex", "pointers",
+    "bench", "audit", "rebuild", "output", "verdicts", "matrix", "metric", "slots",
+    "normative", "bands", "cross", "exceptions", "vector", "schema", "cases",
+    "verdict", "pass", "warn", "fail", "risk", "score", "cited", "rules", "reasons",
+    "calibration", "baseline", "ratio", "production", "staging", "tolerance",
+    "reviewers", "dispute", "drift", "downgrade", "headlines", "inherit", "pointers",
+    "runner", "gatectl", "bench_audit", "bench_verdicts", "bench_matrix", "ops_runbook",
+    "bench_precedence"
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "workloads": {
+    "WK-SPINE-EMEA": {
+      "spine_collection": "events",
+      "filter_region": "EMEA",
+      "filter_event_type": "purchase"
+    }
+  }
+}

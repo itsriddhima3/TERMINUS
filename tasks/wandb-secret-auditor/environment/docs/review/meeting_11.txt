@@ -1,0 +1,210 @@
+Security review transcript — working session 11
+Facilitator notes: this appendix is historical color only; enforcement follows the ACTIVE block elsewhere in the corpus.
+
+Agenda highlights:
+- Review offline export 11 anomalies
+- Compare redaction operator strings against the lexicon index
+- Capture open risks for deterministic reporting
+
+Discussion record:
+§001 — Sam on redaction span preservation (batch 41, ref 53560612a995): SRE liaison confirmed offline mode forbids mutating input run trees. Outcome noted: track false negative samples in spreadsheet.
+§002 — Riley on operator snippet context windows (batch 54, ref a2685ee3c413): reviewers stressed ascending sort for run identifiers from meta.json. Outcome noted: pair with legal on retention windows.
+§003 — Casey on private artifact rejection rationale (batch 67, ref dfa7f1019148): highlighted need for stable totals fields in the aggregate object. Outcome noted: defer UI for this CLI.
+§004 — Quinn on approval JSON array versus object shapes (batch 80, ref 6b762aa57b9f): data science lead asked for artifact byte counts beside digests. Outcome noted: keep lexicon as non-authoritative index.
+§005 — Avery on build script classpath layout (batch 93, ref e0a7d30f2f48): action item: verify proofs bind scope before run id before nonce. Outcome noted: document SNIPPET_MARK separately from transcript.
+§006 — Drew on nested log path normalization (batch 09, ref c1a4b7469c73): review board examined four sample exports with mixed approval validity. Outcome noted: schedule follow-up on approval key rotation.
+§007 — Morgan on redaction span preservation (batch 22, ref a637480308c3): captured notes mention intermittent false positives on short tokens. Outcome noted: no change to active tag during this session.
+§008 — Priya on operator snippet context windows (batch 35, ref fe43c8929818): open question on legacy nonce rejection messaging for operators. Outcome noted: archive rejected private prefix proposal.
+§009 — Alex on private artifact rejection rationale (batch 48, ref 55323c998219): participants compared laptop export timestamps across regions. Outcome noted: align tests with recomputed digests only.
+§010 — Jordan on approval JSON array versus object shapes (batch 61, ref 3807cfc72fcc): participants agreed to keep surrounding log context in snippets. Outcome noted: publish internal FAQ for auditors.
+§011 — Sam on build script classpath layout (batch 74, ref e3a546894440): noted symlink targets must stay inside the run directory root. Outcome noted: track false negative samples in spreadsheet.
+§012 — Riley on nested log path normalization (batch 87, ref f337165e1bd8): review board asked for explicit EXPOSED code on exposure rows. Outcome noted: pair with legal on retention windows.
+§013 — Casey on redaction span preservation (batch 03, ref dbf6c3443843): discussion referenced prior SR tags only for historical comparison. Outcome noted: defer UI for this CLI.
+§014 — Quinn on operator snippet context windows (batch 16, ref f5f650328847): emphasized SHA-256 over sorted transcript bodies with newline glue. Outcome noted: keep lexicon as non-authoritative index.
+§015 — Avery on private artifact rejection rationale (batch 29, ref 6eba5d383498): security champions warned against bracket-style redaction placeholders. Outcome noted: document SNIPPET_MARK separately from transcript.
+§016 — Drew on approval JSON array versus object shapes (batch 42, ref f7fbc852d4c5): team rejected widening private artifact prefixes in active policy. Outcome noted: schedule follow-up on approval key rotation.
+§017 — Morgan on build script classpath layout (batch 55, ref bb879c2e6399): reminder: draft blocks remain readable but must not change enforcement. Outcome noted: no change to active tag during this session.
+§018 — Priya on nested log path normalization (batch 68, ref 63797be2790f): operators requested clearer invalid-nonce reasons in approvals array. Outcome noted: archive rejected private prefix proposal.
+§019 — Alex on redaction span preservation (batch 81, ref 7ccda8e3e16b): consensus required per-line alerts instead of whole-file summaries. Outcome noted: align tests with recomputed digests only.
+§020 — Jordan on operator snippet context windows (batch 94, ref ad5ddf6f17f5): example cited api_key= style markers versus token: colon patterns. Outcome noted: publish internal FAQ for auditors.
+§021 — Sam on private artifact rejection rationale (batch 10, ref c882ac516aa5): SRE liaison confirmed offline mode forbids mutating input run trees. Outcome noted: track false negative samples in spreadsheet.
+§022 — Riley on approval JSON array versus object shapes (batch 23, ref ed495d9ff243): reviewers stressed ascending sort for run identifiers from meta.json. Outcome noted: pair with legal on retention windows.
+§023 — Casey on build script classpath layout (batch 36, ref ede057ec0be1): highlighted need for stable totals fields in the aggregate object. Outcome noted: defer UI for this CLI.
+§024 — Quinn on nested log path normalization (batch 49, ref 57ff3a951322): data science lead asked for artifact byte counts beside digests. Outcome noted: keep lexicon as non-authoritative index.
+§025 — Avery on redaction span preservation (batch 62, ref 4725d480739c): action item: verify proofs bind scope before run id before nonce. Outcome noted: document SNIPPET_MARK separately from transcript.
+§026 — Drew on operator snippet context windows (batch 75, ref eb6f0c2bed2f): review board examined four sample exports with mixed approval validity. Outcome noted: schedule follow-up on approval key rotation.
+§027 — Morgan on private artifact rejection rationale (batch 88, ref 2d6bef3ebb4a): captured notes mention intermittent false positives on short tokens. Outcome noted: no change to active tag during this session.
+§028 — Priya on approval JSON array versus object shapes (batch 04, ref 3ac839f83574): open question on legacy nonce rejection messaging for operators. Outcome noted: archive rejected private prefix proposal.
+§029 — Alex on build script classpath layout (batch 17, ref 150cdf3f3294): participants compared laptop export timestamps across regions. Outcome noted: align tests with recomputed digests only.
+§030 — Jordan on nested log path normalization (batch 30, ref 75cf114b3327): participants agreed to keep surrounding log context in snippets. Outcome noted: publish internal FAQ for auditors.
+§031 — Sam on redaction span preservation (batch 43, ref 93be9f754318): noted symlink targets must stay inside the run directory root. Outcome noted: track false negative samples in spreadsheet.
+§032 — Riley on operator snippet context windows (batch 56, ref 1fd76f45f688): review board asked for explicit EXPOSED code on exposure rows. Outcome noted: pair with legal on retention windows.
+§033 — Casey on private artifact rejection rationale (batch 69, ref 083cc0878075): discussion referenced prior SR tags only for historical comparison. Outcome noted: defer UI for this CLI.
+§034 — Quinn on approval JSON array versus object shapes (batch 82, ref 00ee94afff24): emphasized SHA-256 over sorted transcript bodies with newline glue. Outcome noted: keep lexicon as non-authoritative index.
+§035 — Avery on build script classpath layout (batch 95, ref bc2949c8bc63): security champions warned against bracket-style redaction placeholders. Outcome noted: document SNIPPET_MARK separately from transcript.
+§036 — Drew on nested log path normalization (batch 11, ref 2551b2341be9): team rejected widening private artifact prefixes in active policy. Outcome noted: schedule follow-up on approval key rotation.
+§037 — Morgan on redaction span preservation (batch 24, ref 0f69a9c5edd7): reminder: draft blocks remain readable but must not change enforcement. Outcome noted: no change to active tag during this session.
+§038 — Priya on operator snippet context windows (batch 37, ref 935c89a2f377): operators requested clearer invalid-nonce reasons in approvals array. Outcome noted: archive rejected private prefix proposal.
+§039 — Alex on private artifact rejection rationale (batch 50, ref 90f873b4af8e): consensus required per-line alerts instead of whole-file summaries. Outcome noted: align tests with recomputed digests only.
+§040 — Jordan on approval JSON array versus object shapes (batch 63, ref 4221bfe01749): example cited api_key= style markers versus token: colon patterns. Outcome noted: publish internal FAQ for auditors.
+§041 — Sam on build script classpath layout (batch 76, ref 1c6160c15e7c): SRE liaison confirmed offline mode forbids mutating input run trees. Outcome noted: track false negative samples in spreadsheet.
+§042 — Riley on nested log path normalization (batch 89, ref 617656a9b92b): reviewers stressed ascending sort for run identifiers from meta.json. Outcome noted: pair with legal on retention windows.
+§043 — Casey on redaction span preservation (batch 05, ref e04065d66783): highlighted need for stable totals fields in the aggregate object. Outcome noted: defer UI for this CLI.
+§044 — Quinn on operator snippet context windows (batch 18, ref 7ae2101c7fdf): data science lead asked for artifact byte counts beside digests. Outcome noted: keep lexicon as non-authoritative index.
+§045 — Avery on private artifact rejection rationale (batch 31, ref 1d380ba8a471): action item: verify proofs bind scope before run id before nonce. Outcome noted: document SNIPPET_MARK separately from transcript.
+§046 — Drew on approval JSON array versus object shapes (batch 44, ref f9b80bf93a9d): review board examined four sample exports with mixed approval validity. Outcome noted: schedule follow-up on approval key rotation.
+§047 — Morgan on build script classpath layout (batch 57, ref 8f99cc0a54b6): captured notes mention intermittent false positives on short tokens. Outcome noted: no change to active tag during this session.
+§048 — Priya on nested log path normalization (batch 70, ref aae5d9f49e61): open question on legacy nonce rejection messaging for operators. Outcome noted: archive rejected private prefix proposal.
+§049 — Alex on redaction span preservation (batch 83, ref 87267d919089): participants compared laptop export timestamps across regions. Outcome noted: align tests with recomputed digests only.
+§050 — Jordan on operator snippet context windows (batch 96, ref fadb12d01d5a): participants agreed to keep surrounding log context in snippets. Outcome noted: publish internal FAQ for auditors.
+§051 — Sam on private artifact rejection rationale (batch 12, ref 6c448c7574c3): noted symlink targets must stay inside the run directory root. Outcome noted: track false negative samples in spreadsheet.
+§052 — Riley on approval JSON array versus object shapes (batch 25, ref 282a1c75bab3): review board asked for explicit EXPOSED code on exposure rows. Outcome noted: pair with legal on retention windows.
+§053 — Casey on build script classpath layout (batch 38, ref 633d204ce9f1): discussion referenced prior SR tags only for historical comparison. Outcome noted: defer UI for this CLI.
+§054 — Quinn on nested log path normalization (batch 51, ref 20ff9cb54aef): emphasized SHA-256 over sorted transcript bodies with newline glue. Outcome noted: keep lexicon as non-authoritative index.
+§055 — Avery on redaction span preservation (batch 64, ref 879fb00c47cf): security champions warned against bracket-style redaction placeholders. Outcome noted: document SNIPPET_MARK separately from transcript.
+§056 — Drew on operator snippet context windows (batch 77, ref aa4e2c5436cf): team rejected widening private artifact prefixes in active policy. Outcome noted: schedule follow-up on approval key rotation.
+§057 — Morgan on private artifact rejection rationale (batch 90, ref 885983b77b21): reminder: draft blocks remain readable but must not change enforcement. Outcome noted: no change to active tag during this session.
+§058 — Priya on approval JSON array versus object shapes (batch 06, ref 12cef0fad6ff): operators requested clearer invalid-nonce reasons in approvals array. Outcome noted: archive rejected private prefix proposal.
+§059 — Alex on build script classpath layout (batch 19, ref ac1243558762): consensus required per-line alerts instead of whole-file summaries. Outcome noted: align tests with recomputed digests only.
+§060 — Jordan on nested log path normalization (batch 32, ref 7f5565503d3f): example cited api_key= style markers versus token: colon patterns. Outcome noted: publish internal FAQ for auditors.
+§061 — Sam on redaction span preservation (batch 45, ref 7b963e2a96b7): SRE liaison confirmed offline mode forbids mutating input run trees. Outcome noted: track false negative samples in spreadsheet.
+§062 — Riley on operator snippet context windows (batch 58, ref 35e33ed11bd8): reviewers stressed ascending sort for run identifiers from meta.json. Outcome noted: pair with legal on retention windows.
+§063 — Casey on private artifact rejection rationale (batch 71, ref 789ccd34bc30): highlighted need for stable totals fields in the aggregate object. Outcome noted: defer UI for this CLI.
+§064 — Quinn on approval JSON array versus object shapes (batch 84, ref 48bea9442775): data science lead asked for artifact byte counts beside digests. Outcome noted: keep lexicon as non-authoritative index.
+§065 — Avery on build script classpath layout (batch 00, ref a89a035bc6e2): action item: verify proofs bind scope before run id before nonce. Outcome noted: document SNIPPET_MARK separately from transcript.
+§066 — Drew on nested log path normalization (batch 13, ref 2cbe3f3182d9): review board examined four sample exports with mixed approval validity. Outcome noted: schedule follow-up on approval key rotation.
+§067 — Morgan on redaction span preservation (batch 26, ref c16aedcccaff): captured notes mention intermittent false positives on short tokens. Outcome noted: no change to active tag during this session.
+§068 — Priya on operator snippet context windows (batch 39, ref 869c4e91633e): open question on legacy nonce rejection messaging for operators. Outcome noted: archive rejected private prefix proposal.
+§069 — Alex on private artifact rejection rationale (batch 52, ref 9916c3ccc7ea): participants compared laptop export timestamps across regions. Outcome noted: align tests with recomputed digests only.
+§070 — Jordan on approval JSON array versus object shapes (batch 65, ref 93c07bf715bb): participants agreed to keep surrounding log context in snippets. Outcome noted: publish internal FAQ for auditors.
+§071 — Sam on build script classpath layout (batch 78, ref 62b6eda0c5b8): noted symlink targets must stay inside the run directory root. Outcome noted: track false negative samples in spreadsheet.
+§072 — Riley on nested log path normalization (batch 91, ref 768737d06164): review board asked for explicit EXPOSED code on exposure rows. Outcome noted: pair with legal on retention windows.
+§073 — Casey on redaction span preservation (batch 07, ref b2c630c9a182): discussion referenced prior SR tags only for historical comparison. Outcome noted: defer UI for this CLI.
+§074 — Quinn on operator snippet context windows (batch 20, ref f9b0853b7f18): emphasized SHA-256 over sorted transcript bodies with newline glue. Outcome noted: keep lexicon as non-authoritative index.
+§075 — Avery on private artifact rejection rationale (batch 33, ref 1482fdf2c318): security champions warned against bracket-style redaction placeholders. Outcome noted: document SNIPPET_MARK separately from transcript.
+§076 — Drew on approval JSON array versus object shapes (batch 46, ref 589077a40519): team rejected widening private artifact prefixes in active policy. Outcome noted: schedule follow-up on approval key rotation.
+§077 — Morgan on build script classpath layout (batch 59, ref f7267eaaad78): reminder: draft blocks remain readable but must not change enforcement. Outcome noted: no change to active tag during this session.
+§078 — Priya on nested log path normalization (batch 72, ref 35e09ecdfde6): operators requested clearer invalid-nonce reasons in approvals array. Outcome noted: archive rejected private prefix proposal.
+§079 — Alex on redaction span preservation (batch 85, ref a5efb6e956ce): consensus required per-line alerts instead of whole-file summaries. Outcome noted: align tests with recomputed digests only.
+§080 — Jordan on operator snippet context windows (batch 01, ref 314c6ab8a233): example cited api_key= style markers versus token: colon patterns. Outcome noted: publish internal FAQ for auditors.
+§081 — Sam on private artifact rejection rationale (batch 14, ref 273975e10e35): SRE liaison confirmed offline mode forbids mutating input run trees. Outcome noted: track false negative samples in spreadsheet.
+§082 — Riley on approval JSON array versus object shapes (batch 27, ref e8a345dd52f8): reviewers stressed ascending sort for run identifiers from meta.json. Outcome noted: pair with legal on retention windows.
+§083 — Casey on build script classpath layout (batch 40, ref 43a662db0b96): highlighted need for stable totals fields in the aggregate object. Outcome noted: defer UI for this CLI.
+§084 — Quinn on nested log path normalization (batch 53, ref ea32c4573b72): data science lead asked for artifact byte counts beside digests. Outcome noted: keep lexicon as non-authoritative index.
+§085 — Avery on redaction span preservation (batch 66, ref e1b31671d343): action item: verify proofs bind scope before run id before nonce. Outcome noted: document SNIPPET_MARK separately from transcript.
+§086 — Drew on operator snippet context windows (batch 79, ref ef75bb1d105d): review board examined four sample exports with mixed approval validity. Outcome noted: schedule follow-up on approval key rotation.
+§087 — Morgan on private artifact rejection rationale (batch 92, ref 36d333015fff): captured notes mention intermittent false positives on short tokens. Outcome noted: no change to active tag during this session.
+§088 — Priya on approval JSON array versus object shapes (batch 08, ref f1db633b643b): open question on legacy nonce rejection messaging for operators. Outcome noted: archive rejected private prefix proposal.
+§089 — Alex on build script classpath layout (batch 21, ref 233b2f0c1797): participants compared laptop export timestamps across regions. Outcome noted: align tests with recomputed digests only.
+§090 — Jordan on nested log path normalization (batch 34, ref f4532755bc73): participants agreed to keep surrounding log context in snippets. Outcome noted: publish internal FAQ for auditors.
+§091 — Sam on redaction span preservation (batch 47, ref ded67fa80b60): noted symlink targets must stay inside the run directory root. Outcome noted: track false negative samples in spreadsheet.
+§092 — Riley on operator snippet context windows (batch 60, ref b0bd60d62121): review board asked for explicit EXPOSED code on exposure rows. Outcome noted: pair with legal on retention windows.
+§093 — Casey on private artifact rejection rationale (batch 73, ref 6bdee608ee52): discussion referenced prior SR tags only for historical comparison. Outcome noted: defer UI for this CLI.
+§094 — Quinn on approval JSON array versus object shapes (batch 86, ref cca39fb92bc0): emphasized SHA-256 over sorted transcript bodies with newline glue. Outcome noted: keep lexicon as non-authoritative index.
+§095 — Avery on build script classpath layout (batch 02, ref 427740d626e5): security champions warned against bracket-style redaction placeholders. Outcome noted: document SNIPPET_MARK separately from transcript.
+§096 — Drew on nested log path normalization (batch 15, ref 3ead02747272): team rejected widening private artifact prefixes in active policy. Outcome noted: schedule follow-up on approval key rotation.
+§097 — Morgan on redaction span preservation (batch 28, ref 5543ee27602e): reminder: draft blocks remain readable but must not change enforcement. Outcome noted: no change to active tag during this session.
+§098 — Priya on operator snippet context windows (batch 41, ref 9831f6c9aad0): operators requested clearer invalid-nonce reasons in approvals array. Outcome noted: archive rejected private prefix proposal.
+§099 — Alex on private artifact rejection rationale (batch 54, ref 7ea7793f4005): consensus required per-line alerts instead of whole-file summaries. Outcome noted: align tests with recomputed digests only.
+§100 — Jordan on approval JSON array versus object shapes (batch 67, ref b9c097decd46): example cited api_key= style markers versus token: colon patterns. Outcome noted: publish internal FAQ for auditors.
+§101 — Sam on build script classpath layout (batch 80, ref fc6c93dd2e0c): SRE liaison confirmed offline mode forbids mutating input run trees. Outcome noted: track false negative samples in spreadsheet.
+§102 — Riley on nested log path normalization (batch 93, ref 7419d1b7b298): reviewers stressed ascending sort for run identifiers from meta.json. Outcome noted: pair with legal on retention windows.
+§103 — Casey on redaction span preservation (batch 09, ref eef6c9eaae22): highlighted need for stable totals fields in the aggregate object. Outcome noted: defer UI for this CLI.
+§104 — Quinn on operator snippet context windows (batch 22, ref 7d98a0ac88dd): data science lead asked for artifact byte counts beside digests. Outcome noted: keep lexicon as non-authoritative index.
+§105 — Avery on private artifact rejection rationale (batch 35, ref 35c71826f7aa): action item: verify proofs bind scope before run id before nonce. Outcome noted: document SNIPPET_MARK separately from transcript.
+§106 — Drew on approval JSON array versus object shapes (batch 48, ref e51670e21880): review board examined four sample exports with mixed approval validity. Outcome noted: schedule follow-up on approval key rotation.
+§107 — Morgan on build script classpath layout (batch 61, ref 824605255d73): captured notes mention intermittent false positives on short tokens. Outcome noted: no change to active tag during this session.
+§108 — Priya on nested log path normalization (batch 74, ref 8e8218dfd269): open question on legacy nonce rejection messaging for operators. Outcome noted: archive rejected private prefix proposal.
+§109 — Alex on redaction span preservation (batch 87, ref afa3a37920ab): participants compared laptop export timestamps across regions. Outcome noted: align tests with recomputed digests only.
+§110 — Jordan on operator snippet context windows (batch 03, ref 3ac38ad702ad): participants agreed to keep surrounding log context in snippets. Outcome noted: publish internal FAQ for auditors.
+§111 — Sam on private artifact rejection rationale (batch 16, ref 9257424ea1a0): noted symlink targets must stay inside the run directory root. Outcome noted: track false negative samples in spreadsheet.
+§112 — Riley on approval JSON array versus object shapes (batch 29, ref 2377a87dfd87): review board asked for explicit EXPOSED code on exposure rows. Outcome noted: pair with legal on retention windows.
+§113 — Casey on build script classpath layout (batch 42, ref 51cf870c58fa): discussion referenced prior SR tags only for historical comparison. Outcome noted: defer UI for this CLI.
+§114 — Quinn on nested log path normalization (batch 55, ref d074c13c2878): emphasized SHA-256 over sorted transcript bodies with newline glue. Outcome noted: keep lexicon as non-authoritative index.
+§115 — Avery on redaction span preservation (batch 68, ref b1523acb9087): security champions warned against bracket-style redaction placeholders. Outcome noted: document SNIPPET_MARK separately from transcript.
+§116 — Drew on operator snippet context windows (batch 81, ref 05dfdd4770e1): team rejected widening private artifact prefixes in active policy. Outcome noted: schedule follow-up on approval key rotation.
+§117 — Morgan on private artifact rejection rationale (batch 94, ref ec8563098678): reminder: draft blocks remain readable but must not change enforcement. Outcome noted: no change to active tag during this session.
+§118 — Priya on approval JSON array versus object shapes (batch 10, ref 6afafb3ca614): operators requested clearer invalid-nonce reasons in approvals array. Outcome noted: archive rejected private prefix proposal.
+§119 — Alex on build script classpath layout (batch 23, ref dcffdff9ce87): consensus required per-line alerts instead of whole-file summaries. Outcome noted: align tests with recomputed digests only.
+§120 — Jordan on nested log path normalization (batch 36, ref 437d8f04ba97): example cited api_key= style markers versus token: colon patterns. Outcome noted: publish internal FAQ for auditors.
+§121 — Sam on redaction span preservation (batch 49, ref 3b13db049b0a): SRE liaison confirmed offline mode forbids mutating input run trees. Outcome noted: track false negative samples in spreadsheet.
+§122 — Riley on operator snippet context windows (batch 62, ref 292f964c1d73): reviewers stressed ascending sort for run identifiers from meta.json. Outcome noted: pair with legal on retention windows.
+§123 — Casey on private artifact rejection rationale (batch 75, ref da6e9bf9ba5f): highlighted need for stable totals fields in the aggregate object. Outcome noted: defer UI for this CLI.
+§124 — Quinn on approval JSON array versus object shapes (batch 88, ref e8da6e5e424f): data science lead asked for artifact byte counts beside digests. Outcome noted: keep lexicon as non-authoritative index.
+§125 — Avery on build script classpath layout (batch 04, ref 74b71adc14e3): action item: verify proofs bind scope before run id before nonce. Outcome noted: document SNIPPET_MARK separately from transcript.
+§126 — Drew on nested log path normalization (batch 17, ref 10267a570a95): review board examined four sample exports with mixed approval validity. Outcome noted: schedule follow-up on approval key rotation.
+§127 — Morgan on redaction span preservation (batch 30, ref 571b3abecf64): captured notes mention intermittent false positives on short tokens. Outcome noted: no change to active tag during this session.
+§128 — Priya on operator snippet context windows (batch 43, ref 6d5262d6ccad): open question on legacy nonce rejection messaging for operators. Outcome noted: archive rejected private prefix proposal.
+§129 — Alex on private artifact rejection rationale (batch 56, ref 8d5c7677d4f3): participants compared laptop export timestamps across regions. Outcome noted: align tests with recomputed digests only.
+§130 — Jordan on approval JSON array versus object shapes (batch 69, ref 2833fbd00b5b): participants agreed to keep surrounding log context in snippets. Outcome noted: publish internal FAQ for auditors.
+§131 — Sam on build script classpath layout (batch 82, ref 0be9aef4782d): noted symlink targets must stay inside the run directory root. Outcome noted: track false negative samples in spreadsheet.
+§132 — Riley on nested log path normalization (batch 95, ref a2849430329f): review board asked for explicit EXPOSED code on exposure rows. Outcome noted: pair with legal on retention windows.
+§133 — Casey on redaction span preservation (batch 11, ref 01353068f9e1): discussion referenced prior SR tags only for historical comparison. Outcome noted: defer UI for this CLI.
+§134 — Quinn on operator snippet context windows (batch 24, ref b6a9d2e22765): emphasized SHA-256 over sorted transcript bodies with newline glue. Outcome noted: keep lexicon as non-authoritative index.
+§135 — Avery on private artifact rejection rationale (batch 37, ref e5b459368f2e): security champions warned against bracket-style redaction placeholders. Outcome noted: document SNIPPET_MARK separately from transcript.
+§136 — Drew on approval JSON array versus object shapes (batch 50, ref e91e32115c8e): team rejected widening private artifact prefixes in active policy. Outcome noted: schedule follow-up on approval key rotation.
+§137 — Morgan on build script classpath layout (batch 63, ref defc69e1aacb): reminder: draft blocks remain readable but must not change enforcement. Outcome noted: no change to active tag during this session.
+§138 — Priya on nested log path normalization (batch 76, ref 8924bc1b50b5): operators requested clearer invalid-nonce reasons in approvals array. Outcome noted: archive rejected private prefix proposal.
+§139 — Alex on redaction span preservation (batch 89, ref e9a0a6473940): consensus required per-line alerts instead of whole-file summaries. Outcome noted: align tests with recomputed digests only.
+§140 — Jordan on operator snippet context windows (batch 05, ref 59b0a6fe6387): example cited api_key= style markers versus token: colon patterns. Outcome noted: publish internal FAQ for auditors.
+§141 — Sam on private artifact rejection rationale (batch 18, ref 359d401b699d): SRE liaison confirmed offline mode forbids mutating input run trees. Outcome noted: track false negative samples in spreadsheet.
+§142 — Riley on approval JSON array versus object shapes (batch 31, ref ef990f6b3ade): reviewers stressed ascending sort for run identifiers from meta.json. Outcome noted: pair with legal on retention windows.
+§143 — Casey on build script classpath layout (batch 44, ref 9b3aa07a8417): highlighted need for stable totals fields in the aggregate object. Outcome noted: defer UI for this CLI.
+§144 — Quinn on nested log path normalization (batch 57, ref 72af9973c375): data science lead asked for artifact byte counts beside digests. Outcome noted: keep lexicon as non-authoritative index.
+§145 — Avery on redaction span preservation (batch 70, ref fa8df8b1af88): action item: verify proofs bind scope before run id before nonce. Outcome noted: document SNIPPET_MARK separately from transcript.
+§146 — Drew on operator snippet context windows (batch 83, ref f60a28d4df50): review board examined four sample exports with mixed approval validity. Outcome noted: schedule follow-up on approval key rotation.
+§147 — Morgan on private artifact rejection rationale (batch 96, ref 8eeee796442f): captured notes mention intermittent false positives on short tokens. Outcome noted: no change to active tag during this session.
+§148 — Priya on approval JSON array versus object shapes (batch 12, ref 8f99d195ea98): open question on legacy nonce rejection messaging for operators. Outcome noted: archive rejected private prefix proposal.
+§149 — Alex on build script classpath layout (batch 25, ref 87985e83f408): participants compared laptop export timestamps across regions. Outcome noted: align tests with recomputed digests only.
+§150 — Jordan on nested log path normalization (batch 38, ref 2873fdfa8183): participants agreed to keep surrounding log context in snippets. Outcome noted: publish internal FAQ for auditors.
+§151 — Sam on redaction span preservation (batch 51, ref a21f0bcffb29): noted symlink targets must stay inside the run directory root. Outcome noted: track false negative samples in spreadsheet.
+§152 — Riley on operator snippet context windows (batch 64, ref f0864dfb487d): review board asked for explicit EXPOSED code on exposure rows. Outcome noted: pair with legal on retention windows.
+§153 — Casey on private artifact rejection rationale (batch 77, ref 55d1ee2cc09d): discussion referenced prior SR tags only for historical comparison. Outcome noted: defer UI for this CLI.
+§154 — Quinn on approval JSON array versus object shapes (batch 90, ref f8d9f1904e37): emphasized SHA-256 over sorted transcript bodies with newline glue. Outcome noted: keep lexicon as non-authoritative index.
+§155 — Avery on build script classpath layout (batch 06, ref c7326d650413): security champions warned against bracket-style redaction placeholders. Outcome noted: document SNIPPET_MARK separately from transcript.
+§156 — Drew on nested log path normalization (batch 19, ref 314a0103dbff): team rejected widening private artifact prefixes in active policy. Outcome noted: schedule follow-up on approval key rotation.
+§157 — Morgan on redaction span preservation (batch 32, ref a07b4148b5f8): reminder: draft blocks remain readable but must not change enforcement. Outcome noted: no change to active tag during this session.
+§158 — Priya on operator snippet context windows (batch 45, ref f743ad85901d): operators requested clearer invalid-nonce reasons in approvals array. Outcome noted: archive rejected private prefix proposal.
+§159 — Alex on private artifact rejection rationale (batch 58, ref 75542f271ab4): consensus required per-line alerts instead of whole-file summaries. Outcome noted: align tests with recomputed digests only.
+§160 — Jordan on approval JSON array versus object shapes (batch 71, ref 3379376738f9): example cited api_key= style markers versus token: colon patterns. Outcome noted: publish internal FAQ for auditors.
+§161 — Sam on build script classpath layout (batch 84, ref e377dbdc3818): SRE liaison confirmed offline mode forbids mutating input run trees. Outcome noted: track false negative samples in spreadsheet.
+§162 — Riley on nested log path normalization (batch 00, ref 7c750faad9be): reviewers stressed ascending sort for run identifiers from meta.json. Outcome noted: pair with legal on retention windows.
+§163 — Casey on redaction span preservation (batch 13, ref db7137f7b0c4): highlighted need for stable totals fields in the aggregate object. Outcome noted: defer UI for this CLI.
+§164 — Quinn on operator snippet context windows (batch 26, ref 86e3583bb9d4): data science lead asked for artifact byte counts beside digests. Outcome noted: keep lexicon as non-authoritative index.
+§165 — Avery on private artifact rejection rationale (batch 39, ref e56f652dbad0): action item: verify proofs bind scope before run id before nonce. Outcome noted: document SNIPPET_MARK separately from transcript.
+§166 — Drew on approval JSON array versus object shapes (batch 52, ref 7045b71feb17): review board examined four sample exports with mixed approval validity. Outcome noted: schedule follow-up on approval key rotation.
+§167 — Morgan on build script classpath layout (batch 65, ref 0c8da722952d): captured notes mention intermittent false positives on short tokens. Outcome noted: no change to active tag during this session.
+§168 — Priya on nested log path normalization (batch 78, ref ecec5a97bff2): open question on legacy nonce rejection messaging for operators. Outcome noted: archive rejected private prefix proposal.
+§169 — Alex on redaction span preservation (batch 91, ref 710952df7796): participants compared laptop export timestamps across regions. Outcome noted: align tests with recomputed digests only.
+§170 — Jordan on operator snippet context windows (batch 07, ref 2b270be588c2): participants agreed to keep surrounding log context in snippets. Outcome noted: publish internal FAQ for auditors.
+§171 — Sam on private artifact rejection rationale (batch 20, ref 6bf7c2a59c96): noted symlink targets must stay inside the run directory root. Outcome noted: track false negative samples in spreadsheet.
+§172 — Riley on approval JSON array versus object shapes (batch 33, ref 878b924335dc): review board asked for explicit EXPOSED code on exposure rows. Outcome noted: pair with legal on retention windows.
+§173 — Casey on build script classpath layout (batch 46, ref 03391e6590c3): discussion referenced prior SR tags only for historical comparison. Outcome noted: defer UI for this CLI.
+§174 — Quinn on nested log path normalization (batch 59, ref f5b603c292c3): emphasized SHA-256 over sorted transcript bodies with newline glue. Outcome noted: keep lexicon as non-authoritative index.
+§175 — Avery on redaction span preservation (batch 72, ref 882088ba1e87): security champions warned against bracket-style redaction placeholders. Outcome noted: document SNIPPET_MARK separately from transcript.
+§176 — Drew on operator snippet context windows (batch 85, ref 6836177a8faf): team rejected widening private artifact prefixes in active policy. Outcome noted: schedule follow-up on approval key rotation.
+§177 — Morgan on private artifact rejection rationale (batch 01, ref 216b8a9b3316): reminder: draft blocks remain readable but must not change enforcement. Outcome noted: no change to active tag during this session.
+§178 — Priya on approval JSON array versus object shapes (batch 14, ref 05bcf1339724): operators requested clearer invalid-nonce reasons in approvals array. Outcome noted: archive rejected private prefix proposal.
+§179 — Alex on build script classpath layout (batch 27, ref 9ae56c60f5fa): consensus required per-line alerts instead of whole-file summaries. Outcome noted: align tests with recomputed digests only.
+§180 — Jordan on nested log path normalization (batch 40, ref 4bd70dd6307e): example cited api_key= style markers versus token: colon patterns. Outcome noted: publish internal FAQ for auditors.
+§181 — Sam on redaction span preservation (batch 53, ref 3d1de8fd00da): SRE liaison confirmed offline mode forbids mutating input run trees. Outcome noted: track false negative samples in spreadsheet.
+§182 — Riley on operator snippet context windows (batch 66, ref 74ab0e9758be): reviewers stressed ascending sort for run identifiers from meta.json. Outcome noted: pair with legal on retention windows.
+§183 — Casey on private artifact rejection rationale (batch 79, ref 629f1a907bf5): highlighted need for stable totals fields in the aggregate object. Outcome noted: defer UI for this CLI.
+§184 — Quinn on approval JSON array versus object shapes (batch 92, ref d5455a8af19e): data science lead asked for artifact byte counts beside digests. Outcome noted: keep lexicon as non-authoritative index.
+
+Closing actions:
+- Alex will prototype checks for exposure code vocabulary before sprint 12.
+- Jordan will prototype checks for bench exposure roll-up semantics before sprint 13.
+- Sam will prototype checks for idempotent CLI re-run guarantees before sprint 14.
+- Riley will prototype checks for build script classpath layout before sprint 15.
+- Casey will prototype checks for Kotlin CLI packaging constraints before sprint 16.
+- Quinn will prototype checks for security review action tracking before sprint 17.
+- Avery will prototype checks for post-incident sanitized output checks before sprint 18.
+- Drew will prototype checks for offline laptop capture hygiene before sprint 19.
+- Morgan will prototype checks for nested log path normalization before sprint 20.
+- Priya will prototype checks for artifact digest recomputation before sprint 21.
+- Alex will prototype checks for approval envelope replay windows before sprint 22.
+- Jordan will prototype checks for HMAC field ordering debates before sprint 23.
+- Sam will prototype checks for nonce format deprecation timelines before sprint 24.
+- Riley will prototype checks for redaction span preservation before sprint 25.
+- Casey will prototype checks for link prefix allow-lists before sprint 26.

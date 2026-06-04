@@ -1,0 +1,93 @@
+id = "SCN-Beta"
+
+[opening]
+metric_a = 65
+metric_b = 55
+metric_c = 45
+stable_needed = 4
+
+[bands]
+metric_a = [35, 55]
+metric_b = [25, 45]
+metric_c = [15, 35]
+
+[loss]
+metric_a = 95
+metric_b = 95
+metric_c = 95
+
+[[grid]]
+row = 0
+col = 0
+kind = "vent"
+level = 1
+
+[[grid]]
+row = 0
+col = 1
+kind = "pump"
+level = 1
+
+[[grid]]
+row = 0
+col = 2
+kind = "rod"
+level = 1
+
+[[grid]]
+row = 1
+col = 0
+kind = "pump"
+level = 2
+
+[[grid]]
+row = 1
+col = 1
+kind = "vent"
+level = 1
+
+[[grid]]
+row = 1
+col = 2
+kind = "pump"
+level = 2
+
+[[grid]]
+row = 2
+col = 0
+kind = "rod"
+level = 1
+
+[[grid]]
+row = 2
+col = 1
+kind = "pump"
+level = 1
+
+[[grid]]
+row = 2
+col = 2
+kind = "vent"
+level = 2
+
+[constraints]
+pump = { min_level = 0, max_level = 3 }
+rod = { min_level = 0, max_level = 3 }
+vent = { min_level = 0, max_level = 3 }
+
+[[rules]]
+id = "adj_same"
+priority = 10
+rule_type = "adjacency_delta"
+param_a = 1
+
+[[rules]]
+id = "corner_cap"
+priority = 20
+rule_type = "corner_cap"
+param_a = 2
+
+[[rules]]
+id = "type_max"
+priority = 30
+rule_type = "type_max"

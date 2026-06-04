@@ -1,0 +1,7 @@
+[
+  {
+    "device_id": "DEV-A01",
+    "reading_at": "2024-01-01T00:30:00Z",
+    "delta_kwh": -4.5
+  }
+]

@@ -1,0 +1,110 @@
+{
+    "results": {
+        "tool": {
+            "name": "pytest",
+            "version": "8.4.1"
+        },
+        "summary": {
+            "tests": 10,
+            "passed": 10,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "other": 0,
+            "start": 1780583382.0477538,
+            "stop": 1780583382.2633018
+        },
+        "tests": [
+            {
+                "name": "test_m1.py::TestMilestone1::test_m1_audit_exits_zero",
+                "status": "passed",
+                "duration": 0.007602722995216027,
+                "start": 1780583382.1709907,
+                "stop": 1780583382.1791024,
+                "retries": 0,
+                "file_path": "test_m1.py"
+            },
+            {
+                "name": "test_m1.py::TestMilestone1::test_m1_report_exists",
+                "status": "passed",
+                "duration": 0.007688669000344817,
+                "start": 1780583382.1794705,
+                "stop": 1780583382.1877654,
+                "retries": 0,
+                "file_path": "test_m1.py"
+            },
+            {
+                "name": "test_m1.py::TestMilestone1::test_m1_report_schema",
+                "status": "passed",
+                "duration": 0.008255738001025748,
+                "start": 1780583382.1884303,
+                "stop": 1780583382.1971834,
+                "retries": 0,
+                "file_path": "test_m1.py"
+            },
+            {
+                "name": "test_m1.py::TestMilestone1::test_m1_all_sessions_present",
+                "status": "passed",
+                "duration": 0.00937470900680637,
+                "start": 1780583382.1975334,
+                "stop": 1780583382.2073193,
+                "retries": 0,
+                "file_path": "test_m1.py"
+            },
+            {
+                "name": "test_m1.py::TestMilestone1::test_m1_slots_loaded_correct",
+                "status": "passed",
+                "duration": 0.0089704259953578,
+                "start": 1780583382.207664,
+                "stop": 1780583382.217104,
+                "retries": 0,
+                "file_path": "test_m1.py"
+            },
+            {
+                "name": "test_m1.py::TestMilestone1::test_m1_approvals_linked_nonzero",
+                "status": "passed",
+                "duration": 0.00801285700435983,
+                "start": 1780583382.2175508,
+                "stop": 1780583382.22587,
+                "retries": 0,
+                "file_path": "test_m1.py"
+            },
+            {
+                "name": "test_m1.py::TestMilestone1::test_m1_approvals_linked_exact",
+                "status": "passed",
+                "duration": 0.00797019599849591,
+                "start": 1780583382.2261827,
+                "stop": 1780583382.234648,
+                "retries": 0,
+                "file_path": "test_m1.py"
+            },
+            {
+                "name": "test_m1.py::TestMilestone1::test_m1_required_fields_present",
+                "status": "passed",
+                "duration": 0.007763661989883985,
+                "start": 1780583382.2350087,
+                "stop": 1780583382.2431688,
+                "retries": 0,
+                "file_path": "test_m1.py"
+            },
+            {
+                "name": "test_m1.py::TestMilestone1::test_m1_policy_violations_is_list",
+                "status": "passed",
+                "duration": 0.006985585991060361,
+                "start": 1780583382.243492,
+                "stop": 1780583382.2508268,
+                "retries": 0,
+                "file_path": "test_m1.py"
+            },
+            {
+                "name": "test_m1.py::TestMilestone1::test_m1_approvals_linked_matches_direct_db_query",
+                "status": "passed",
+                "duration": 0.011425157004850917,
+                "start": 1780583382.25115,
+                "stop": 1780583382.2629464,
+                "retries": 0,
+                "file_path": "test_m1.py"
+            }
+        ]
+    }
+}

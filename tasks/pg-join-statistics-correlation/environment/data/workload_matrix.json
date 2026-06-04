@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "workload_label": "fulfillment_spine",
+  "catalog_tables": 15,
+  "filter_region_id": 3,
+  "filter_zone_code": "Z-East-3",
+  "doc_index": "/app/docs/planner_internals/INDEX.md",
+  "report_contract": {
+    "schema_version": 1,
+    "workload_label": "fulfillment_spine",
+    "catalog_tables": 15,
+    "filter_region_id": 3,
+    "filter_zone_code": "Z-East-3"
+  },
+  "acceptance_bands": {
+    "bridge_estimate_ratio_min": 0.5,
+    "bridge_estimate_ratio_max": 2.0,
+    "inventory_estimate_ratio_min": 0.5,
+    "inventory_estimate_ratio_max": 2.0,
+    "hash_join_count_min": 3,
+    "hash_join_share_min": 0.2,
+    "nested_loop_count_max": 12,
+    "result_total_min": 250,
+    "result_total_max": 400,
+    "forbidden_spine_driver": "nested_loop"
+  }
+}

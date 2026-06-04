@@ -1,0 +1,13 @@
+[api]
+bind = "127.0.0.1"
+port = 8080
+base_path = ""
+
+[storage]
+database = "/app/var/vault.db"
+
+[cli]
+output_dir = "/app/output"
+
+[verifier]
+clock_slack_sec = 90

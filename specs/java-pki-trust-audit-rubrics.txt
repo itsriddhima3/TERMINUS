@@ -1,0 +1,49 @@
+# Rubric 1
+
+Agent reads /app/docs/bench_precedence.md before changing chain assembly code, +2
+Agent consults /app/docs/pki_ops_dossier/part_05.md annex 7.4.x chain-walk or AKI/SKI binding text before editing parse code, +3
+Agent inspects /app/data/cases/case_matrix.json before running corpus indexing, +2
+Agent inspects /app/cli/src/main/java/trust/parse/step_p4.java or CertSlice.java before applying a parse fix, +2
+Agent repairs issuer-walk chain assembly so chain_cn excludes off-walk CNs from fork-noise bundles, +5
+Agent repairs AKI/SKI binding to compare authorityKeyIdentifier hex to parent subjectKeyIdentifier hex, +5
+Agent runs /app/bin/trustaudit corpus and inspects /app/output/corpus_index.json for valid_chain order and flags, +3
+Agent rebuilds the CLI with /app/scripts/build-audit.sh after parse-layer edits, +3
+Agent verifies pem_fork_noise chain_cn matches the live walk without bench-int-alt or bench-leaf-alt, +2
+Agent verifies missing_link reports chain_ok false and empty chain_cn when bench-int-clean is absent, +2
+Agent fixes chain assembly by lexicographic CN ordering without issuer walk and AKI/SKI hex binding, -5
+Agent hardcodes or hand-edits /app/output/corpus_index.json without executing trustaudit corpus, -5
+
+# Rubric 2
+
+Agent consults dossier annex 7.4.x for CRL supersession, path-length cap, or eval_instant validity before editing policy code, +3
+Agent inspects /app/cli/src/main/java/trust/policy/RevTable.java or op_k7.java before applying a policy fix, +2
+Agent repairs CRL merge so newest thisUpdate per issuer controls revocation under GeneralizedTime ordering, +5
+Agent enforces bench path-length rejection when the constructed chain exceeds the dossier depth cap, +3
+Agent applies eval_instant checks for expired anchor, expired intermediate, and not-yet-valid leaf roles, +5
+Agent emits parse_fail when corpus_index chain_ok is false instead of issuing a trust verdict, +3
+Agent runs /app/bin/trustaudit policy and inspects /app/output/audit_results.json for expired_root and revoked_intermediate rows, +3
+Agent rebuilds the CLI with /app/scripts/build-audit.sh after policy-layer edits, +3
+Agent verifies dual_crl_supersede is accept after merging bench-int-clean-crl-*.crl drops, +2
+Agent verifies not_yet_valid_leaf is reject with reason not_yet_valid relative to matrix eval_instant, +2
+Agent relies on /app/docs/crl_merge_notes.md earliest-thisUpdate guidance instead of dossier 7.4.002 supersession rules, -5
+Agent edits /app/cli/src/main/java/trust/policy/CrlMergeArchival.java or decoy CRL helpers as the primary CRL merge fix, -3
+Agent hardcodes or hand-edits /app/output/audit_results.json without executing trustaudit policy, -5
+Agent disables per-case crl_glob handling or skips CRL loading to force accept verdicts, -5
+
+# Rubric 3
+
+Agent consults /app/docs/pki_ops_dossier/part_05.md annex 9.2.x diagram styling before editing graph emit code, +3
+Agent inspects /app/cli/src/main/java/trust/graph/emit/StyleLedger.java or step_v2.java before applying a diagram fix, +2
+Agent repairs StyleLedger role palettes for accepted paths, rejected leaves, expired anchors, and revoked intermediates, +5
+Agent assigns graph roles from audit reason strings so rejected leaves receive orange fillcolor, +3
+Agent runs /app/bin/trustaudit graph and confirms /app/output/trust.dot and /app/output/trust.svg exist, +3
+Agent rebuilds the CLI with /app/scripts/build-audit.sh after graph-layer edits, +3
+Agent confirms valid_chain subgraph edges use forestgreen in /app/output/trust.dot, +2
+Agent confirms expired_root anchor nodes use gray dashed styling in /app/output/trust.dot, +2
+Agent confirms revoked_intermediate nodes use red color with penwidth 2 and peripheries 2, +2
+Agent confirms graph node IDs sanitize CN and case_id with underscore separators per annex 9.2 naming, +2
+Agent confirms /app/output/trust.svg is non-trivial SVG output referencing diagram nodes, +2
+Agent patches diagram colors in decoy theme code without repairing StyleLedger or graph emit paths, -3
+Agent runs trustaudit graph without producing /app/output/trust.svg via dot, -3
+Agent satisfies verifier outcomes by editing harness-only artifacts instead of repairing trustaudit graph emit behavior in /app/cli, -5
+Agent repeats the same failing trustaudit or mvn build command at least three times without changing approach, -2

@@ -1,0 +1,47 @@
+--- a/cli/src/main/java/customs/recon/ReportEmit.java
++++ b/cli/src/main/java/customs/recon/ReportEmit.java
+@@ -1,6 +1,7 @@
+ package customs.recon;
+ 
+ import customs.util.JsonKit;
++import customs.util.PolicyLoad;
+ import java.io.IOException;
+ import java.nio.file.Files;
+ import java.nio.file.Path;
+@@ -16,7 +17,9 @@
+       String batchId,
+       List<String> underpaidLines,
+       List<String> missingLines,
+-      Map<String, Double> exposureByImporter) {}
++      Map<String, Double> exposureByImporter,
++      Map<String, String> importerForLine,
++      Map<String, Double> lineExposureUsd) {}
+ 
+   /** Write reconcile JSON and CSV with stable ordering. */
+   public static void op_emit_f(Path jsonOut, Path csvOut, ReconBody body) throws IOException {
+@@ -27,14 +30,22 @@
+     root.put("exposure_by_importer", body.exposureByImporter());
+     JsonKit.writeObject(jsonOut, root);
+ 
++    double missingBench = 0.0;
++    try {
++      missingBench = PolicyLoad.missingExposureUsd();
++    } catch (Exception ignored) {
++    }
++
+     List<String> csvLines = new ArrayList<>();
+     csvLines.add("line_id,importer_id,issue,exposure_usd");
+     for (String lineId : body.underpaidLines()) {
+-      double exp = body.exposureByImporter().getOrDefault(lineId, 0.0);
+-      csvLines.add(lineId + ",,underpaid," + exp);
++      String imp = body.importerForLine().get(lineId);
++      double exp = body.lineExposureUsd().getOrDefault(lineId, 0.0);
++      csvLines.add(lineId + "," + imp + ",underpaid," + exp);
+     }
+     for (String lineId : body.missingLines()) {
+-      csvLines.add(lineId + ",,missing,0");
++      String imp = body.importerForLine().getOrDefault(lineId, "");
++      csvLines.add(lineId + "," + imp + ",missing," + missingBench);
+     }
+     Files.createDirectories(csvOut.getParent());
+     Files.write(csvOut, csvLines);

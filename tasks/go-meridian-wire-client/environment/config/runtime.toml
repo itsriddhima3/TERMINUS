@@ -1,0 +1,4 @@
+[runtime]
+max_workers = 16
+audit_output = "/app/output/wire_audit.json"
+matrix_path = "/app/data/scenario_matrix.json"

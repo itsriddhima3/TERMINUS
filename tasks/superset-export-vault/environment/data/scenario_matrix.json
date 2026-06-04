@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "scenarios": {
+    "acme_seal_clean": {
+      "fixture": "acme_flat",
+      "plaintext_hits": 0,
+      "manifest_ok": true
+    },
+    "nested_seal_clean": {
+      "fixture": "nested_oauth",
+      "plaintext_hits": 0,
+      "manifest_ok": true
+    },
+    "tamper_reject": {
+      "fixture": "acme_flat",
+      "tamper": "intra_member_swap",
+      "verify_ok": false
+    },
+    "roundtrip_acme": {
+      "fixture": "acme_flat",
+      "digest_match": true
+    },
+    "roundtrip_oauth": {
+      "fixture": "nested_oauth",
+      "digest_match": true
+    },
+    "json_array_seal_clean": {
+      "fixture": "json_array",
+      "plaintext_hits": 0,
+      "manifest_ok": true
+    },
+    "yaml_replica_seal_clean": {
+      "fixture": "yaml_replica",
+      "plaintext_hits": 0,
+      "manifest_ok": true
+    },
+    "cross_member_swap": {
+      "fixture": "json_array",
+      "tamper": "cross_member_swap",
+      "verify_ok": false
+    },
+    "metadata_digest_tamper": {
+      "fixture": "yaml_replica",
+      "tamper": "metadata_append",
+      "verify_ok": false
+    },
+    "roundtrip_json_array": {
+      "fixture": "json_array",
+      "digest_match": true
+    }
+  }
+}

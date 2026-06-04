@@ -1,0 +1,24 @@
+--- a/client/k3p/pull.cpp
++++ b/client/k3p/pull.cpp
+@@ -27,16 +27,18 @@
+   auto split_doc = json_min::parse(http_get(split_url));
+ 
+   int n_train = static_cast<int>(split_doc.num("n_train"));
+-  int per_page = static_cast<int>(split_doc.num("per_page"));
+-  int total_pages = n_train / per_page;
+ 
+   std::ostringstream train_body;
+   int page = 1;
++  int total_pages = 1;
++  int per_page = static_cast<int>(split_doc.num("per_page"));
+   while (page <= total_pages) {
+     std::ostringstream url;
+     url << base << "/api/v1/train_ratings?page=" << page << "&per_page=" << per_page;
+     auto page_doc = json_min::parse(http_get(url.str()));
+-    auto rows = page_doc.array("rows");
++    total_pages = static_cast<int>(page_doc.num("total_pages"));
++    per_page = static_cast<int>(page_doc.num("per_page"));
++    auto rows = page_doc.array("ratings");
+     for (const auto &row : rows) {
+       train_body << "{\"user_id\":" << static_cast<int>(row.num("user_id"))
+                  << ",\"item_id\":" << static_cast<int>(row.num("item_id"))

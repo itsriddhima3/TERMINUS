@@ -1,0 +1,5 @@
+Continue with `ARC-2024-Q2`. Start `/app/scripts/start-api.sh`, then run `/app/bin/arcctl link ARC-2024-Q2` to write `/app/output/linked.json` with top-level `batch_id` and a `records` array. Per-record fields (`creator_primary`, `subject_headings`, `place_names`, `accession_candidate`, `accession_valid`, `geo_heading_count`, and related keys) are specified in `/app/docs/linked_layout.md`. The local authority service on port 3000 is described in `/app/docs/api_contract.md`.
+
+Linked output for this batch is wrong in several independent ways: when a finding aid lists both a corporate body and a personal name in the same `<controlaccess>` block, the personal name wins even though curator policy says otherwise; LCSH subject strings still include subdivision text that the authority service rejects; approximate `<geogname approx="…">` headings never resolve even when direct API probes succeed at the secondary fuzzy band. See handbook sections 15.7 and 18.2.
+
+Repair link for `ARC-2024-Q2`. Signal completion when `linked.json` reflects the authority matches the bench expects.

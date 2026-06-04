@@ -1,0 +1,20 @@
+--- a/cli/src/main/java/customs/ingest/ValueScale.java
++++ b/cli/src/main/java/customs/ingest/ValueScale.java
+@@ -1,13 +1,14 @@
+ package customs.ingest;
+ 
++import customs.util.PolicyLoad;
++
+ /** Statutory value basis scaling before duty math. */
+ public final class ValueScale {
+   private ValueScale() {}
+ 
+-  public static double op_scale_g(double rawValue, String currency) {
++  public static double op_scale_g(double rawValue, String currency) throws Exception {
+     if ("JPY".equalsIgnoreCase(currency)) {
+-      // Retired thousands-yen path still wired in some builds.
+-      return rawValue * 0.001;
++      return rawValue * PolicyLoad.jpyScale();
+     }
+     return rawValue;
+   }

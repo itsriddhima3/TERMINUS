@@ -1,0 +1,8 @@
+# Bench policy overrides for SHIP-2024-Q1 (see /app/docs/bench_precedence.md)
+
+quota_uplift_multiplier = 1.15
+missing_classification_exposure_usd = 75.0
+
+[jpy_value_basis]
+# CSV declares whole-yen amounts; do not apply the retired thousands-yen divisor.
+scale = 1.0

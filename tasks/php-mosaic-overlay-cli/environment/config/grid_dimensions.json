@@ -1,0 +1,6 @@
+{
+  "target_columns": 80,
+  "target_rows": 40,
+  "cell_aspect_ratio_w_over_h": 0.5,
+  "notes": "Terminal cells are taller than wide; cell aspect 0.5 means width is half the height. The imaging pipeline must account for this when fitting a source image to the target grid and when inverting a (col, row) input back to source pixel coordinates."
+}

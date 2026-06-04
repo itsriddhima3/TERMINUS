@@ -1,0 +1,16 @@
+.git
+__pycache__
+*.pyc
+node_modules
+target
+dist
+build
+.venv
+env
+logs
+solution
+tests
+*.swp
+*.swo
+.env
+.env.*

@@ -1,0 +1,48 @@
+user_visible_outputs = [
+  "/app/output/sync_audit.json",
+  "/app/data/scenario_matrix.json",
+  "/app/docs/mem/index.html",
+]
+
+internal_harness_files = [
+  "/app/app/scenario_burst.sh",
+  "/app/app/scenario_stop.sh",
+  "/app/app/scenario_attach.sh",
+  "/app/app/scenario_backlog.sh",
+  "/app/app/scenario_fanout_triple.sh",
+  "/app/app/scenario_mid_detach.sh",
+  "/app/app/scenario_branch_toggle.sh",
+  "/app/app/scenario_drain_zero.sh",
+  "/app/app/scenario_relay_sidecar.sh",
+  "/app/app/scenario_coalesce_trace.sh",
+  "/app/app/scenario_registry_grow.sh",
+  "/app/app/scenario_ack_barrier.sh",
+  "/app/app/scenario_ring_rotate.sh",
+  "/app/app/scenario_package_stress.sh",
+  "/app/lib/run_go.sh",
+  "/app/lib/json_merge.sh",
+  "/app/bin/scenar",
+]
+
+[structured_outputs.sync_audit]
+target = "/app/output/sync_audit.json"
+format = "json"
+instruction_checks = [
+  "schema_version",
+  "scenarios",
+  "stress_summary",
+  "observed_revision",
+  "expected_revision",
+  "stale_read",
+  "seq_monotonic",
+  "detached_peer_frozen",
+  "zero_slot_confused",
+  "metrics_ok",
+  "coalesce_events",
+  "slot_count_delta",
+  "barrier_hits",
+  "slot_index",
+  "body_digest",
+  "race_exit_code",
+  "iterations_clean",
+]

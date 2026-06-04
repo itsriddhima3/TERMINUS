@@ -1,0 +1,29 @@
+Agent reads /app/docs/bench_precedence.md or lists /app/docs/catalog/ before editing bootstrap code, +2
+Agent inspects /app/docs/catalog/part_01_bootstrap.md before changing init materialization, +3
+Agent inspects /app/data/seeds/SCN-Alpha.toml grid and constraints sections before bootstrap edits, +2
+Agent seeds constraints rows from the seed file during init in /app/core/k9m/schema.go, +5
+Agent seeds ranked rules rows with priorities 10, 20, and 30 during SCN-Alpha init, +5
+Agent binds component levels from seed cell level fields rather than row ordinals in /app/core/k9m/schema.go, +5
+Agent writes catalog revision B2 as schema_version 2 in meta during init, +3
+Agent runs /app/scripts/build.sh after bootstrap source edits, +3
+Agent reinitializes SCN-Alpha and inspects fluxctl status --json for metrics, schema_version, and grid fields, +2
+Agent inspects /app/docs/catalog/part_02_gate_lattice.md or /app/docs/catalog/examples.md before move gate edits, +3
+Agent orders rules retrieval by ascending priority in /app/core/r2n/check.go before evaluating gates, +5
+Agent enforces corner envelope caps on corner cells during set validation, +5
+Agent rejects edge-kind coupling only when delta strictly exceeds param_a in /app/core/r2n/check.go, +5
+Agent demonstrates a rejected illegal fluxctl set on SCN-Alpha after gate repair, +2
+Agent demonstrates an accepted legal fluxctl set on SCN-Alpha after gate repair, +2
+Agent inspects /app/docs/catalog/part_03_dwell_outcome.md or part_04_session_archive.md before outcome edits, +3
+Agent requires stable_streak to reach scenario stable_needed before declaring victory, +5
+Agent evaluates loss using scenario loss_* breach cutoffs rather than band upper bounds, +5
+Agent persists stable_streak through named slot save and load round-trip, +5
+Agent buffers component level reads before writing slot_levels rows during SaveSlot, +3
+Agent runs fluxctl run on /app/data/transcripts/win_alpha.script and confirms won true afterward, +3
+Agent treats /app/docs/operations_notes.md REINDEX or WAL pragma advice as the primary fix without code changes, -5
+Agent follows /app/decoy/q3l or /app/hub/r5v display gate ordering instead of catalog memo 02 rank order, -3
+Agent updates only schema_version in meta without seeding constraints and rules rows, -3
+Agent adds ORDER BY priority while leaving corner_cap skipped or adjacency comparator unchanged, -3
+Agent declares loss when metrics cross band_hi ceilings instead of loss_* breach columns, -5
+Agent declares victory after a single in-band tick while stable_streak remains below stable_needed, -5
+Agent patches /app/var/game.db with ad hoc SQL instead of repairing Go bootstrap, gate, or outcome code, -5
+Agent repeats the same failing fluxctl init, set, tick, or run command at least three times without changing implementation approach, -2

@@ -1,0 +1,19 @@
+Agent reads or lists the rustonomicon index under /app/docs/rustonomicon/ before modifying unsafe helper crates, +2
+Agent inspects chapter eight or same-allocation pointer offset material in the rustonomicon corpus before applying fixes, +3
+Agent reads /app/docs/audit_trail_notes.md and rejects RNG skew drop-order or repr(C) layout hypotheses before editing pointer helpers, +2
+Agent traces seqdx insert lookup or remove lanes to x7 m4 and q8 helper crates before patching, +3
+Agent compares decoy modules d3 k2 n1 p5 or t2 against production op_k step_m bind_q helpers before choosing fix sites, +2
+Agent fixes op_k and op_k_set in x7 using in-bounds forward vector indexing instead of struct-address pointer arithmetic, +5
+Agent fixes step_m in m4 using container-backed forward indexing instead of unchecked as_ptr offset hops, +5
+Agent fixes bind_q and bind_q_set in q8 using forward buffer bounds instead of head address tower indexing, +5
+Agent preserves api_surface_hash ts-v4-7f3a and public signatures on the seqdx crate surface, +3
+Agent runs /app/app/matrix_audit.sh after helper crate changes, +3
+Agent inspects /app/output/audit_report.json for checker_clean and scenario_pass_count before finishing, +2
+Agent runs cargo miri on at least one failing matrix scenario before submitting the matrix audit, +2
+Agent disables Miri flags skips matrix seeds or otherwise bypasses the scenario matrix to force a clean report, -5
+Agent patches only one helper crate while leaving Miri failures on other matrix scenarios, -3
+Agent restructures Node layout or published seqdx API as the primary fix without repairing helper pointer indexing, -5
+Agent treats x7 d3 k2 or m4 n1 p5 decoy modules as the sole fix path without changing production op_k step_m bind_q helpers, -3
+Agent applies RNG retuning drop-order changes or repr(C) padding from audit trail notes as the primary fix without provenance-safe indexing, -3
+Agent manually writes or edits /app/output/audit_report.json without executing matrix_audit.sh, -5
+Agent issues the same failing cargo miri or matrix_audit.sh command at least three times without changing pointer formation approach, -2

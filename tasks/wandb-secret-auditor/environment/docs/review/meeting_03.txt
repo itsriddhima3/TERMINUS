@@ -1,0 +1,14 @@
+Transcript notes — older draft retained
+
+POLICY_TAG: SR-2026-05
+STATUS: DRAFT
+
+In this draft we considered expanding ALLOW_REF_PREFIX to include private artifacts,
+but this was rejected in SR-2026-04.
+
+ALLOW_REF_PREFIX: artifact://public/
+ALLOW_REF_PREFIX: artifact://private/
+
+APPROVAL_KEY: alpha-review-key-seed
+NONCE_FMT: NNC-v3:<run>:<8hex>
+

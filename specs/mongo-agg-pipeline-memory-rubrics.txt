@@ -1,0 +1,18 @@
+Mongo Spine Rollup — submission rubrics
+
+Agent runs /app/runners/k7_execute.sh or /app/app/pipeline_audit.sh and inspects memory-limit aborts or zero result_total before editing spine modules, +3
+Agent reads /app/data/workload_matrix.json acceptance bands for WK-SPINE-EMEA before treating the repair as complete, +2
+Agent reads /app/docs/spine_predicate_registry.md or /app/docs/rollup_policy/ before changing bundle order or invoke spill behavior, +2
+Agent traces the live spine path through /app/runners/n4_exec.js into /app/x9/, /app/m4/, and /app/r7/ instead of editing only modules under /app/pipelines/, +3
+Agent repairs phase_bundle in /app/x9/p9a_bundle.js so selective predicates on raw region and event_type precede grouping and sorting, +5
+Agent sets allow_disk_use true in /app/config/invoke_policy.json and repairs mergeOpts in /app/r7/h3v_invoke.js so aggregate invocation honors spill policy, +5
+Agent repairs step_tail in /app/m4/q2m_attach.js so trailing stages do not apply document-level event_type predicates after accumulators reshape _id, +5
+Agent re-runs /app/app/pipeline_audit.sh and confirms memory_limit_exceeded is false with result_total inside workload_matrix bands, +3
+Agent uses /app/lib/mongosh_wrap.sh or mongosh against telemetry_db when validating spine collection scans or grouped totals, +2
+
+Agent treats /app/pipelines/p9_spine_mirror.js or /app/x9/p9b_legacy.js as the authoritative WK-SPINE bundle instead of the runner-wired x9 module, -3
+Agent follows /app/docs/archive/legacy_spill.md or /app/hub/r7b_invoke.js as the sole spill repair without aligning invoke_policy.json and /app/r7/h3v_invoke.js, -3
+Agent patches only /app/config/invoke_policy.json while mergeOpts in /app/r7/h3v_invoke.js still hardcodes allowDiskUse false, -3
+Agent reorders bundle stages in /app/x9/p9a_bundle.js but leaves step_tail matching cfg.event_type after $group, -3
+Agent writes or edits /app/output/pipeline_audit.json by hand instead of executing pipeline_audit.sh after code changes, -5
+Agent repeats the same failing k7_execute or pipeline_audit outcome at least three times without changing x9, m4, r7, or invoke policy sources, -2

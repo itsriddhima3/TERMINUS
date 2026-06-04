@@ -1,0 +1,23 @@
+--- a/graph-src/walk.lua
++++ b/graph-src/walk.lua
+@@ -34,10 +34,7 @@
+ end
+ 
+ function M.op_walk_a(g, start_id, anchor_id, edge_family)
+-  edge_family = edge_family or "issued_by"
+-  if g.severed == "true" then
+-    return false, {}
+-  end
++  edge_family = edge_family or "trusts"
+   if start_id == anchor_id then
+     return true, {}
+   end
+@@ -75,7 +72,7 @@
+ function M.count_ledger_hits(g, row_id)
+   local hits = 0
+   for _, e in ipairs(g.edges or {}) do
+-    if e.family == "deny" and e.from == row_id then
++    if e.family == "deny" and e.to == row_id then
+       hits = hits + 1
+     end
+   end

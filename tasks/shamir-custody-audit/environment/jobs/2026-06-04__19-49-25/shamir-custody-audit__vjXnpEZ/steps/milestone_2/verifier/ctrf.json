@@ -1,0 +1,110 @@
+{
+    "results": {
+        "tool": {
+            "name": "pytest",
+            "version": "8.4.1"
+        },
+        "summary": {
+            "tests": 10,
+            "passed": 10,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "other": 0,
+            "start": 1780583386.218451,
+            "stop": 1780583386.3562403
+        },
+        "tests": [
+            {
+                "name": "test_m2.py::TestMilestone2::test_m2_alpha_reconstruction_success",
+                "status": "passed",
+                "duration": 0.008651736003230326,
+                "start": 1780583386.2624545,
+                "stop": 1780583386.2716472,
+                "retries": 0,
+                "file_path": "test_m2.py"
+            },
+            {
+                "name": "test_m2.py::TestMilestone2::test_m2_beta_insufficient_shares",
+                "status": "passed",
+                "duration": 0.007015731003775727,
+                "start": 1780583386.2720008,
+                "stop": 1780583386.2793946,
+                "retries": 0,
+                "file_path": "test_m2.py"
+            },
+            {
+                "name": "test_m2.py::TestMilestone2::test_m2_gamma_reconstruction_success",
+                "status": "passed",
+                "duration": 0.00715994399797637,
+                "start": 1780583386.2797163,
+                "stop": 1780583386.2872207,
+                "retries": 0,
+                "file_path": "test_m2.py"
+            },
+            {
+                "name": "test_m2.py::TestMilestone2::test_m2_delta_reconstruction_success",
+                "status": "passed",
+                "duration": 0.007311277004191652,
+                "start": 1780583386.2875319,
+                "stop": 1780583386.2951813,
+                "retries": 0,
+                "file_path": "test_m2.py"
+            },
+            {
+                "name": "test_m2.py::TestMilestone2::test_m2_threshold_met_flags",
+                "status": "passed",
+                "duration": 0.007613222005602438,
+                "start": 1780583386.2954977,
+                "stop": 1780583386.3034818,
+                "retries": 0,
+                "file_path": "test_m2.py"
+            },
+            {
+                "name": "test_m2.py::TestMilestone2::test_m2_beta_fingerprint_null",
+                "status": "passed",
+                "duration": 0.0069392759978654794,
+                "start": 1780583386.3038068,
+                "stop": 1780583386.3110883,
+                "retries": 0,
+                "file_path": "test_m2.py"
+            },
+            {
+                "name": "test_m2.py::TestMilestone2::test_m2_alpha_fingerprint_matches_independent_reconstruction",
+                "status": "passed",
+                "duration": 0.009598500997526571,
+                "start": 1780583386.3114023,
+                "stop": 1780583386.3213456,
+                "retries": 0,
+                "file_path": "test_m2.py"
+            },
+            {
+                "name": "test_m2.py::TestMilestone2::test_m2_delta_fingerprint_matches_independent_reconstruction",
+                "status": "passed",
+                "duration": 0.010919386004388798,
+                "start": 1780583386.3217213,
+                "stop": 1780583386.3332217,
+                "retries": 0,
+                "file_path": "test_m2.py"
+            },
+            {
+                "name": "test_m2.py::TestMilestone2::test_m2_gamma_intermediate_fingerprint_correct",
+                "status": "passed",
+                "duration": 0.011408674996346235,
+                "start": 1780583386.334338,
+                "stop": 1780583386.346272,
+                "retries": 0,
+                "file_path": "test_m2.py"
+            },
+            {
+                "name": "test_m2.py::TestMilestone2::test_m2_delta_degree1_closed_form_matches_fingerprint",
+                "status": "passed",
+                "duration": 0.008911794007872231,
+                "start": 1780583386.3466055,
+                "stop": 1780583386.355912,
+                "retries": 0,
+                "file_path": "test_m2.py"
+            }
+        ]
+    }
+}

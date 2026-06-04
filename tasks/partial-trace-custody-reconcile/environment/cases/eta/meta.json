@@ -1,0 +1,8 @@
+{
+  "pack_id": "eta",
+  "initial_holders": {
+    "unit-p": "pod-1",
+    "unit-q": "pod-2",
+    "unit-r": "pod-3"
+  }
+}

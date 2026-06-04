@@ -1,0 +1,7 @@
+{
+  "spine_defaults": {
+    "allow_disk_use": false,
+    "batch_profile": "legacy-nightly"
+  },
+  "notes": "WK-SPINE batch lane; see invoke_lane_contract.md"
+}
